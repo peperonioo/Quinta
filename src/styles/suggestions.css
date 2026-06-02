@@ -1,0 +1,129 @@
+/* ── SUGGESTION BUBBLES ──────────────────────────────*/
+/* Old grid-style section is hidden; bubbles live in the builder */
+.suggestions-section { display:none !important }
+
+/* Next-orbit container */
+.next-orbit {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:13px !important;
+  min-height:164px !important;
+  padding:16px 4px 12px !important;
+  overflow-x:auto !important;
+  overflow-y:visible !important;
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity !important;
+  scrollbar-width:thin !important;
+  border-radius:22px !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.034),rgba(255,255,255,.014));
+  border:1px solid rgba(255,255,255,.045);
+}
+body.light .next-orbit {
+  background:linear-gradient(180deg,rgba(255,255,255,.52),rgba(255,255,255,.25));
+  border-color:rgba(0,0,0,.045);
+}
+.next-orbit::-webkit-scrollbar       { height:4px }
+.next-orbit::-webkit-scrollbar-thumb { background:rgba(255,255,255,.14); border-radius:99px }
+body.light .next-orbit::-webkit-scrollbar-thumb { background:rgba(0,0,0,.14) }
+
+/* Bubble */
+.next-bubble {
+  --d: 88px;
+  --fit: 50;
+  --diam: clamp(62px, var(--d), 158px);
+  width:var(--diam) !important; height:var(--diam) !important;
+  min-width:var(--diam) !important; min-height:var(--diam) !important;
+  max-width:var(--diam) !important; max-height:var(--diam) !important;
+  aspect-ratio:1/1 !important;
+  flex:0 0 var(--diam) !important;
+  border-radius:999px !important;
+  padding:10px !important;
+  scroll-snap-align:center !important;
+  transform:translateY(calc((100 - var(--fit)) * .05px)) !important;
+  display:grid !important;
+  grid-template-rows:auto 1fr auto !important;
+  place-items:center !important;
+  gap:2px !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255,255,255,.14), transparent 28%),
+    radial-gradient(circle at 50% 55%, rgba(255,112,72,calc(.05 + var(--fit)*.0045)), rgba(255,112,72,calc(.025 + var(--fit)*.002)) 48%, rgba(255,255,255,.035) 100%) !important;
+  box-shadow:
+    0 calc(8px + var(--fit)*.12px) calc(18px + var(--fit)*.32px) rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.09) !important;
+  opacity:calc(.48 + var(--fit)*.0052) !important;
+  cursor:pointer;
+  transition:transform var(--ui-med) var(--ui-ease), box-shadow var(--ui-med) var(--ui-ease),
+    opacity var(--ui-fast) var(--ui-ease), border-color var(--ui-fast) var(--ui-ease) !important;
+  animation:bubbleOrbitIn .52s cubic-bezier(.18,1.28,.26,1) both !important;
+  animation-delay:calc(var(--rank, 0) * 34ms) !important;
+}
+@keyframes bubbleOrbitIn {
+  from { opacity:0; transform:translateY(12px) scale(.72) }
+  to   { opacity:calc(.48 + var(--fit)*.0052); transform:translateY(calc((100 - var(--fit)) * .05px)) }
+}
+body.light .next-bubble {
+  border-color:rgba(0,0,0,.10) !important;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255,255,255,.82), transparent 30%),
+    radial-gradient(circle at 50% 55%, rgba(232,68,26,calc(.035 + var(--fit)*.0027)), rgba(232,68,26,calc(.018 + var(--fit)*.0018)) 48%, rgba(255,255,255,.78) 100%) !important;
+  box-shadow:0 calc(8px + var(--fit)*.09px) calc(18px + var(--fit)*.22px) rgba(0,0,0,.105), inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+.next-bubble.best {
+  border-color:rgba(255,112,72,.72) !important;
+  box-shadow:
+    0 calc(14px + var(--fit)*.12px) calc(30px + var(--fit)*.32px) rgba(232,68,26,.20),
+    0 0 0 1px rgba(255,112,72,.16),
+    inset 0 1px 0 rgba(255,255,255,.14) !important;
+}
+.next-bubble:hover {
+  transform:translateY(-5px) scale(1.035) !important;
+  border-color:rgba(255,112,72,.72) !important;
+  opacity:1 !important;
+}
+.next-bubble:active { transform:translateY(-1px) scale(.985) !important }
+
+/* Bubble inner elements */
+.nb-fit    { font-family:'DM Mono',monospace !important; font-size:7px !important; letter-spacing:.1em !important; opacity:.62 !important; line-height:1 !important }
+.nb-chord  {
+  font-family:var(--wheel-font) !important;
+  font-weight:700 !important;
+  letter-spacing:-.03em !important;
+  font-size:clamp(20px, calc(var(--diam, 88px) * .25), 40px) !important;
+  line-height:.9 !important; text-align:center !important;
+  white-space:nowrap !important;
+}
+.nb-degree  { font-family:'DM Mono',monospace !important; font-size:8px !important; color:var(--muted) !important; line-height:1 !important }
+.nb-category { display:none !important }
+.nb-metrics  { width:min(84%,90px) !important; display:grid !important; gap:3px !important; margin-top:4px !important }
+.metric-line { display:grid !important; grid-template-columns:12px 1fr !important; gap:4px !important; align-items:center !important }
+.metric-name { font-family:'DM Mono',monospace; font-size:7px !important; letter-spacing:.04em !important; color:var(--muted); overflow:hidden; text-align:left }
+.metric-name span { display:none !important }
+.metric-name.res::after { content:'R' }
+.metric-name.ten::after { content:'T' }
+.metric-name.mot::after { content:'M' }
+.metric-track { height:3px !important; border-radius:999px; background:rgba(255,255,255,.09); overflow:hidden }
+body.light .metric-track { background:rgba(0,0,0,.08) }
+.metric-fill  { display:block; height:100%; border-radius:999px; background:rgba(255,255,255,.34) }
+.metric-fill.tension.hot     { background:var(--accent2); box-shadow:0 0 9px rgba(232,68,26,.35) }
+.metric-fill.resolution.hot  { background:rgba(255,255,255,.62) }
+body.light .metric-fill      { background:rgba(0,0,0,.30) }
+body.light .metric-fill.tension.hot { background:var(--accent) }
+
+/* Old suggestion card components (kept in case section re-enabled) */
+.gravity-status  { display:grid; grid-template-columns:1fr; margin-bottom:9px }
+.gravity-card    { padding:9px 11px; border-radius:13px; border:1px solid var(--line); background:rgba(255,255,255,.032); display:flex; align-items:center; justify-content:space-between; gap:10px }
+body.light .gravity-card { background:rgba(0,0,0,.035) }
+.gravity-card .g-label { font-family:'DM Mono',monospace; font-size:7px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted) }
+.gravity-card .g-value { font-family:'DM Serif Display',serif; font-size:20px; line-height:1 }
+.gravity-pill-row { display:flex; gap:5px; flex-wrap:wrap }
+.gravity-pill { font-family:'DM Mono',monospace; font-size:8px; padding:4px 7px; border-radius:999px; background:var(--degree-tonic); border:1px solid rgba(232,68,26,.22); color:var(--accent2); white-space:nowrap; transition:all .18s var(--ease) }
+.gravity-pill.metric.medium { font-weight:600; color:var(--ink); border-color:rgba(232,68,26,.30) }
+.gravity-pill.metric.high   { font-weight:700; color:#fff; background:rgba(232,68,26,.72); border-color:rgba(255,145,110,.48); box-shadow:0 5px 18px rgba(232,68,26,.20) }
+body.light .gravity-pill.metric.high { color:#fff }
+
+/* Mood buttons */
+.mood-lens { display:flex; gap:5px; flex-wrap:wrap }
+.mood-btn  { border:1px solid var(--line); background:var(--sel-bg); border-radius:999px; padding:5px 8px; font-size:10px; color:var(--muted); cursor:pointer; transition:all .15s }
+.mood-btn.active { background:var(--degree-tonic); border-color:rgba(232,68,26,.35); color:var(--accent2) }

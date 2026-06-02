@@ -1,0 +1,43 @@
+/* ── INSTRUMENTS ─────────────────────────────────────*/
+.piano {
+  height:116px; position:relative; border-radius:10px;
+  overflow:hidden; background:rgba(0,0,0,.15); border:1px solid var(--line);
+}
+.white {
+  position:absolute; bottom:0; top:0;
+  background:linear-gradient(180deg,#f8f8f4,#e8e8e0);
+  border-right:1px solid #bbb; border-radius:0 0 7px 7px;
+  display:flex; align-items:flex-end; justify-content:center;
+  padding-bottom:9px; font-family:'DM Mono',monospace; font-size:9px; color:#aaa;
+}
+.black {
+  position:absolute; top:0; height:60%;
+  background:linear-gradient(180deg,#252525,#101010);
+  border-radius:0 0 5px 5px; z-index:2;
+}
+.key-on.white { background:linear-gradient(180deg,#d8c8f8,#b8a0e8) !important; color:#5544aa !important }
+.key-on.black { background:linear-gradient(180deg,var(--accent),#aa2200) !important }
+
+/* Fretboard */
+.fretboard-wrap {
+  overflow-x:auto; border-radius:10px;
+  scrollbar-width:thin; scrollbar-color:var(--muted) transparent;
+}
+.fretboard-wrap::-webkit-scrollbar       { height:3px }
+.fretboard-wrap::-webkit-scrollbar-thumb { background:var(--muted); border-radius:2px }
+.fretboard {
+  min-width:860px;
+  background:linear-gradient(180deg,#2a1f0e,#1a1208);
+  border-radius:10px; overflow:hidden; padding-bottom:6px;
+}
+.fret-note {
+  width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:8px; font-weight:700; font-family:'DM Mono',monospace;
+  background:rgba(255,255,255,.06); color:rgba(255,255,255,.2);
+  position:relative; z-index:2;
+}
+.fret-note.on   { background:#444; color:#fff; box-shadow:0 0 0 1.5px rgba(255,255,255,.2) }
+.fret-note.root { background:var(--accent); color:#fff; box-shadow:0 0 0 2px rgba(232,68,26,.35),0 3px 10px rgba(232,68,26,.3) }
+.fret-cell      { height:34px; display:flex; align-items:center; justify-content:center; position:relative; z-index:1 }
+.fret-cell::after { content:''; position:absolute; right:0; top:4px; bottom:4px; width:1px; background:rgba(255,255,255,.09) }

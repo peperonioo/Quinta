@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0b"/>
+<title>Easy Fifth Circle · V3.17</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<!-- %%CSS%% -->
+</head>
+<body>
+<canvas id="plasma"></canvas>
+
+<div class="app">
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1" fill="none" opacity=".5"/><circle cx="10" cy="10" r="5" stroke="currentColor" stroke-width="1" fill="none" opacity=".4"/><circle cx="10" cy="10" r="2" fill="currentColor" opacity=".7"/></svg>
+      <h1>Easy Fifth Circle</h1>
+      <span class="version">V3.17</span>
+    </div>
+    <div class="topbar-right">
+      <div class="settings-mini">
+        <span data-i18n="settings.lang">Lang</span>
+        <select id="langSelect" onchange="setLanguage(this.value)">
+          <option value="en">EN</option>
+          <option value="es">ES</option>
+        </select>
+      </div>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark">☀</button>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('theory',this)" data-i18n="tabs.theory">Theory</button>
+        <button class="tab-btn" onclick="switchTab('production',this)" data-i18n="tabs.production">Production</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- THEORY PANEL -->
+  <div id="panel-theory">
+    <!-- MAIN ROW -->
+    <div class="main-row">
+      <!-- LEFT SIDE -->
+      <aside class="side">
+        <div class="card">
+          <div class="lbl" data-i18n="labels.keyRoot">Key / Root</div>
+          <div id="sideKey" class="big">C</div>
+          <div id="sideMode" class="sub">Major</div>
+          <div class="wheel-toggle" aria-label="Wheel label mode">
+            <button id="viewMajorBtn" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
+            <button id="viewMinorBtn" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="lbl" data-i18n="labels.mode">Mode</div>
+          <div class="mode-control" id="modeControl">
+            <button class="mode-display" id="modeDisplay" type="button" onclick="ModeMenu.toggle(event)">
+              <span id="modeMain">Major</span>
+              <small id="modeSub">bright centre</small>
+              <i>⌄</i>
+            </button>
+            <div class="mode-menu" id="modeMenu"></div>
+            <select id="modeSelect" aria-hidden="true" tabindex="-1"></select>
+          </div>
+        </div>
+        <div class="card">
+          <div class="lbl" data-i18n="labels.accidentals">Accidentals</div>
+          <div id="accidentals" class="big">None</div>
+          <div id="accidentalType" class="sub">Natural</div>
+        </div>
+      </aside>
+
+      <!-- CIRCLE -->
+      <div class="circle-wrap">
+        <svg id="wheelSvg" viewBox="0 0 600 600">
+          <defs>
+            <filter id="fGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="10" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <radialGradient id="discGrad" cx="50%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="rgba(255,255,255,.06)"/>
+              <stop offset="100%" stop-color="rgba(0,0,0,.0)"/>
+            </radialGradient>
+          </defs>
+          <circle cx="300" cy="300" r="296" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+          <g id="wg"></g>
+          <g id="ticks"></g>
+          <circle cx="300" cy="300" r="148" fill="rgba(6,6,10,.94)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+          <circle cx="300" cy="300" r="148" fill="url(#discGrad)"/>
+          <text id="cKey" x="300" y="315" text-anchor="middle"
+            font-family="DM Serif Display,Georgia,serif" font-weight="680" font-style="normal"
+            font-size="80" fill="#f0ede8"></text>
+          <text id="cRel" x="300" y="352" text-anchor="middle"
+            font-family="DM Serif Display,Georgia,serif" font-weight="620" font-style="normal"
+            font-size="30" fill="rgba(255,112,72,.92)"></text>
+          <!-- Single wheelPointer: do not duplicate this id -->
+          <polygon id="wheelPointer" points="300,178 304,189 296,189" fill="rgba(240,237,232,.38)"/>
+        </svg>
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <aside class="side side-compact">
+        <div class="card relative-card">
+          <div class="lbl" data-i18n="labels.relativeMinor">Relative minor</div>
+          <div id="relMinorBig" class="big accent-t">Am</div>
+        </div>
+        <div class="card scale-card">
+          <div class="lbl" data-i18n="labels.scaleNotes">Scale notes</div>
+          <div id="scaleNotes" class="scale-orbs"></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- BOTTOM THEORY -->
+    <div class="theory-bottom">
+      <!-- Degrees -->
+      <div style="position:relative">
+        <div id="degrees" class="degrees-row"></div>
+        <div class="deg-popup-wrap" id="degWrap">
+          <div class="deg-popup" id="degPopup">
+            <button class="popup-close" onclick="closePopup()">✕</button>
+            <div class="deg-nav">
+              <div class="deg-dots" id="degDots"></div>
+              <span class="swipe-hint">scroll → navigate</span>
+            </div>
+            <h3 id="pTitle"></h3>
+            <div class="psub" id="pSub"></div>
+            <p id="pDesc"></p>
+            <p class="pfeel" id="pFeel"></p>
+            <div class="ppairs" id="pPairs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progression Builder -->
+      <section class="progression-builder" id="progressionBuilder"
+        ondragover="DegreeDrag.over(event)" ondrop="DegreeDrag.drop(event)">
+        <div class="builder-head">
+          <div>
+            <h2 class="builder-title" data-i18n="builder.title">Progression builder</h2>
+            <div class="builder-sub" data-i18n="builder.subtitle">Tap a degree or bubble to add it to your progression.</div>
+          </div>
+          <div class="builder-actions">
+            <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
+            <button class="builder-btn" onclick="BuilderEngine.duplicateLast()" data-i18n="builder.duplicate">Duplicate</button>
+            <button class="builder-btn" onclick="BuilderEngine.copy()" data-i18n="builder.copy">Copy</button>
+            <button class="builder-btn danger" onclick="HistoryEngine.clear()" data-i18n="builder.clear">Clear</button>
+          </div>
+        </div>
+        <div id="flowRow" class="builder-row"></div>
+        <div id="builderMeta" class="builder-meta"></div>
+        <div id="progressionStory" class="progression-story"></div>
+      </section>
+
+      <!-- Suggestions section (hidden by CSS; bubbles live in builder) -->
+      <section class="suggestions-section">
+        <div class="suggestions-head">
+          <div>
+            <h2 data-i18n="suggestions.title">Quick harmonic ideas</h2>
+          </div>
+          <div class="mood-lens" id="moodLens"></div>
+        </div>
+        <div id="moodStatus" class="mood-status"></div>
+        <div id="gravityStatus" class="gravity-status"></div>
+        <div id="suggestions" class="suggestion-grid"></div>
+      </section>
+
+      <!-- Instrument drawers -->
+      <div class="drawers">
+        <details class="drawer" open>
+          <summary><span data-i18n="drawers.piano">Piano</span> <span class="chev">⌄</span></summary>
+          <div class="drawer-body"><div id="piano" class="piano"></div></div>
+        </details>
+        <details class="drawer">
+          <summary><span data-i18n="drawers.guitar">Guitar / Fretboard</span> <span class="chev">⌄</span></summary>
+          <div class="drawer-body"><div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div></div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTION PANEL -->
+  <div id="panel-production">
+    <div class="genre-tabs">
+      <button class="genre-btn active" onclick="setGenre('house',this)">House</button>
+      <button class="genre-btn" onclick="setGenre('neosoul',this)">Neo Soul</button>
+      <button class="genre-btn soon">Afrobeat</button>
+      <button class="genre-btn soon">Jazz</button>
+      <button class="genre-btn soon">Techno</button>
+    </div>
+    <div class="prod-header">
+      <div><div id="prodTitle" class="prod-title">House</div><div id="prodMeta" class="prod-meta"></div></div>
+      <div class="key-badge"><span id="prodKeyNote" class="kb-note">C</span><span id="prodKeyMode">Ionian</span></div>
+    </div>
+    <div id="prodCards" class="prod-grid"></div>
+    <div class="midi-section">
+      <div class="midi-header">
+        <h3 data-i18n="production.rhythmGrid">Rhythm Grid — 1 bar · 16 steps</h3>
+        <div style="display:flex;gap:7px;align-items:center">
+          <span id="bpmBadge" class="bpm-badge">124 BPM</span>
+          <button class="play-btn" id="playBtn" onclick="togglePlay()">▶ Play</button>
+        </div>
+      </div>
+      <div id="midiGrid" class="midi-grid"></div>
+    </div>
+    <div id="elementsSection" class="elements-section"></div>
+    <div class="prog-section">
+      <h3 data-i18n="production.progressions">Typical Progressions</h3>
+      <div id="progList" class="prog-list"></div>
+    </div>
+    <div class="groove-section">
+      <h3 data-i18n="production.groove">Groove Construction</h3>
+      <div id="grooveRules" class="groove-rules"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div class="palette-row" id="palRow">
+      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)" data-i18n="settings.plasma">Plasma</span>
+    </div>
+    <div class="intensity-wrap">
+      <label data-i18n="settings.intensity">Intensity</label>
+      <input type="range" id="plasmaIntensity" min="0.1" max="2.5" step="0.1" value="1"/>
+    </div>
+  </div>
+</div>
+
+<div id="copyToast" class="copy-toast"></div>
+<!-- %%JS%% -->
+</body>
+</html>

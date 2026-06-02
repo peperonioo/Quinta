@@ -1,0 +1,101 @@
+/* ── OVERLAY SYSTEM ───────────────────────────────────
+   Dropdown and popovers always beat cards.           */
+
+/* Mode control trigger */
+.mode-control   { position:relative }
+.mode-display   {
+  display:flex; align-items:center; gap:6px;
+  width:100%; border:1px solid var(--line); border-radius:10px;
+  background:var(--sel-bg); padding:8px 10px;
+  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500;
+  color:var(--ink); cursor:pointer; text-align:left;
+}
+.mode-display span  { flex:1 }
+.mode-display small { font-size:9px; color:var(--muted); display:block; margin-top:1px }
+.mode-display i     { font-style:normal; font-size:9px; color:var(--muted); transition:transform .2s }
+.mode-control.open .mode-display i { transform:rotate(180deg) }
+#modeSelect { display:none }
+
+/* Mode menu (portaled to body) */
+.mode-menu {
+  position:fixed !important;
+  z-index:var(--z-dropdown) !important;
+  width:min(340px,calc(100vw - 28px));
+  border-radius:var(--r-lg) !important;
+  border:1px solid var(--ui-border-strong) !important;
+  background:var(--ui-surface-strong) !important;
+  backdrop-filter:blur(26px) !important;
+  box-shadow:0 26px 80px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.08) !important;
+  padding:7px !important;
+  opacity:0;
+  transform:translateY(-5px) scale(.985);
+  pointer-events:none;
+  transition:opacity var(--ui-fast) var(--ui-ease), transform var(--ui-fast) var(--ui-ease);
+  isolation:isolate;
+}
+.mode-menu.portal-open {
+  opacity:1 !important;
+  transform:translateY(0) scale(1) !important;
+  pointer-events:auto !important;
+}
+.mode-option {
+  display:flex; align-items:center; justify-content:space-between;
+  border-radius:13px !important; min-height:46px !important; padding:10px 11px !important;
+  width:100%; border:none; background:transparent; color:var(--ink);
+  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500;
+  cursor:pointer; text-align:left; transition:background .14s;
+  min-height:min(var(--tap),100%);
+}
+.mode-option b     { display:block; font-size:12px }
+.mode-option small { display:block; font-size:9px; color:var(--muted); margin-top:2px }
+.mode-option em    { font-style:normal; font-family:'DM Mono',monospace; font-size:9px; color:var(--muted) }
+.mode-option:hover  { background:rgba(128,128,128,.1) }
+.mode-option.active { background:var(--degree-tonic) }
+
+/* Micro popover (info + direction guide) */
+.micro-popover {
+  position:fixed; z-index:var(--z-popover) !important; top:0; left:0;
+  width:min(320px,calc(100vw - 28px));
+  padding:14px 15px; border-radius:var(--r-md) !important;
+  border:1px solid var(--ui-border-strong) !important;
+  background:var(--ui-surface-strong) !important;
+  backdrop-filter:blur(24px) !important;
+  box-shadow:0 24px 70px rgba(0,0,0,.30) !important;
+  opacity:0; transform:translate(10px,-4px) scale(.985);
+  pointer-events:none;
+  transition:opacity .18s var(--ease),transform .18s var(--ease);
+  text-align:left;
+}
+.micro-popover.open     { opacity:1; transform:translate(0,0) scale(1); pointer-events:auto }
+.micro-popover h4       { font-family:'DM Serif Display',serif; font-size:16px; line-height:1.1; margin:0 24px 6px 0; color:var(--ink) }
+.micro-popover p        { font-size:11.5px; line-height:1.55; color:var(--muted) }
+.micro-close {
+  position:absolute; top:8px; right:8px; width:22px; height:22px;
+  border:none; border-radius:8px; background:var(--sel-bg);
+  color:var(--muted); cursor:pointer; font-size:14px; line-height:1;
+  display:grid; place-items:center;
+}
+/* Caret */
+.micro-popover::before {
+  content:''; position:absolute; left:-7px; top:18px;
+  width:12px; height:12px; transform:rotate(45deg);
+  background:inherit; border-left:1px solid var(--ui-border-strong); border-bottom:1px solid var(--ui-border-strong);
+}
+.micro-popover.flip::before {
+  left:auto; right:-7px; border-left:none; border-bottom:none;
+  border-right:1px solid var(--ui-border-strong); border-top:1px solid var(--ui-border-strong);
+}
+
+/* Info label buttons */
+.info-label-btn {
+  display:inline-flex; align-items:center; gap:5px; border:none; background:transparent;
+  color:var(--muted); font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em;
+  text-transform:uppercase; cursor:pointer; padding:0; margin:0 0 5px;
+}
+.info-label-btn:hover { color:var(--ink) }
+.info-dot {
+  width:14px; height:14px; border-radius:50%; border:1px solid var(--line);
+  display:inline-grid; place-items:center; font-size:9px; line-height:1; color:var(--muted);
+}
+.info-help-anchor { position:relative }
+.info-row         { position:relative; z-index:8; overflow:visible }

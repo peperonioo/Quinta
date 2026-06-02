@@ -1,0 +1,62 @@
+/* ── WHEEL ────────────────────────────────────────────*/
+#wheelSvg {
+  width:min(56vw, 520px);
+  height:min(56vw, 520px);
+  overflow:visible; cursor:grab;
+  touch-action:none; user-select:none;
+  filter:drop-shadow(0 12px 48px rgba(0,0,0,.5));
+  flex-shrink:0;
+  will-change:transform;
+  contain:layout paint style;
+}
+#wheelSvg:active { cursor:grabbing }
+body.light #wheelSvg { filter:drop-shadow(0 8px 32px rgba(0,0,0,.2)) }
+
+/* Wheel toggle */
+.wheel-toggle {
+  display:flex; gap:3px; margin-top:10px; padding:3px;
+  border:1px solid var(--line); border-radius:10px; background:var(--sel-bg);
+}
+.wheel-toggle button {
+  flex:1; border:0; background:transparent; color:var(--muted);
+  font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600;
+  padding:7px 6px; border-radius:7px; cursor:pointer;
+  transition:all .18s var(--ease);
+}
+.wheel-toggle button.active { background:var(--accent); color:#fff; box-shadow:0 3px 12px rgba(232,68,26,.18) }
+
+/* SVG text typography — single canonical rule */
+#wg text.wheel-label,
+#cKey, #cRel {
+  font-family:var(--wheel-font) !important;
+  font-style:normal !important;
+  font-weight:650 !important;
+  letter-spacing:-.025em !important;
+  paint-order:stroke !important;
+}
+#wg text.wheel-label  { font-weight:620 !important }
+#cKey                 { font-weight:680 !important; letter-spacing:-.045em !important }
+#cRel                 { font-weight:620 !important }
+#wg text[data-accidental="true"] {
+  font-family:"DM Mono", monospace !important;
+  font-weight:600 !important;
+  letter-spacing:0 !important;
+}
+
+/* Wheel pointer */
+#wheelPointer { opacity:.46; transform-origin:300px 300px }
+body.light #wheelPointer { fill:rgba(20,20,20,.28) !important }
+
+/* ── Wheel Direction Guide ──────────────────────────*/
+#wheelDirectionGuide {
+  pointer-events:none;
+  transition:opacity .42s cubic-bezier(.22,1,.36,1);
+}
+.wheel-info-btn circle,
+.wheel-info-btn text { transition:fill .2s, stroke .2s }
+.wheel-info-btn:hover circle { fill:rgba(255,255,255,.12) !important }
+body.light .wheel-info-btn text { fill:rgba(20,20,20,.55) !important }
+body.light #wheelDirectionGuide .dir-arc { stroke:rgba(20,20,20,.22) }
+body.light #wheelDirectionGuide .dir-label { fill:rgba(20,20,20,.5) }
+body.light #wheelDirectionGuide .dir-label-sub { fill:rgba(20,20,20,.3) }
+body.light #wheelDirectionGuide .dir-arrow { fill:rgba(20,20,20,.22) }

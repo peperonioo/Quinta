@@ -1,0 +1,66 @@
+/* ── DEGREES ROW ─────────────────────────────────────*/
+.degrees-row {
+  display:flex; gap:0; border-radius:14px; overflow:hidden;
+  border:1px solid var(--card-bd); background:var(--degree-bg);
+  backdrop-filter:blur(20px);
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+}
+.degree {
+  flex:1; padding:12px 6px; text-align:center; cursor:pointer;
+  border-right:1px solid var(--line); transition:background .15s;
+  min-height:min(var(--tap),100%);
+}
+.degree:last-child { border-right:0 }
+.degree:hover      { background:rgba(128,128,128,.1) }
+.degree.tonic:not(.active-deg) {
+  background:rgba(232,68,26,.075);
+  border-bottom:1px solid rgba(232,68,26,.28);
+}
+.degree.active-deg {
+  background:rgba(232,68,26,.18) !important;
+  box-shadow:inset 0 -3px 0 var(--accent), inset 0 0 0 1px rgba(232,68,26,.28);
+}
+.degree.active-deg .roman,
+.degree.active-deg .dn,
+.degree.active-deg .dq { color:var(--accent2) }
+.degree .roman { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.06em; color:var(--muted) }
+.degree .dn    { font-family:'DM Serif Display',serif; font-size:20px; margin-top:5px; line-height:1 }
+.degree .dq    { font-size:9px; color:var(--muted); margin-top:2px }
+
+/* Degree popup */
+.deg-popup-wrap {
+  position:absolute; left:50%; top:-10px; z-index:var(--z-popover);
+  width:min(440px,92vw);
+  transform:translate(-50%,-100%);
+  max-height:none !important; opacity:0; pointer-events:none;
+  transition:opacity .2s var(--ease), transform .25s var(--ease);
+  will-change:transform,opacity;
+}
+.deg-popup-wrap.open { opacity:1; pointer-events:auto; margin-top:0; transform:translate(-50%,-108%) }
+.deg-popup {
+  padding:13px 15px; border-radius:16px;
+  border:1px solid var(--card-bd);
+  background:var(--ui-surface-strong);
+  backdrop-filter:blur(28px);
+  box-shadow:0 14px 40px rgba(0,0,0,.35);
+  position:relative;
+}
+.deg-popup::after {
+  content:''; position:absolute; left:50%; bottom:-7px;
+  width:14px; height:14px;
+  transform:translateX(-50%) rotate(45deg);
+  background:inherit;
+  border-right:1px solid var(--card-bd); border-bottom:1px solid var(--card-bd);
+}
+.deg-popup h3    { font-family:'DM Serif Display',serif; font-size:18px; margin-bottom:4px }
+.deg-popup .psub { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:.08em; margin-bottom:8px }
+.deg-popup p     { font-size:11px; line-height:1.45 }
+.deg-popup .pfeel { display:none }
+.deg-popup .ppairs { display:flex; flex-wrap:wrap; gap:4px; margin-top:7px }
+.deg-popup .ppair  { font-size:9px; padding:2px 7px; border-radius:5px; background:var(--sel-bg); border:1px solid var(--line); color:var(--muted) }
+.popup-close {
+  position:absolute; top:10px; right:10px; width:22px; height:22px;
+  border:none; background:var(--sel-bg); border-radius:7px;
+  cursor:pointer; font-size:11px; display:grid; place-items:center; color:var(--muted);
+}
+.deg-nav  { display:none }

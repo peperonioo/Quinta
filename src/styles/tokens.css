@@ -1,0 +1,87 @@
+/* ── TOKENS ───────────────────────────────────────────
+   Single source of truth for design values.
+   All other CSS layers consume these variables.       */
+
+:root {
+  /* Colour */
+  --bg:       #0a0a0b;
+  --ink:      #f0ede8;
+  --muted:    rgba(240,237,232,.52);
+  --line:     rgba(255,255,255,.09);
+  --card:     rgba(12,12,16,.7);
+  --card-bd:  rgba(255,255,255,.09);
+  --accent:   #e8441a;
+  --accent2:  #ff7048;
+  --degree-bg:   rgba(0,0,0,.52);
+  --degree-tonic:rgba(232,68,26,.18);
+  --popup-bg: rgba(8,8,12,.88);
+  --sel-bg:   rgba(255,255,255,.06);
+  --sel-opt:  #1a1a1e;
+  --plasma-dark:1;
+
+  /* UI surface (overlay system) */
+  --ui-surface:        rgba(12,12,16,.72);
+  --ui-surface-strong: rgba(8,8,12,.92);
+  --ui-border:         rgba(255,255,255,.09);
+  --ui-border-strong:  rgba(255,255,255,.14);
+
+  /* Z-index scale */
+  --z-base:    1;
+  --z-wheel:   5;
+  --z-panel:   20;
+  --z-popover: 6000;
+  --z-dropdown:9000;
+  --z-toast:   10000;
+  --z-dev:     2147483647;
+
+  /* Radius */
+  --r-sm:   8px;
+  --r-md:   14px;
+  --r-lg:   18px;
+  --r-pill: 999px;
+
+  /* Motion */
+  --ease:        cubic-bezier(.22,1,.36,1);
+  --ui-ease:     cubic-bezier(.22,1,.36,1);
+  --ui-fast:     160ms;
+  --ui-med:      320ms;
+  --ui-slow:     620ms;
+  --motion-fast: 160ms;
+  --motion-med:  320ms;
+  --motion-slow: 620ms;
+
+  /* Shadow */
+  --shadow-soft: 0 12px 42px rgba(0,0,0,.22);
+  --shadow-lift: 0 18px 60px rgba(0,0,0,.28);
+
+  /* Touch target */
+  --tap: 44px;
+
+  /* Safe area insets */
+  --mobile-safe-top:    env(safe-area-inset-top,0px);
+  --mobile-safe-bottom: env(safe-area-inset-bottom,0px);
+
+  /* Wheel font */
+  --wheel-font: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+}
+
+body.light {
+  --bg:       #f0ede8;
+  --ink:      #141414;
+  --muted:    rgba(20,20,20,.5);
+  --line:     rgba(0,0,0,.1);
+  --card:     rgba(255,255,255,.8);
+  --card-bd:  rgba(0,0,0,.1);
+  --accent:   #c83010;
+  --accent2:  #e8441a;
+  --degree-bg:   rgba(255,255,255,.8);
+  --degree-tonic:rgba(200,48,16,.12);
+  --popup-bg: rgba(248,245,240,.96);
+  --sel-bg:   rgba(0,0,0,.04);
+  --sel-opt:  #f0ede8;
+  --plasma-dark:0;
+  --ui-surface:        rgba(248,245,240,.88);
+  --ui-surface-strong: rgba(248,245,240,.96);
+  --ui-border:         rgba(0,0,0,.10);
+  --ui-border-strong:  rgba(0,0,0,.14);
+}

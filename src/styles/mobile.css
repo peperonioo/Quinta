@@ -1,0 +1,47 @@
+/* ── MOBILE ───────────────────────────────────────────*/
+@media (max-width:860px) {
+  html,body {
+    min-height:100svh;
+    overscroll-behavior-y:none;
+    font-size:15px;
+  }
+  .app {
+    padding:calc(12px + var(--mobile-safe-top)) 14px calc(22px + var(--mobile-safe-bottom));
+    max-width:100%;
+    padding-inline:14px !important;
+  }
+  .topbar         { gap:10px; margin-bottom:10px; align-items:flex-start }
+  .brand h1       { font-size:10px; letter-spacing:.1em }
+  .version        { font-size:9px; padding:2px 5px }
+  .tabs           { border-radius:14px; padding:3px }
+  .tab-btn        { padding:8px 12px; font-size:11px }
+  .main-row       { grid-template-columns:1fr; gap:8px; margin-bottom:10px }
+  .side           { display:none }
+  .circle-wrap    { order:0 }
+  #wheelSvg       { width:min(94vw,430px) !important; height:min(94vw,430px) !important; filter:drop-shadow(0 8px 28px rgba(0,0,0,.34)) }
+  .theory-bottom  { gap:9px }
+  .degrees-row    { border-radius:12px }
+  .degree         { padding:10px 4px }
+  .degree .dn     { font-size:17px }
+  .progression-builder  { border-radius:18px !important }
+  .card,.drawer   { border-radius:18px !important }
+  .builder-head   { flex-direction:column }
+  .builder-actions{ justify-content:flex-start }
+  .builder-meta   { flex-direction:column; align-items:flex-start }
+  .builder-next-top { align-items:flex-start; flex-direction:column; gap:6px }
+  .builder-next-context { white-space:normal }
+  .builder-next-moves .next-orbit { justify-content:flex-start !important; padding-inline:6px !important; gap:9px }
+  .builder-next-moves .next-bubble { min-width:78px; min-height:74px; padding:10px 11px }
+  .info-row       { grid-template-columns:1fr }
+  .prod-grid,.elements-section { grid-template-columns:1fr }
+  .deg-popup-wrap { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) }
+  .deg-popup-wrap.open { transform:translate(-50%,-50%) }
+  .deg-popup::after { display:none }
+  .mode-menu      { left:14px !important; right:auto !important; width:calc(100vw - 28px) !important; max-height:min(56vh,360px) !important }
+  .micro-popover  { width:min(320px,calc(100vw - 28px)); transform:translateY(8px) scale(.985) }
+  .micro-popover.open { transform:translateY(0) scale(1) }
+}
+
+@media (max-width:560px) {
+  .builder-actions { justify-content:flex-start }
+}
