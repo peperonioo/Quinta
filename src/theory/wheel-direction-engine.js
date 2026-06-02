@@ -39,8 +39,23 @@ const WheelDirectionGuide = {
     // The wheel sectors end at r=286 and the viewBox edge is at r=300.
     // The arcs sit OUTSIDE the wheel in the SVG overflow region (overflow:visible),
     // and labels sit further out still, so nothing overlaps the chord names.
-    const R   = 320;   // arc radius — well outside the wheel ring
-    const RL  = 330;   // label radius — outside the arcs, in the empty corners
+    const R   = 312;   // arc radius — outside the wheel ring (sectors end at 286)
+    const RL  = 332;   // label radius — outside the arcs, in the empty corners
+
+    // Build the arc as a sampled polyline of concentric points around (300,300).
+    // This avoids the SVG `A` command's center/sweep ambiguity (which was
+    // curving one arc inward and splitting the other), guaranteeing both arcs
+    // bulge OUTWARD and stay continuous.
+    const arcPath = (rad, a0, a1, stepDeg = 2.5) => {
+      const n = Math.max(2, Math.ceil(Math.abs(a1 - a0) / stepDeg));
+      let d = '';
+      for (let i = 0; i <= n; i++) {
+        const ang = a0 + (a1 - a0) * (i / n);
+        const [x, y] = polar(rad, ang);
+        d += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)} `;
+      }
+      return d.trim();
+    };
 
     // Helper: a tangential arrowhead pointing along the arc's direction of
     // travel. `lead` is the tip angle (ahead in travel), `tail` the base angle.
@@ -55,17 +70,13 @@ const WheelDirectionGuide = {
       });
     };
 
-    // Right side = Fifths (clockwise) · Left side = Fourths (counterclockwise)
-    // Both arcs sweep from the top down their side toward the bottom, so both
-    // arrowheads sit near the bottom pointing outward in the travel direction.
-    const [rx1, ry1] = polar(R, 40);
-    const [rx2, ry2] = polar(R, 140);
-    const [lx1, ly1] = polar(R, 220);
-    const [lx2, ly2] = polar(R, 320);
+    // Right side = Fifths (clockwise) · Left side = Fourths (counterclockwise).
+    // Both arcs hug the outside of the wheel through the 3 o'clock (90°) and
+    // 9 o'clock (270°) points respectively, bulging outward.
 
-    // ── Fifths arc (right side, clockwise sweep) ──────
+    // ── Fifths arc (right side, through 90°) ──────────
     const arcF = se('path', {
-      d:              `M ${rx1.toFixed(1)},${ry1.toFixed(1)} A ${R},${R} 0 0 1 ${rx2.toFixed(1)},${ry2.toFixed(1)}`,
+      d:              arcPath(R, 40, 140),
       fill:           'none',
       stroke:         arcStroke,
       'stroke-width': '1.4',
@@ -103,9 +114,9 @@ const WheelDirectionGuide = {
     lFifthsSub.textContent = t('dirguide.clockwise') + ' ↻';
     guide.appendChild(lFifthsSub);
 
-    // ── Fourths arc (left side, counterclockwise sweep) ─
+    // ── Fourths arc (left side, through 270°) ─────────
     const arcFo = se('path', {
-      d:              `M ${lx1.toFixed(1)},${ly1.toFixed(1)} A ${R},${R} 0 0 0 ${lx2.toFixed(1)},${ly2.toFixed(1)}`,
+      d:              arcPath(R, 220, 320),
       fill:           'none',
       stroke:         arcStroke,
       'stroke-width': '1.4',
