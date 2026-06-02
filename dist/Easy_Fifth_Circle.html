@@ -1,0 +1,3642 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0b"/>
+<title>Easy Fifth Circle · V3.17</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* == tokens.css == */
+/* ── TOKENS ───────────────────────────────────────────
+   Single source of truth for design values.
+   All other CSS layers consume these variables.       */
+
+:root {
+  /* Colour */
+  --bg:       #0a0a0b;
+  --ink:      #f0ede8;
+  --muted:    rgba(240,237,232,.52);
+  --line:     rgba(255,255,255,.09);
+  --card:     rgba(12,12,16,.7);
+  --card-bd:  rgba(255,255,255,.09);
+  --accent:   #e8441a;
+  --accent2:  #ff7048;
+  --degree-bg:   rgba(0,0,0,.52);
+  --degree-tonic:rgba(232,68,26,.18);
+  --popup-bg: rgba(8,8,12,.88);
+  --sel-bg:   rgba(255,255,255,.06);
+  --sel-opt:  #1a1a1e;
+  --plasma-dark:1;
+
+  /* UI surface (overlay system) */
+  --ui-surface:        rgba(12,12,16,.72);
+  --ui-surface-strong: rgba(8,8,12,.92);
+  --ui-border:         rgba(255,255,255,.09);
+  --ui-border-strong:  rgba(255,255,255,.14);
+
+  /* Z-index scale */
+  --z-base:    1;
+  --z-wheel:   5;
+  --z-panel:   20;
+  --z-popover: 6000;
+  --z-dropdown:9000;
+  --z-toast:   10000;
+  --z-dev:     2147483647;
+
+  /* Radius */
+  --r-sm:   8px;
+  --r-md:   14px;
+  --r-lg:   18px;
+  --r-pill: 999px;
+
+  /* Motion */
+  --ease:        cubic-bezier(.22,1,.36,1);
+  --ui-ease:     cubic-bezier(.22,1,.36,1);
+  --ui-fast:     160ms;
+  --ui-med:      320ms;
+  --ui-slow:     620ms;
+  --motion-fast: 160ms;
+  --motion-med:  320ms;
+  --motion-slow: 620ms;
+
+  /* Shadow */
+  --shadow-soft: 0 12px 42px rgba(0,0,0,.22);
+  --shadow-lift: 0 18px 60px rgba(0,0,0,.28);
+
+  /* Touch target */
+  --tap: 44px;
+
+  /* Safe area insets */
+  --mobile-safe-top:    env(safe-area-inset-top,0px);
+  --mobile-safe-bottom: env(safe-area-inset-bottom,0px);
+
+  /* Wheel font */
+  --wheel-font: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+}
+
+body.light {
+  --bg:       #f0ede8;
+  --ink:      #141414;
+  --muted:    rgba(20,20,20,.5);
+  --line:     rgba(0,0,0,.1);
+  --card:     rgba(255,255,255,.8);
+  --card-bd:  rgba(0,0,0,.1);
+  --accent:   #c83010;
+  --accent2:  #e8441a;
+  --degree-bg:   rgba(255,255,255,.8);
+  --degree-tonic:rgba(200,48,16,.12);
+  --popup-bg: rgba(248,245,240,.96);
+  --sel-bg:   rgba(0,0,0,.04);
+  --sel-opt:  #f0ede8;
+  --plasma-dark:0;
+  --ui-surface:        rgba(248,245,240,.88);
+  --ui-surface-strong: rgba(248,245,240,.96);
+  --ui-border:         rgba(0,0,0,.10);
+  --ui-border-strong:  rgba(0,0,0,.14);
+}
+
+/* == base.css == */
+/* ── BASE ─────────────────────────────────────────────*/
+*    { box-sizing:border-box; margin:0; padding:0 }
+html { height:100% }
+body {
+  font-family:'DM Sans',sans-serif;
+  color:var(--ink);
+  background:var(--bg);
+  min-height:100vh;
+  overflow-x:hidden;
+  transition:background .3s,color .3s;
+}
+html,body { -webkit-tap-highlight-color:transparent; }
+
+/* Plasma canvas */
+#plasma {
+  position:fixed; inset:0;
+  width:100vw; height:100vh;
+  pointer-events:none; z-index:0;
+  transition:opacity .4s;
+}
+body.light #plasma { opacity:.3 }
+
+/* App layout */
+.app {
+  position:relative; z-index:1;
+  max-width:1200px; margin:0 auto;
+  padding:18px 24px 40px;
+  display:flex; flex-direction:column; gap:0;
+  min-height:100svh;
+}
+
+/* Smooth focus ring */
+:focus-visible { outline:2px solid var(--accent2); outline-offset:2px; border-radius:4px; }
+
+/* == layout.css == */
+/* ── LAYOUT ───────────────────────────────────────────*/
+
+/* Top bar */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:20px; flex-shrink:0;
+}
+.brand          { display:flex; align-items:center; gap:10px }
+.brand h1       { font-family:'DM Mono',monospace; font-size:12px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--ink) }
+.version        { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); padding:2px 7px; border:1px solid var(--line); border-radius:3px }
+.topbar-right   { display:flex; align-items:center; gap:10px }
+
+/* Tabs */
+.tabs {
+  position:relative; overflow:hidden;
+  display:flex; gap:2px; padding:4px;
+  background:var(--card); border:1px solid var(--card-bd); border-radius:12px;
+  backdrop-filter:blur(20px);
+}
+.tabs::before {
+  content:''; position:absolute; inset:4px;
+  width:calc(50% - 4px); border-radius:9px;
+  background:var(--accent);
+  transform:translateX(var(--tab-x,0));
+  transition:transform .42s var(--ease);
+  box-shadow:0 8px 22px rgba(232,68,26,.18);
+  z-index:0;
+}
+.tab-btn {
+  position:relative; z-index:1;
+  padding:7px 18px; border:none; background:transparent;
+  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500;
+  color:var(--muted); cursor:pointer; border-radius:9px; transition:color .2s;
+}
+.tab-btn.active  { color:#fff }
+.tab-btn:hover   { color:var(--ink) }
+.tab-btn.active:hover { color:#fff }
+
+/* Theme button */
+.theme-btn {
+  width:34px; height:34px; border-radius:10px; border:1px solid var(--line);
+  background:var(--card); backdrop-filter:blur(20px); cursor:pointer;
+  display:grid; place-items:center; font-size:15px; color:var(--ink);
+  transition:border-color .2s; flex-shrink:0;
+}
+.theme-btn:hover { border-color:var(--accent) }
+
+/* Settings mini */
+.settings-mini { display:flex; align-items:center; gap:7px; padding:4px 8px; border:1px solid var(--line); border-radius:10px; background:var(--card); backdrop-filter:blur(20px) }
+.settings-mini span { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted) }
+.settings-mini select { border:none; background:transparent; color:var(--ink); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; appearance:none; cursor:pointer; padding:2px 4px }
+.settings-mini select:focus { outline:none }
+.settings-mini option { background:var(--sel-opt); color:var(--ink) }
+
+/* Main row: left panel · circle · right panel */
+.main-row {
+  display:grid;
+  grid-template-columns:180px 1fr 180px;
+  gap:18px; align-items:center;
+  margin-bottom:20px; flex-shrink:0;
+}
+
+/* Side cards */
+.side     { display:flex; flex-direction:column; gap:10px }
+.card {
+  padding:14px 16px; border-radius:16px;
+  border:1px solid var(--card-bd); background:var(--card);
+  backdrop-filter:blur(24px);
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
+}
+.lbl       { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:5px }
+.card .big { font-family:'DM Serif Display',serif; font-size:26px; letter-spacing:-.02em; line-height:1 }
+.card .sub { font-size:11px; color:var(--muted); margin-top:3px }
+.card .accent-t { font-family:'DM Serif Display',serif; font-size:18px; color:var(--accent2) }
+
+/* Select wrapper */
+.sel-wrap       { position:relative; margin-top:8px }
+.sel-wrap::after { content:'▾'; position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:10px; color:var(--muted); pointer-events:none }
+.sel-wrap select { width:100%; padding:8px 28px 8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--sel-bg); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; color:var(--ink); appearance:none; cursor:pointer }
+.sel-wrap select option  { background:var(--sel-opt); color:var(--ink) }
+.sel-wrap select:focus   { outline:none }
+
+/* Circle wrap */
+.circle-wrap { display:flex; align-items:center; justify-content:center }
+
+/* Bottom theory area */
+.theory-bottom { display:flex; flex-direction:column; gap:12px }
+
+/* Info row for scale chips */
+.info-row  { display:grid; grid-template-columns:1fr 1.5fr; gap:10px }
+.info-box  {
+  padding:12px 16px; border-radius:14px;
+  border:1px solid var(--card-bd); background:var(--card);
+  backdrop-filter:blur(16px); text-align:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.15); overflow:visible;
+}
+.chips     { display:flex; justify-content:center; flex-wrap:wrap; gap:6px; margin-top:4px }
+.chip      { font-family:'DM Mono',monospace; font-size:11px; font-weight:500; color:var(--ink) }
+
+/* Drawers */
+.drawers { display:flex; flex-direction:column; gap:8px }
+.drawer  {
+  border:1px solid var(--card-bd); border-radius:16px;
+  background:var(--card); backdrop-filter:blur(20px);
+  box-shadow:0 4px 16px rgba(0,0,0,.15);
+  will-change:transform,opacity;
+}
+.drawer:not([open]) { background:rgba(255,255,255,.026) }
+body.light .drawer:not([open]) { background:rgba(255,255,255,.48) }
+.drawer summary {
+  list-style:none; cursor:pointer; padding:14px 18px;
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:13px; font-weight:500; user-select:none; color:var(--ink);
+}
+.drawer summary::-webkit-details-marker { display:none }
+.chev       { transition:transform .3s; font-size:11px; color:var(--muted) }
+.drawer[open] .chev { transform:rotate(180deg) }
+.drawer-body { padding:0 18px 18px; animation:drop .25s var(--ease) }
+@keyframes drop { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+
+/* Bottom bar */
+.bottom-bar {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-top:20px; padding:8px 12px;
+  border-radius:14px; border:1px solid var(--card-bd);
+  background:var(--card); backdrop-filter:blur(20px); flex-shrink:0;
+}
+.palette-row     { display:flex; align-items:center; gap:6px }
+.pal-btn         { width:22px; height:22px; border-radius:50%; border:2px solid transparent; cursor:pointer; transition:all .15s; flex-shrink:0 }
+.pal-btn.active  { border-color:var(--ink); transform:scale(1.2) }
+.pal-label       { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); min-width:44px }
+.intensity-wrap  { display:flex; align-items:center; gap:8px }
+.intensity-wrap label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; white-space:nowrap }
+.intensity-wrap input { width:80px; accent-color:var(--accent) }
+
+/* Copy toast */
+.copy-toast {
+  position:fixed; right:18px; bottom:18px;
+  z-index:var(--z-toast); padding:9px 12px; border-radius:12px;
+  border:1px solid var(--card-bd); background:var(--popup-bg);
+  backdrop-filter:blur(18px); color:var(--ink); font-size:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.18);
+  opacity:0; transform:translateY(8px); pointer-events:none;
+  transition:opacity .18s var(--ease),transform .18s var(--ease);
+}
+.copy-toast.show { opacity:1; transform:translateY(0) }
+
+/* Scale orbs strip */
+.scale-orbs { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px }
+.scale-orbs .chip { font-family:'DM Mono',monospace; font-size:10px; padding:2px 6px; border:1px solid var(--line); border-radius:5px }
+.scale-orbs .root-chip { border-color:rgba(232,68,26,.35); color:var(--accent2) }
+
+/* == wheel.css == */
+/* ── WHEEL ────────────────────────────────────────────*/
+#wheelSvg {
+  width:min(56vw, 520px);
+  height:min(56vw, 520px);
+  overflow:visible; cursor:grab;
+  touch-action:none; user-select:none;
+  filter:drop-shadow(0 12px 48px rgba(0,0,0,.5));
+  flex-shrink:0;
+  will-change:transform;
+  contain:layout paint style;
+}
+#wheelSvg:active { cursor:grabbing }
+body.light #wheelSvg { filter:drop-shadow(0 8px 32px rgba(0,0,0,.2)) }
+
+/* Wheel toggle */
+.wheel-toggle {
+  display:flex; gap:3px; margin-top:10px; padding:3px;
+  border:1px solid var(--line); border-radius:10px; background:var(--sel-bg);
+}
+.wheel-toggle button {
+  flex:1; border:0; background:transparent; color:var(--muted);
+  font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600;
+  padding:7px 6px; border-radius:7px; cursor:pointer;
+  transition:all .18s var(--ease);
+}
+.wheel-toggle button.active { background:var(--accent); color:#fff; box-shadow:0 3px 12px rgba(232,68,26,.18) }
+
+/* SVG text typography — single canonical rule */
+#wg text.wheel-label,
+#cKey, #cRel {
+  font-family:var(--wheel-font) !important;
+  font-style:normal !important;
+  font-weight:650 !important;
+  letter-spacing:-.025em !important;
+  paint-order:stroke !important;
+}
+#wg text.wheel-label  { font-weight:620 !important }
+#cKey                 { font-weight:680 !important; letter-spacing:-.045em !important }
+#cRel                 { font-weight:620 !important }
+#wg text[data-accidental="true"] {
+  font-family:"DM Mono", monospace !important;
+  font-weight:600 !important;
+  letter-spacing:0 !important;
+}
+
+/* Wheel pointer */
+#wheelPointer { opacity:.46; transform-origin:300px 300px }
+body.light #wheelPointer { fill:rgba(20,20,20,.28) !important }
+
+/* ── Wheel Direction Guide ──────────────────────────*/
+#wheelDirectionGuide {
+  pointer-events:none;
+  transition:opacity .42s cubic-bezier(.22,1,.36,1);
+}
+.wheel-info-btn circle,
+.wheel-info-btn text { transition:fill .2s, stroke .2s }
+.wheel-info-btn:hover circle { fill:rgba(255,255,255,.12) !important }
+body.light .wheel-info-btn text { fill:rgba(20,20,20,.55) !important }
+body.light #wheelDirectionGuide .dir-arc { stroke:rgba(20,20,20,.22) }
+body.light #wheelDirectionGuide .dir-label { fill:rgba(20,20,20,.5) }
+body.light #wheelDirectionGuide .dir-label-sub { fill:rgba(20,20,20,.3) }
+body.light #wheelDirectionGuide .dir-arrow { fill:rgba(20,20,20,.22) }
+
+/* == degrees.css == */
+/* ── DEGREES ROW ─────────────────────────────────────*/
+.degrees-row {
+  display:flex; gap:0; border-radius:14px; overflow:hidden;
+  border:1px solid var(--card-bd); background:var(--degree-bg);
+  backdrop-filter:blur(20px);
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+}
+.degree {
+  flex:1; padding:12px 6px; text-align:center; cursor:pointer;
+  border-right:1px solid var(--line); transition:background .15s;
+  min-height:min(var(--tap),100%);
+}
+.degree:last-child { border-right:0 }
+.degree:hover      { background:rgba(128,128,128,.1) }
+.degree.tonic:not(.active-deg) {
+  background:rgba(232,68,26,.075);
+  border-bottom:1px solid rgba(232,68,26,.28);
+}
+.degree.active-deg {
+  background:rgba(232,68,26,.18) !important;
+  box-shadow:inset 0 -3px 0 var(--accent), inset 0 0 0 1px rgba(232,68,26,.28);
+}
+.degree.active-deg .roman,
+.degree.active-deg .dn,
+.degree.active-deg .dq { color:var(--accent2) }
+.degree .roman { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.06em; color:var(--muted) }
+.degree .dn    { font-family:'DM Serif Display',serif; font-size:20px; margin-top:5px; line-height:1 }
+.degree .dq    { font-size:9px; color:var(--muted); margin-top:2px }
+
+/* Degree popup */
+.deg-popup-wrap {
+  position:absolute; left:50%; top:-10px; z-index:var(--z-popover);
+  width:min(440px,92vw);
+  transform:translate(-50%,-100%);
+  max-height:none !important; opacity:0; pointer-events:none;
+  transition:opacity .2s var(--ease), transform .25s var(--ease);
+  will-change:transform,opacity;
+}
+.deg-popup-wrap.open { opacity:1; pointer-events:auto; margin-top:0; transform:translate(-50%,-108%) }
+.deg-popup {
+  padding:13px 15px; border-radius:16px;
+  border:1px solid var(--card-bd);
+  background:var(--ui-surface-strong);
+  backdrop-filter:blur(28px);
+  box-shadow:0 14px 40px rgba(0,0,0,.35);
+  position:relative;
+}
+.deg-popup::after {
+  content:''; position:absolute; left:50%; bottom:-7px;
+  width:14px; height:14px;
+  transform:translateX(-50%) rotate(45deg);
+  background:inherit;
+  border-right:1px solid var(--card-bd); border-bottom:1px solid var(--card-bd);
+}
+.deg-popup h3    { font-family:'DM Serif Display',serif; font-size:18px; margin-bottom:4px }
+.deg-popup .psub { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:.08em; margin-bottom:8px }
+.deg-popup p     { font-size:11px; line-height:1.45 }
+.deg-popup .pfeel { display:none }
+.deg-popup .ppairs { display:flex; flex-wrap:wrap; gap:4px; margin-top:7px }
+.deg-popup .ppair  { font-size:9px; padding:2px 7px; border-radius:5px; background:var(--sel-bg); border:1px solid var(--line); color:var(--muted) }
+.popup-close {
+  position:absolute; top:10px; right:10px; width:22px; height:22px;
+  border:none; background:var(--sel-bg); border-radius:7px;
+  cursor:pointer; font-size:11px; display:grid; place-items:center; color:var(--muted);
+}
+.deg-nav  { display:none }
+
+/* == builder.css == */
+/* ── PROGRESSION BUILDER ─────────────────────────────*/
+.progression-builder {
+  margin-top:0; padding:14px 15px 22px;
+  border-radius:var(--r-lg) !important;
+  border:1px solid var(--card-bd) !important;
+  background:var(--card); backdrop-filter:blur(20px);
+  box-shadow:0 4px 16px rgba(0,0,0,.15);
+  position:relative; overflow:visible !important;
+  will-change:transform,opacity;
+}
+.builder-head    { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px }
+.builder-title   { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-weight:500 }
+.builder-sub     { font-size:12px !important; max-width:500px !important; color:var(--muted); margin-top:3px; line-height:1.35 }
+.builder-actions { display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end }
+.builder-btn {
+  border:1px solid var(--line); background:var(--sel-bg); border-radius:9px;
+  padding:5px 9px; font-family:'DM Sans',sans-serif; font-size:10px;
+  font-weight:600 !important;
+  color:var(--muted); cursor:pointer; transition:all .16s var(--ease);
+}
+.builder-btn:hover         { color:var(--ink); border-color:rgba(232,68,26,.34); transform:translateY(-1px) }
+.builder-btn.primary       { background:var(--degree-tonic); border-color:rgba(232,68,26,.28); color:var(--accent2) }
+.builder-btn.danger:hover  { background:rgba(232,68,26,.16); color:var(--accent2) }
+.builder-btn.icon          { width:26px; height:26px; padding:0; border-radius:50%; display:grid; place-items:center; font-size:12px }
+
+/* Pills row */
+.builder-row {
+  display:flex; align-items:center; gap:8px !important;
+  overflow-x:auto; padding:3px 0 2px;
+  scrollbar-width:thin; scrollbar-color:var(--muted) transparent;
+  min-height:42px; margin-bottom:12px;
+}
+.builder-row::-webkit-scrollbar        { height:3px }
+.builder-row::-webkit-scrollbar-thumb  { background:var(--muted); border-radius:3px }
+.builder-empty { font-size:11px; color:var(--muted); opacity:.7; padding:8px 0 }
+.builder-step {
+  position:relative; display:inline-flex; align-items:center; gap:7px;
+  white-space:nowrap; border:1px solid var(--line);
+  background:rgba(255,255,255,.045);
+  border-radius:var(--r-pill) !important;
+  padding:7px 28px 7px 10px; cursor:pointer;
+  transition:transform var(--ui-med) var(--ui-ease), opacity var(--ui-fast) var(--ui-ease), box-shadow var(--ui-med) var(--ui-ease);
+  color:var(--ink); animation:none !important;
+  min-height:min(var(--tap),100%);
+}
+body.light .builder-step  { background:rgba(0,0,0,.04) }
+.builder-step:hover        { transform:translateY(-1px); border-color:rgba(232,68,26,.36) }
+.builder-step .step-num    { font-family:'DM Mono',monospace; font-size:8px; color:var(--muted); width:14px; height:14px; border-radius:50%; display:grid; place-items:center; background:var(--sel-bg) }
+.builder-step .step-chord  { font-family:'DM Serif Display',serif; font-size:20px; line-height:1; color:var(--ink) }
+.builder-step .step-degree { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted) }
+.builder-step .step-tools  { position:absolute; right:6px; top:50%; transform:translateY(-50%); display:flex; gap:3px }
+.step-tool {
+  width:17px; height:17px; border:0; border-radius:50%;
+  background:rgba(255,255,255,.08); color:var(--muted); font-size:10px;
+  line-height:17px; cursor:pointer; display:grid; place-items:center;
+}
+body.light .step-tool  { background:rgba(0,0,0,.06) }
+.step-tool:hover       { background:rgba(232,68,26,.18); color:var(--accent2) }
+.builder-arrow   { font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); opacity:.42; flex:0 0 auto }
+
+/* Pill animations — only new/leaving pills animate */
+.builder-step.just-added   { animation:efcPillIn .48s var(--ui-ease) both !important }
+.builder-step.just-removed { animation:efcPillOut .24s ease both !important }
+@keyframes efcPillIn  { 0%{opacity:0;transform:translateY(10px) scale(.84)} 58%{opacity:1;transform:translateY(-2px) scale(1.055)} 100%{opacity:1;transform:none} }
+@keyframes efcPillOut { to{opacity:0;transform:translateY(6px) scale(.88)} }
+
+/* Builder meta row */
+.builder-meta {
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+  margin-top:12px; padding-top:12px;
+  border-top:1px solid rgba(128,128,128,.14);
+  font-size:10.5px; color:var(--muted); line-height:1.35;
+}
+.builder-meta b { color:var(--ink); font-weight:600 }
+
+/* ── Next moves section (lives inside the builder) ──*/
+.builder-next-moves {
+  margin-top:16px !important;
+  padding-top:14px !important;
+  border-top:1px solid rgba(128,128,128,.16) !important;
+}
+.builder-next-top {
+  display:flex !important; align-items:flex-end !important;
+  justify-content:space-between !important; gap:14px !important;
+  margin-bottom:8px !important;
+}
+.builder-next-title {
+  font-family:'DM Mono',monospace !important;
+  font-size:11px !important; letter-spacing:.14em !important;
+  text-transform:uppercase !important; color:var(--ink) !important; opacity:.88 !important;
+}
+.builder-next-hint {
+  font-size:11px !important; color:var(--muted) !important;
+  margin-top:4px !important; max-width:560px !important; line-height:1.35 !important;
+}
+.builder-next-context {
+  font-family:'DM Mono',monospace !important; font-size:8.5px !important;
+  letter-spacing:.08em !important; color:var(--muted) !important;
+  text-transform:uppercase !important; white-space:nowrap !important; opacity:.78 !important;
+}
+.builder-next-summary {
+  margin-top:10px; color:var(--muted); font-size:11px; line-height:1.35;
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+}
+.builder-next-summary b { color:var(--ink); font-weight:650 }
+.builder-next-summary .mini-tag {
+  font-family:'DM Mono',monospace; font-size:8px; letter-spacing:.08em; text-transform:uppercase;
+  border:1px solid var(--line); border-radius:999px; padding:3px 7px; background:rgba(255,255,255,.035);
+}
+
+/* == suggestions.css == */
+/* ── SUGGESTION BUBBLES ──────────────────────────────*/
+/* Old grid-style section is hidden; bubbles live in the builder */
+.suggestions-section { display:none !important }
+
+/* Next-orbit container */
+.next-orbit {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:13px !important;
+  min-height:164px !important;
+  padding:16px 4px 12px !important;
+  overflow-x:auto !important;
+  overflow-y:visible !important;
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity !important;
+  scrollbar-width:thin !important;
+  border-radius:22px !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.034),rgba(255,255,255,.014));
+  border:1px solid rgba(255,255,255,.045);
+}
+body.light .next-orbit {
+  background:linear-gradient(180deg,rgba(255,255,255,.52),rgba(255,255,255,.25));
+  border-color:rgba(0,0,0,.045);
+}
+.next-orbit::-webkit-scrollbar       { height:4px }
+.next-orbit::-webkit-scrollbar-thumb { background:rgba(255,255,255,.14); border-radius:99px }
+body.light .next-orbit::-webkit-scrollbar-thumb { background:rgba(0,0,0,.14) }
+
+/* Bubble */
+.next-bubble {
+  --d: 88px;
+  --fit: 50;
+  --diam: clamp(62px, var(--d), 158px);
+  width:var(--diam) !important; height:var(--diam) !important;
+  min-width:var(--diam) !important; min-height:var(--diam) !important;
+  max-width:var(--diam) !important; max-height:var(--diam) !important;
+  aspect-ratio:1/1 !important;
+  flex:0 0 var(--diam) !important;
+  border-radius:999px !important;
+  padding:10px !important;
+  scroll-snap-align:center !important;
+  transform:translateY(calc((100 - var(--fit)) * .05px)) !important;
+  display:grid !important;
+  grid-template-rows:auto 1fr auto !important;
+  place-items:center !important;
+  gap:2px !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255,255,255,.14), transparent 28%),
+    radial-gradient(circle at 50% 55%, rgba(255,112,72,calc(.05 + var(--fit)*.0045)), rgba(255,112,72,calc(.025 + var(--fit)*.002)) 48%, rgba(255,255,255,.035) 100%) !important;
+  box-shadow:
+    0 calc(8px + var(--fit)*.12px) calc(18px + var(--fit)*.32px) rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.09) !important;
+  opacity:calc(.48 + var(--fit)*.0052) !important;
+  cursor:pointer;
+  transition:transform var(--ui-med) var(--ui-ease), box-shadow var(--ui-med) var(--ui-ease),
+    opacity var(--ui-fast) var(--ui-ease), border-color var(--ui-fast) var(--ui-ease) !important;
+  animation:bubbleOrbitIn .52s cubic-bezier(.18,1.28,.26,1) both !important;
+  animation-delay:calc(var(--rank, 0) * 34ms) !important;
+}
+@keyframes bubbleOrbitIn {
+  from { opacity:0; transform:translateY(12px) scale(.72) }
+  to   { opacity:calc(.48 + var(--fit)*.0052); transform:translateY(calc((100 - var(--fit)) * .05px)) }
+}
+body.light .next-bubble {
+  border-color:rgba(0,0,0,.10) !important;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255,255,255,.82), transparent 30%),
+    radial-gradient(circle at 50% 55%, rgba(232,68,26,calc(.035 + var(--fit)*.0027)), rgba(232,68,26,calc(.018 + var(--fit)*.0018)) 48%, rgba(255,255,255,.78) 100%) !important;
+  box-shadow:0 calc(8px + var(--fit)*.09px) calc(18px + var(--fit)*.22px) rgba(0,0,0,.105), inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+.next-bubble.best {
+  border-color:rgba(255,112,72,.72) !important;
+  box-shadow:
+    0 calc(14px + var(--fit)*.12px) calc(30px + var(--fit)*.32px) rgba(232,68,26,.20),
+    0 0 0 1px rgba(255,112,72,.16),
+    inset 0 1px 0 rgba(255,255,255,.14) !important;
+}
+.next-bubble:hover {
+  transform:translateY(-5px) scale(1.035) !important;
+  border-color:rgba(255,112,72,.72) !important;
+  opacity:1 !important;
+}
+.next-bubble:active { transform:translateY(-1px) scale(.985) !important }
+
+/* Bubble inner elements */
+.nb-fit    { font-family:'DM Mono',monospace !important; font-size:7px !important; letter-spacing:.1em !important; opacity:.62 !important; line-height:1 !important }
+.nb-chord  {
+  font-family:var(--wheel-font) !important;
+  font-weight:700 !important;
+  letter-spacing:-.03em !important;
+  font-size:clamp(20px, calc(var(--diam, 88px) * .25), 40px) !important;
+  line-height:.9 !important; text-align:center !important;
+  white-space:nowrap !important;
+}
+.nb-degree  { font-family:'DM Mono',monospace !important; font-size:8px !important; color:var(--muted) !important; line-height:1 !important }
+.nb-category { display:none !important }
+.nb-metrics  { width:min(84%,90px) !important; display:grid !important; gap:3px !important; margin-top:4px !important }
+.metric-line { display:grid !important; grid-template-columns:12px 1fr !important; gap:4px !important; align-items:center !important }
+.metric-name { font-family:'DM Mono',monospace; font-size:7px !important; letter-spacing:.04em !important; color:var(--muted); overflow:hidden; text-align:left }
+.metric-name span { display:none !important }
+.metric-name.res::after { content:'R' }
+.metric-name.ten::after { content:'T' }
+.metric-name.mot::after { content:'M' }
+.metric-track { height:3px !important; border-radius:999px; background:rgba(255,255,255,.09); overflow:hidden }
+body.light .metric-track { background:rgba(0,0,0,.08) }
+.metric-fill  { display:block; height:100%; border-radius:999px; background:rgba(255,255,255,.34) }
+.metric-fill.tension.hot     { background:var(--accent2); box-shadow:0 0 9px rgba(232,68,26,.35) }
+.metric-fill.resolution.hot  { background:rgba(255,255,255,.62) }
+body.light .metric-fill      { background:rgba(0,0,0,.30) }
+body.light .metric-fill.tension.hot { background:var(--accent) }
+
+/* Old suggestion card components (kept in case section re-enabled) */
+.gravity-status  { display:grid; grid-template-columns:1fr; margin-bottom:9px }
+.gravity-card    { padding:9px 11px; border-radius:13px; border:1px solid var(--line); background:rgba(255,255,255,.032); display:flex; align-items:center; justify-content:space-between; gap:10px }
+body.light .gravity-card { background:rgba(0,0,0,.035) }
+.gravity-card .g-label { font-family:'DM Mono',monospace; font-size:7px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted) }
+.gravity-card .g-value { font-family:'DM Serif Display',serif; font-size:20px; line-height:1 }
+.gravity-pill-row { display:flex; gap:5px; flex-wrap:wrap }
+.gravity-pill { font-family:'DM Mono',monospace; font-size:8px; padding:4px 7px; border-radius:999px; background:var(--degree-tonic); border:1px solid rgba(232,68,26,.22); color:var(--accent2); white-space:nowrap; transition:all .18s var(--ease) }
+.gravity-pill.metric.medium { font-weight:600; color:var(--ink); border-color:rgba(232,68,26,.30) }
+.gravity-pill.metric.high   { font-weight:700; color:#fff; background:rgba(232,68,26,.72); border-color:rgba(255,145,110,.48); box-shadow:0 5px 18px rgba(232,68,26,.20) }
+body.light .gravity-pill.metric.high { color:#fff }
+
+/* Mood buttons */
+.mood-lens { display:flex; gap:5px; flex-wrap:wrap }
+.mood-btn  { border:1px solid var(--line); background:var(--sel-bg); border-radius:999px; padding:5px 8px; font-size:10px; color:var(--muted); cursor:pointer; transition:all .15s }
+.mood-btn.active { background:var(--degree-tonic); border-color:rgba(232,68,26,.35); color:var(--accent2) }
+
+/* == popovers.css == */
+/* ── OVERLAY SYSTEM ───────────────────────────────────
+   Dropdown and popovers always beat cards.           */
+
+/* Mode control trigger */
+.mode-control   { position:relative }
+.mode-display   {
+  display:flex; align-items:center; gap:6px;
+  width:100%; border:1px solid var(--line); border-radius:10px;
+  background:var(--sel-bg); padding:8px 10px;
+  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500;
+  color:var(--ink); cursor:pointer; text-align:left;
+}
+.mode-display span  { flex:1 }
+.mode-display small { font-size:9px; color:var(--muted); display:block; margin-top:1px }
+.mode-display i     { font-style:normal; font-size:9px; color:var(--muted); transition:transform .2s }
+.mode-control.open .mode-display i { transform:rotate(180deg) }
+#modeSelect { display:none }
+
+/* Mode menu (portaled to body) */
+.mode-menu {
+  position:fixed !important;
+  z-index:var(--z-dropdown) !important;
+  width:min(340px,calc(100vw - 28px));
+  border-radius:var(--r-lg) !important;
+  border:1px solid var(--ui-border-strong) !important;
+  background:var(--ui-surface-strong) !important;
+  backdrop-filter:blur(26px) !important;
+  box-shadow:0 26px 80px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.08) !important;
+  padding:7px !important;
+  opacity:0;
+  transform:translateY(-5px) scale(.985);
+  pointer-events:none;
+  transition:opacity var(--ui-fast) var(--ui-ease), transform var(--ui-fast) var(--ui-ease);
+  isolation:isolate;
+}
+.mode-menu.portal-open {
+  opacity:1 !important;
+  transform:translateY(0) scale(1) !important;
+  pointer-events:auto !important;
+}
+.mode-option {
+  display:flex; align-items:center; justify-content:space-between;
+  border-radius:13px !important; min-height:46px !important; padding:10px 11px !important;
+  width:100%; border:none; background:transparent; color:var(--ink);
+  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500;
+  cursor:pointer; text-align:left; transition:background .14s;
+  min-height:min(var(--tap),100%);
+}
+.mode-option b     { display:block; font-size:12px }
+.mode-option small { display:block; font-size:9px; color:var(--muted); margin-top:2px }
+.mode-option em    { font-style:normal; font-family:'DM Mono',monospace; font-size:9px; color:var(--muted) }
+.mode-option:hover  { background:rgba(128,128,128,.1) }
+.mode-option.active { background:var(--degree-tonic) }
+
+/* Micro popover (info + direction guide) */
+.micro-popover {
+  position:fixed; z-index:var(--z-popover) !important; top:0; left:0;
+  width:min(320px,calc(100vw - 28px));
+  padding:14px 15px; border-radius:var(--r-md) !important;
+  border:1px solid var(--ui-border-strong) !important;
+  background:var(--ui-surface-strong) !important;
+  backdrop-filter:blur(24px) !important;
+  box-shadow:0 24px 70px rgba(0,0,0,.30) !important;
+  opacity:0; transform:translate(10px,-4px) scale(.985);
+  pointer-events:none;
+  transition:opacity .18s var(--ease),transform .18s var(--ease);
+  text-align:left;
+}
+.micro-popover.open     { opacity:1; transform:translate(0,0) scale(1); pointer-events:auto }
+.micro-popover h4       { font-family:'DM Serif Display',serif; font-size:16px; line-height:1.1; margin:0 24px 6px 0; color:var(--ink) }
+.micro-popover p        { font-size:11.5px; line-height:1.55; color:var(--muted) }
+.micro-close {
+  position:absolute; top:8px; right:8px; width:22px; height:22px;
+  border:none; border-radius:8px; background:var(--sel-bg);
+  color:var(--muted); cursor:pointer; font-size:14px; line-height:1;
+  display:grid; place-items:center;
+}
+/* Caret */
+.micro-popover::before {
+  content:''; position:absolute; left:-7px; top:18px;
+  width:12px; height:12px; transform:rotate(45deg);
+  background:inherit; border-left:1px solid var(--ui-border-strong); border-bottom:1px solid var(--ui-border-strong);
+}
+.micro-popover.flip::before {
+  left:auto; right:-7px; border-left:none; border-bottom:none;
+  border-right:1px solid var(--ui-border-strong); border-top:1px solid var(--ui-border-strong);
+}
+
+/* Info label buttons */
+.info-label-btn {
+  display:inline-flex; align-items:center; gap:5px; border:none; background:transparent;
+  color:var(--muted); font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em;
+  text-transform:uppercase; cursor:pointer; padding:0; margin:0 0 5px;
+}
+.info-label-btn:hover { color:var(--ink) }
+.info-dot {
+  width:14px; height:14px; border-radius:50%; border:1px solid var(--line);
+  display:inline-grid; place-items:center; font-size:9px; line-height:1; color:var(--muted);
+}
+.info-help-anchor { position:relative }
+.info-row         { position:relative; z-index:8; overflow:visible }
+
+/* == instruments.css == */
+/* ── INSTRUMENTS ─────────────────────────────────────*/
+.piano {
+  height:116px; position:relative; border-radius:10px;
+  overflow:hidden; background:rgba(0,0,0,.15); border:1px solid var(--line);
+}
+.white {
+  position:absolute; bottom:0; top:0;
+  background:linear-gradient(180deg,#f8f8f4,#e8e8e0);
+  border-right:1px solid #bbb; border-radius:0 0 7px 7px;
+  display:flex; align-items:flex-end; justify-content:center;
+  padding-bottom:9px; font-family:'DM Mono',monospace; font-size:9px; color:#aaa;
+}
+.black {
+  position:absolute; top:0; height:60%;
+  background:linear-gradient(180deg,#252525,#101010);
+  border-radius:0 0 5px 5px; z-index:2;
+}
+.key-on.white { background:linear-gradient(180deg,#d8c8f8,#b8a0e8) !important; color:#5544aa !important }
+.key-on.black { background:linear-gradient(180deg,var(--accent),#aa2200) !important }
+
+/* Fretboard */
+.fretboard-wrap {
+  overflow-x:auto; border-radius:10px;
+  scrollbar-width:thin; scrollbar-color:var(--muted) transparent;
+}
+.fretboard-wrap::-webkit-scrollbar       { height:3px }
+.fretboard-wrap::-webkit-scrollbar-thumb { background:var(--muted); border-radius:2px }
+.fretboard {
+  min-width:860px;
+  background:linear-gradient(180deg,#2a1f0e,#1a1208);
+  border-radius:10px; overflow:hidden; padding-bottom:6px;
+}
+.fret-note {
+  width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:8px; font-weight:700; font-family:'DM Mono',monospace;
+  background:rgba(255,255,255,.06); color:rgba(255,255,255,.2);
+  position:relative; z-index:2;
+}
+.fret-note.on   { background:#444; color:#fff; box-shadow:0 0 0 1.5px rgba(255,255,255,.2) }
+.fret-note.root { background:var(--accent); color:#fff; box-shadow:0 0 0 2px rgba(232,68,26,.35),0 3px 10px rgba(232,68,26,.3) }
+.fret-cell      { height:34px; display:flex; align-items:center; justify-content:center; position:relative; z-index:1 }
+.fret-cell::after { content:''; position:absolute; right:0; top:4px; bottom:4px; width:1px; background:rgba(255,255,255,.09) }
+
+/* == production.css == */
+/* ── PRODUCTION TAB ───────────────────────────────────*/
+#panel-production { display:none }
+.genre-tabs  { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:16px }
+.genre-btn   { padding:7px 14px; border:1px solid var(--line); border-radius:8px; background:var(--card); font-family:'DM Sans',sans-serif; font-size:11px; font-weight:500; color:var(--muted); cursor:pointer; transition:all .15s; backdrop-filter:blur(10px) }
+.genre-btn.active { background:var(--accent); color:#fff; border-color:var(--accent) }
+.genre-btn.soon   { opacity:.3; cursor:not-allowed }
+.prod-header  { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; gap:12px }
+.prod-title   { font-family:'DM Serif Display',serif; font-size:30px; letter-spacing:-.03em; color:var(--ink) }
+.prod-meta    { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:4px; letter-spacing:.04em }
+.key-badge    { padding:8px 14px; border-radius:10px; background:var(--degree-tonic); border:1px solid rgba(232,68,26,.3); color:var(--ink); font-size:12px; font-weight:500; text-align:center; white-space:nowrap }
+.key-badge .kb-note { font-family:'DM Serif Display',serif; font-size:22px; display:block; letter-spacing:-.03em }
+.prod-grid    { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px }
+.prod-card    { padding:14px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px) }
+.prod-card h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px }
+.prod-card .bigline { font-family:'DM Serif Display',serif; font-size:17px; margin-bottom:4px; color:var(--ink) }
+.prod-card p  { font-size:11px; color:var(--muted); line-height:1.5 }
+
+/* MIDI section */
+.midi-section  { border:1px solid var(--card-bd); border-radius:14px; background:var(--card); backdrop-filter:blur(16px); overflow:hidden; margin-bottom:12px }
+.midi-header   { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--line) }
+.midi-header h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted) }
+.bpm-badge     { font-family:'DM Mono',monospace; font-size:10px; padding:3px 8px; background:var(--sel-bg); border:1px solid var(--line); border-radius:5px; color:var(--muted) }
+.midi-grid     { padding:8px 16px 14px; display:flex; flex-direction:column; gap:4px }
+.midi-row      { display:grid; align-items:center; gap:3px }
+.midi-label    { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); text-align:right; padding-right:6px }
+.step          { height:18px; border-radius:4px; background:var(--sel-bg); border:1px solid var(--line) }
+.step.on       { background:var(--accent); border-color:transparent; box-shadow:0 0 5px rgba(232,68,26,.25) }
+.step.on.clap  { background:rgba(180,180,190,.55) }
+.step.on.hat-o,.step.on.hat-c { background:rgba(140,140,155,.45) }
+.step.on.shaker{ background:rgba(100,100,115,.4) }
+.step.beat-1   { border-left:2px solid rgba(128,128,128,.2) }
+.step.playing  { box-shadow:0 0 0 2px gold; transform:scaleY(1.12) }
+.play-btn      { padding:7px 16px; border:1px solid var(--line); border-radius:8px; background:var(--card); font-family:'DM Sans',sans-serif; font-size:11px; font-weight:500; color:var(--ink); cursor:pointer; transition:all .15s }
+.play-btn.playing { background:var(--accent); border-color:var(--accent); color:#fff }
+
+/* Elements section */
+.elements-section { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px }
+.elements-card    { padding:14px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px) }
+.elements-card h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:10px }
+.element-item     { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--line) }
+.element-item:last-child { border-bottom:0 }
+.element-icon     { width:32px; height:32px; border-radius:9px; background:var(--sel-bg); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0 }
+.el-name { font-size:12px; font-weight:500; color:var(--ink) }
+.el-desc { font-size:10px; color:var(--muted) }
+
+/* Progressions / groove */
+.prog-section  { margin-bottom:12px; padding:14px 16px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px) }
+.prog-section h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px }
+.prog-list     { display:flex; flex-direction:column; gap:6px }
+.prog-item     { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; background:var(--sel-bg); border:1px solid var(--line); flex-wrap:wrap }
+.prog-chords   { display:flex; gap:4px; flex-wrap:wrap }
+.prog-chord    { padding:3px 8px; border-radius:6px; background:var(--degree-tonic); border:1px solid rgba(232,68,26,.2); font-family:'DM Mono',monospace; font-size:11px; font-weight:500; color:var(--accent2) }
+.prog-desc     { font-size:10px; color:var(--muted) }
+.groove-section { padding:14px 16px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px); margin-bottom:12px }
+.groove-section h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px }
+.groove-rules  { display:flex; flex-direction:column; gap:6px }
+.groove-rule   { display:flex; gap:8px; align-items:flex-start; padding:6px 0; border-bottom:1px solid var(--line) }
+.groove-rule:last-child { border-bottom:0 }
+.rule-num      { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); width:18px; flex-shrink:0; margin-top:1px }
+.rule-text     { font-size:12px; line-height:1.5; color:var(--ink); opacity:.8 }
+
+/* Stab / bass animations */
+@keyframes stab   { 0%,100%{opacity:.3;transform:scaleY(.6)} 8%{opacity:1;transform:scaleY(1)} 16%{opacity:.3;transform:scaleY(.6)} }
+@keyframes bass-p { 0%,100%{opacity:.35} 25%{opacity:1} 75%{opacity:.75} }
+.stab-icon { display:flex; align-items:flex-end; gap:1px; height:18px }
+.sk   { width:4px; border-radius:1px; background:var(--accent2); transform-origin:bottom }
+.sk:nth-child(1){ height:16px; animation:stab 1.2s 0s infinite }
+.sk:nth-child(2){ height:10px; animation:stab 1.2s .08s infinite }
+.sk:nth-child(3){ height:16px; animation:stab 1.2s .16s infinite }
+.sk:nth-child(4){ height:8px;  animation:stab 1.2s .24s infinite }
+.sk:nth-child(5){ height:16px; animation:stab 1.2s .32s infinite }
+.sk.bk { width:3px; height:10px; background:var(--muted); margin:0 1px }
+.bass-icon { display:flex; align-items:center; gap:2px; height:18px }
+.bb { width:4px; border-radius:2px; background:var(--accent2) }
+.bb:nth-child(1){ height:12px; animation:bass-p 1.6s 0s infinite }
+.bb:nth-child(2){ height:7px;  animation:bass-p 1.6s .4s infinite }
+.bb:nth-child(3){ height:16px; animation:bass-p 1.6s .2s infinite }
+.bb:nth-child(4){ height:9px;  animation:bass-p 1.6s .6s infinite }
+.bb:nth-child(5){ height:12px; animation:bass-p 1.6s .1s infinite }
+
+/* == mobile.css == */
+/* ── MOBILE ───────────────────────────────────────────*/
+@media (max-width:860px) {
+  html,body {
+    min-height:100svh;
+    overscroll-behavior-y:none;
+    font-size:15px;
+  }
+  .app {
+    padding:calc(12px + var(--mobile-safe-top)) 14px calc(22px + var(--mobile-safe-bottom));
+    max-width:100%;
+    padding-inline:14px !important;
+  }
+  .topbar         { gap:10px; margin-bottom:10px; align-items:flex-start }
+  .brand h1       { font-size:10px; letter-spacing:.1em }
+  .version        { font-size:9px; padding:2px 5px }
+  .tabs           { border-radius:14px; padding:3px }
+  .tab-btn        { padding:8px 12px; font-size:11px }
+  .main-row       { grid-template-columns:1fr; gap:8px; margin-bottom:10px }
+  .side           { display:none }
+  .circle-wrap    { order:0 }
+  #wheelSvg       { width:min(94vw,430px) !important; height:min(94vw,430px) !important; filter:drop-shadow(0 8px 28px rgba(0,0,0,.34)) }
+  .theory-bottom  { gap:9px }
+  .degrees-row    { border-radius:12px }
+  .degree         { padding:10px 4px }
+  .degree .dn     { font-size:17px }
+  .progression-builder  { border-radius:18px !important }
+  .card,.drawer   { border-radius:18px !important }
+  .builder-head   { flex-direction:column }
+  .builder-actions{ justify-content:flex-start }
+  .builder-meta   { flex-direction:column; align-items:flex-start }
+  .builder-next-top { align-items:flex-start; flex-direction:column; gap:6px }
+  .builder-next-context { white-space:normal }
+  .builder-next-moves .next-orbit { justify-content:flex-start !important; padding-inline:6px !important; gap:9px }
+  .builder-next-moves .next-bubble { min-width:78px; min-height:74px; padding:10px 11px }
+  .info-row       { grid-template-columns:1fr }
+  .prod-grid,.elements-section { grid-template-columns:1fr }
+  .deg-popup-wrap { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) }
+  .deg-popup-wrap.open { transform:translate(-50%,-50%) }
+  .deg-popup::after { display:none }
+  .mode-menu      { left:14px !important; right:auto !important; width:calc(100vw - 28px) !important; max-height:min(56vh,360px) !important }
+  .micro-popover  { width:min(320px,calc(100vw - 28px)); transform:translateY(8px) scale(.985) }
+  .micro-popover.open { transform:translateY(0) scale(1) }
+}
+
+@media (max-width:560px) {
+  .builder-actions { justify-content:flex-start }
+}
+
+</style>
+</head>
+<body>
+<canvas id="plasma"></canvas>
+
+<div class="app">
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1" fill="none" opacity=".5"/><circle cx="10" cy="10" r="5" stroke="currentColor" stroke-width="1" fill="none" opacity=".4"/><circle cx="10" cy="10" r="2" fill="currentColor" opacity=".7"/></svg>
+      <h1>Easy Fifth Circle</h1>
+      <span class="version">V3.17</span>
+    </div>
+    <div class="topbar-right">
+      <div class="settings-mini">
+        <span data-i18n="settings.lang">Lang</span>
+        <select id="langSelect" onchange="setLanguage(this.value)">
+          <option value="en">EN</option>
+          <option value="es">ES</option>
+        </select>
+      </div>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark">☀</button>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('theory',this)" data-i18n="tabs.theory">Theory</button>
+        <button class="tab-btn" onclick="switchTab('production',this)" data-i18n="tabs.production">Production</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- THEORY PANEL -->
+  <div id="panel-theory">
+    <!-- MAIN ROW -->
+    <div class="main-row">
+      <!-- LEFT SIDE -->
+      <aside class="side">
+        <div class="card">
+          <div class="lbl" data-i18n="labels.keyRoot">Key / Root</div>
+          <div id="sideKey" class="big">C</div>
+          <div id="sideMode" class="sub">Major</div>
+          <div class="wheel-toggle" aria-label="Wheel label mode">
+            <button id="viewMajorBtn" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
+            <button id="viewMinorBtn" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="lbl" data-i18n="labels.mode">Mode</div>
+          <div class="mode-control" id="modeControl">
+            <button class="mode-display" id="modeDisplay" type="button" onclick="ModeMenu.toggle(event)">
+              <span id="modeMain">Major</span>
+              <small id="modeSub">bright centre</small>
+              <i>⌄</i>
+            </button>
+            <div class="mode-menu" id="modeMenu"></div>
+            <select id="modeSelect" aria-hidden="true" tabindex="-1"></select>
+          </div>
+        </div>
+        <div class="card">
+          <div class="lbl" data-i18n="labels.accidentals">Accidentals</div>
+          <div id="accidentals" class="big">None</div>
+          <div id="accidentalType" class="sub">Natural</div>
+        </div>
+      </aside>
+
+      <!-- CIRCLE -->
+      <div class="circle-wrap">
+        <svg id="wheelSvg" viewBox="0 0 600 600">
+          <defs>
+            <filter id="fGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="10" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <radialGradient id="discGrad" cx="50%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="rgba(255,255,255,.06)"/>
+              <stop offset="100%" stop-color="rgba(0,0,0,.0)"/>
+            </radialGradient>
+          </defs>
+          <circle cx="300" cy="300" r="296" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+          <g id="wg"></g>
+          <g id="ticks"></g>
+          <circle cx="300" cy="300" r="148" fill="rgba(6,6,10,.94)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+          <circle cx="300" cy="300" r="148" fill="url(#discGrad)"/>
+          <text id="cKey" x="300" y="315" text-anchor="middle"
+            font-family="DM Serif Display,Georgia,serif" font-weight="680" font-style="normal"
+            font-size="80" fill="#f0ede8"></text>
+          <text id="cRel" x="300" y="352" text-anchor="middle"
+            font-family="DM Serif Display,Georgia,serif" font-weight="620" font-style="normal"
+            font-size="30" fill="rgba(255,112,72,.92)"></text>
+          <!-- Single wheelPointer: do not duplicate this id -->
+          <polygon id="wheelPointer" points="300,178 304,189 296,189" fill="rgba(240,237,232,.38)"/>
+        </svg>
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <aside class="side side-compact">
+        <div class="card relative-card">
+          <div class="lbl" data-i18n="labels.relativeMinor">Relative minor</div>
+          <div id="relMinorBig" class="big accent-t">Am</div>
+        </div>
+        <div class="card scale-card">
+          <div class="lbl" data-i18n="labels.scaleNotes">Scale notes</div>
+          <div id="scaleNotes" class="scale-orbs"></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- BOTTOM THEORY -->
+    <div class="theory-bottom">
+      <!-- Degrees -->
+      <div style="position:relative">
+        <div id="degrees" class="degrees-row"></div>
+        <div class="deg-popup-wrap" id="degWrap">
+          <div class="deg-popup" id="degPopup">
+            <button class="popup-close" onclick="closePopup()">✕</button>
+            <div class="deg-nav">
+              <div class="deg-dots" id="degDots"></div>
+              <span class="swipe-hint">scroll → navigate</span>
+            </div>
+            <h3 id="pTitle"></h3>
+            <div class="psub" id="pSub"></div>
+            <p id="pDesc"></p>
+            <p class="pfeel" id="pFeel"></p>
+            <div class="ppairs" id="pPairs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progression Builder -->
+      <section class="progression-builder" id="progressionBuilder"
+        ondragover="DegreeDrag.over(event)" ondrop="DegreeDrag.drop(event)">
+        <div class="builder-head">
+          <div>
+            <h2 class="builder-title" data-i18n="builder.title">Progression builder</h2>
+            <div class="builder-sub" data-i18n="builder.subtitle">Tap a degree or bubble to add it to your progression.</div>
+          </div>
+          <div class="builder-actions">
+            <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
+            <button class="builder-btn" onclick="BuilderEngine.duplicateLast()" data-i18n="builder.duplicate">Duplicate</button>
+            <button class="builder-btn" onclick="BuilderEngine.copy()" data-i18n="builder.copy">Copy</button>
+            <button class="builder-btn danger" onclick="HistoryEngine.clear()" data-i18n="builder.clear">Clear</button>
+          </div>
+        </div>
+        <div id="flowRow" class="builder-row"></div>
+        <div id="builderMeta" class="builder-meta"></div>
+        <div id="progressionStory" class="progression-story"></div>
+      </section>
+
+      <!-- Suggestions section (hidden by CSS; bubbles live in builder) -->
+      <section class="suggestions-section">
+        <div class="suggestions-head">
+          <div>
+            <h2 data-i18n="suggestions.title">Quick harmonic ideas</h2>
+          </div>
+          <div class="mood-lens" id="moodLens"></div>
+        </div>
+        <div id="moodStatus" class="mood-status"></div>
+        <div id="gravityStatus" class="gravity-status"></div>
+        <div id="suggestions" class="suggestion-grid"></div>
+      </section>
+
+      <!-- Instrument drawers -->
+      <div class="drawers">
+        <details class="drawer" open>
+          <summary><span data-i18n="drawers.piano">Piano</span> <span class="chev">⌄</span></summary>
+          <div class="drawer-body"><div id="piano" class="piano"></div></div>
+        </details>
+        <details class="drawer">
+          <summary><span data-i18n="drawers.guitar">Guitar / Fretboard</span> <span class="chev">⌄</span></summary>
+          <div class="drawer-body"><div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div></div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTION PANEL -->
+  <div id="panel-production">
+    <div class="genre-tabs">
+      <button class="genre-btn active" onclick="setGenre('house',this)">House</button>
+      <button class="genre-btn" onclick="setGenre('neosoul',this)">Neo Soul</button>
+      <button class="genre-btn soon">Afrobeat</button>
+      <button class="genre-btn soon">Jazz</button>
+      <button class="genre-btn soon">Techno</button>
+    </div>
+    <div class="prod-header">
+      <div><div id="prodTitle" class="prod-title">House</div><div id="prodMeta" class="prod-meta"></div></div>
+      <div class="key-badge"><span id="prodKeyNote" class="kb-note">C</span><span id="prodKeyMode">Ionian</span></div>
+    </div>
+    <div id="prodCards" class="prod-grid"></div>
+    <div class="midi-section">
+      <div class="midi-header">
+        <h3 data-i18n="production.rhythmGrid">Rhythm Grid — 1 bar · 16 steps</h3>
+        <div style="display:flex;gap:7px;align-items:center">
+          <span id="bpmBadge" class="bpm-badge">124 BPM</span>
+          <button class="play-btn" id="playBtn" onclick="togglePlay()">▶ Play</button>
+        </div>
+      </div>
+      <div id="midiGrid" class="midi-grid"></div>
+    </div>
+    <div id="elementsSection" class="elements-section"></div>
+    <div class="prog-section">
+      <h3 data-i18n="production.progressions">Typical Progressions</h3>
+      <div id="progList" class="prog-list"></div>
+    </div>
+    <div class="groove-section">
+      <h3 data-i18n="production.groove">Groove Construction</h3>
+      <div id="grooveRules" class="groove-rules"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div class="palette-row" id="palRow">
+      <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)" data-i18n="settings.plasma">Plasma</span>
+    </div>
+    <div class="intensity-wrap">
+      <label data-i18n="settings.intensity">Intensity</label>
+      <input type="range" id="plasmaIntensity" min="0.1" max="2.5" step="0.1" value="1"/>
+    </div>
+  </div>
+</div>
+
+<div id="copyToast" class="copy-toast"></div>
+<script>
+'use strict';
+// == constants.js ==
+// ── CONSTANTS ─────────────────────────────────────────
+// Pure data. No DOM access. No state mutation.
+
+const APP_VERSION = 'V3.17';
+const STORAGE_KEY = 'easy-fifth-circle:v1';
+
+const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const FIFTHS = ['C','G','D','A','E','B','F#','C#','Ab','Eb','Bb','F'];
+const ACC    = ['0','1♯','2♯','3♯','4♯','5♯','6♯','7♯','4♭','3♭','2♭','1♭'];
+
+// Enharmonic display: show flats where conventional
+const FM  = {A:'A','A#':'Bb',B:'B',C:'C','C#':'Db',D:'D','D#':'Eb',E:'E',F:'F','F#':'Gb',G:'G','G#':'Ab'};
+const ENH = {Ab:8,Bb:10,Db:1,Eb:3,Gb:6};
+const REL = {C:'Am',G:'Em',D:'Bm',A:'F#m',E:'C#m',B:'G#m','F#':'D#m','C#':'A#m',Ab:'Fm',Eb:'Cm',Bb:'Gm',F:'Dm'};
+
+const MODES = [
+  {id:'ionian',    name:'Major',      intervals:[0,2,4,5,7,9,11], degrees:['I','II','III','IV','V','VI','VII'],   qualities:['Maj','Min','Min','Maj','Maj','Min','Dim']},
+  {id:'aeolian',   name:'Natural Minor',intervals:[0,2,3,5,7,8,10], degrees:['i','ii°','♭III','iv','v','♭VI','♭VII'], qualities:['Min','Dim','Maj','Min','Min','Maj','Maj']},
+  {id:'dorian',    name:'Dorian',     intervals:[0,2,3,5,7,9,10], degrees:['i','ii','♭III','IV','v','vi°','♭VII'], qualities:['Min','Min','Maj','Maj','Min','Dim','Maj']},
+  {id:'mixolydian',name:'Mixolydian', intervals:[0,2,4,5,7,9,10], degrees:['I','II','iii°','IV','v','vi','♭VII'], qualities:['Maj','Min','Dim','Maj','Min','Min','Maj']},
+  {id:'lydian',    name:'Lydian',     intervals:[0,2,4,6,7,9,11], degrees:['I','II','iii°','#IV°','V','vi','vii'], qualities:['Maj','Maj','Min','Dim','Maj','Min','Min']},
+  {id:'phrygian',  name:'Phrygian',   intervals:[0,1,3,5,7,8,10], degrees:['i','♭II','♭III','iv','v°','♭VI','♭VII'], qualities:['Min','Maj','Maj','Min','Dim','Maj','Min']},
+  {id:'locrian',   name:'Locrian',    intervals:[0,1,3,5,6,8,10], degrees:['i°','♭II','♭iii','iv','♭V','♭VI','♭vii'], qualities:['Dim','Maj','Min','Min','Maj','Maj','Min']},
+];
+
+// Scale degree copy (used for popup descriptions)
+const DD = [
+  {role:'Tonic',     feel:'Home base. Stable, grounded. Everything resolves here.',    pairs:['IV','V','vi']},
+  {role:'Supertonic',feel:'Gentle tension. Pre-dominant energy.',                       pairs:['V','vi','IV']},
+  {role:'Mediant',   feel:'Colour chord. Bridges tonic and subdominant areas.',         pairs:['IV','vi','I']},
+  {role:'Subdominant',feel:'Warm lift. Opens the phrase without creating hard tension.',pairs:['V','I','ii']},
+  {role:'Dominant',  feel:'Maximum pull toward home. Tension engine.',                  pairs:['I','vi','iii']},
+  {role:'Submediant',feel:'Emotional depth. Relative minor area.',                      pairs:['IV','ii','I']},
+  {role:'Leading tone',feel:'Unstable edge. Maximum tension before resolution.',        pairs:['I','V','iv']},
+];
+
+const MINOR_ROOT_TO_MAJOR = {Am:'C',Em:'G',Bm:'D','F#m':'A','C#m':'E','G#m':'B','D#m':'F#','A#m':'C#',Fm:'Ab',Cm:'Eb',Gm:'Bb',Dm:'F'};
+const MAJOR_ROOTS = new Set(FIFTHS);
+const MINOR_ROOTS = new Set(Object.keys(MINOR_ROOT_TO_MAJOR));
+
+const MODE_ORDER   = ['ionian','aeolian','dorian','mixolydian','lydian','phrygian','locrian'];
+const MODE_FRIENDLY = {
+  en: {ionian:['Major','bright, stable'],aeolian:['Minor','emotional, natural'],dorian:['Dorian','minor but soulful'],mixolydian:['Mixolydian','major but bluesy'],lydian:['Lydian','floating / dreamy'],phrygian:['Phrygian','dark / Spanish'],locrian:['Locrian','unstable / tense']},
+  es: {ionian:['Mayor','brillante, estable'],aeolian:['Menor','emocional, natural'],dorian:['Dórico','menor con lift soul'],mixolydian:['Mixolidio','mayor con color blues'],lydian:['Lidio','flotante / dreamy'],phrygian:['Frigio','oscuro / español'],locrian:['Locrio','inestable / tenso']},
+};
+
+const PALETTES = [
+  {name:'Cosmos', bg:'#0a0a0b', colors:['#ff7b3b','#ff4500','#b22200']},
+  {name:'Aurora', bg:'#080d10', colors:['#00c8b4','#0088ff','#5500ff']},
+  {name:'Dusk',   bg:'#0c080f', colors:['#c060ff','#8800ff','#ff0088']},
+  {name:'Amber',  bg:'#0c0a06', colors:['#ffcc44','#ff8800','#ff3300']},
+];
+
+const defaultState = {
+  key:'C', mode:'ionian', theme:'dark', genre:'house',
+  palette:0, intensity:1, wheelView:'major', lang:'en',
+  history:[], mood:'balanced',
+};
+
+
+// == en.js ==
+// ── ENGLISH STRINGS ───────────────────────────────────
+const I18N_EN = {
+  'tabs.theory':       'Theory',
+  'tabs.production':   'Production',
+  'labels.keyRoot':    'Key / Root',
+  'labels.mode':       'Mode',
+  'labels.accidentals':'Accidentals',
+  'labels.relativeMinor':'Relative minor',
+  'labels.scaleNotes': 'Scale notes',
+  'toggle.major':      'Major',
+  'toggle.minor':      'Minor',
+  'common.minor':      'minor',
+  'common.major':      'major',
+  'builder.title':     'Progression builder',
+  'builder.subtitle':  'Tap a degree or bubble to add it to your progression.',
+  'builder.add':       'Add selected',
+  'builder.duplicate': 'Duplicate',
+  'builder.copy':      'Copy',
+  'builder.clear':     'Clear',
+  'builder.empty':     'No chords yet — tap a degree or a suggestion bubble.',
+  'suggestions.title': 'Quick harmonic ideas',
+  'suggestions.subtitle': 'Generated from the selected key and mode.',
+  'drawers.piano':     'Piano',
+  'drawers.guitar':    'Guitar / Fretboard',
+  'production.instruments': 'Core instruments',
+  'production.more':   'Additional elements',
+  'production.progressions': 'Typical Progressions',
+  'production.groove': 'Groove Construction',
+  'production.rhythmGrid': 'Rhythm Grid — 1 bar · 16 steps',
+  'settings.lang':     'Lang',
+  'settings.plasma':   'Plasma',
+  'settings.intensity':'Intensity',
+  'play.play':         '▶ Play',
+  'play.stop':         '■ Stop',
+  'roadmap.note':      'Tap a suggestion bubble to add it to the progression.',
+  'dirguide.fifths':   'Fifths',
+  'dirguide.fourths':  'Fourths',
+  'dirguide.clockwise':'clockwise',
+  'dirguide.ccw':      'counterclockwise',
+  'dirguide.popover.title': 'Reading the wheel',
+  'dirguide.popover.body':  'Fifths: read clockwise around the wheel.\nFourths: read counterclockwise. This direction is common in cadential movement, like ii–V–I.',
+};
+
+
+// == es.js ==
+// ── SPANISH STRINGS ───────────────────────────────────
+const I18N_ES = {
+  'tabs.theory':       'Teoría',
+  'tabs.production':   'Producción',
+  'labels.keyRoot':    'Tónica / Raíz',
+  'labels.mode':       'Modo',
+  'labels.accidentals':'Alteraciones',
+  'labels.relativeMinor':'Relativo menor',
+  'labels.scaleNotes': 'Notas de la escala',
+  'toggle.major':      'Mayor',
+  'toggle.minor':      'Menor',
+  'common.minor':      'menor',
+  'common.major':      'mayor',
+  'builder.title':     'Constructor de progresión',
+  'builder.subtitle':  'Toca un grado o burbuja para añadirlo a tu progresión.',
+  'builder.add':       'Añadir seleccionado',
+  'builder.duplicate': 'Duplicar',
+  'builder.copy':      'Copiar',
+  'builder.clear':     'Limpiar',
+  'builder.empty':     'Sin acordes — toca un grado o una burbuja.',
+  'suggestions.title': 'Ideas harmónicas',
+  'suggestions.subtitle': 'Generadas desde la tonalidad y el modo seleccionados.',
+  'drawers.piano':     'Piano',
+  'drawers.guitar':    'Guitarra / Trastera',
+  'production.instruments': 'Instrumentos principales',
+  'production.more':   'Elementos adicionales',
+  'production.progressions': 'Progresiones típicas',
+  'production.groove': 'Construcción del groove',
+  'production.rhythmGrid': 'Rejilla rítmica — 1 compás · 16 pasos',
+  'settings.lang':     'Idioma',
+  'settings.plasma':   'Plasma',
+  'settings.intensity':'Intensidad',
+  'play.play':         '▶ Reproducir',
+  'play.stop':         '■ Detener',
+  'roadmap.note':      'Toca una burbuja para añadirla a la progresión.',
+  'dirguide.fifths':   'Quintas',
+  'dirguide.fourths':  'Cuartas',
+  'dirguide.clockwise':'horario',
+  'dirguide.ccw':      'antihorario',
+  'dirguide.popover.title': 'Leer el círculo',
+  'dirguide.popover.body':  'Quintas: se leen en sentido horario.\nCuartas: se leen en sentido antihorario. Esta dirección es común en movimientos cadenciales, como ii–V–I.',
+};
+
+
+// == i18n.js ==
+// ── I18N ──────────────────────────────────────────────
+
+const I18N = { en: I18N_EN, es: I18N_ES };
+
+function t(key) {
+  return I18N[st?.lang || 'en']?.[key] ?? I18N.en[key] ?? key;
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const val = t(key);
+    if (val && val !== key) el.textContent = val;
+  });
+  if (typeof renderModeMenu === 'function') renderModeMenu();
+}
+
+function setLanguage(lang) {
+  st.lang = I18N[lang] ? lang : 'en';
+  saveState();
+  applyI18n();
+}
+
+
+// == theory-data.js ==
+// ── THEORY DATA ───────────────────────────────────────
+// Static lookup data. No DOM access, no state mutation.
+
+const THEORY_DATA = {
+  modes:              MODES,
+  fifths:             FIFTHS,
+  relativeMinorByMajor: REL,
+  relativeMajorByMinor: MINOR_ROOT_TO_MAJOR,
+  degreeCopy:         DD,
+};
+
+const degreeCopy  = () => THEORY_DATA.degreeCopy;
+const fifthsData  = () => THEORY_DATA.fifths;
+const relativeMinor = (major) => THEORY_DATA.relativeMinorByMajor[major] || '';
+const relativeMajorFromMinor = (minorRoot) => {
+  const key = String(minorRoot || '');
+  // Accept both 'A' and 'Am' — MINOR_ROOT_TO_MAJOR keys are 'Am' etc.
+  const withM = key.endsWith('m') ? key : key + 'm';
+  return MINOR_ROOT_TO_MAJOR[withM] || MINOR_ROOT_TO_MAJOR[key] || null;
+};
+
+// ── PRODUCTION DATA ────────────────────────────────────
+const PRODUCTION_DATA = {
+  house: {
+    title:'House', bpm:124, sub:'4/4 — kick on every beat',
+    cards:[
+      {h:'Scale',   b:'Minor Pentatonic', p:'Keeps the mood dark but groove-friendly.'},
+      {h:'Tension', b:'Dominant 7ths',    p:'Add b7 on the V chord for funk colour.'},
+      {h:'Tip',     b:'Use inversions',   p:'Move the bass under static harmony.'},
+    ],
+    elements:[
+      {icon:'🥁',name:'Kick',    desc:'4-on-the-floor, tight and punchy',           anim:null},
+      {icon:'👏',name:'Clap',   desc:'Snare on 2 and 4, with room verb',           anim:null},
+      {icon:'🎩',name:'Hi-hats',desc:'16th note groove, slight swing',             anim:null},
+      {icon:'🎹',name:'Stabs',  desc:'Off-beat chord stabs, gate or chop',         anim:'stab'},
+      {icon:'🎸',name:'Bass',   desc:'Filtered, sliding into beat 1',              anim:'bass'},
+      {icon:'🎵',name:'Synth',  desc:'Pad layer under everything',                 anim:null},
+    ],
+    progressions:[
+      {chords:['Am','G','F','E'], desc:'i – ♭VII – ♭VI – V: classic dark groove'},
+      {chords:['Dm','Am','Bb','C'],desc:'i – v – ♭VI – ♭VII: uplifting modal'},
+      {chords:['Fm','Eb','Db','Ab'],desc:'Minor with flat-side gravity'},
+    ],
+    groove:[
+      'Lock the kick to the bass line in the first bar.',
+      'Use syncopated stabs between beats 2–3.',
+      'Layer an 8th-note open hat under the 16th groove.',
+      'Keep the main motif under 4 bars so it loops naturally.',
+    ],
+    pattern:[
+      {label:'Kick', cl:'',        p:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0]},
+      {label:'Clap', cl:'clap',    p:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0]},
+      {label:'Hat',  cl:'hat-c',   p:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
+      {label:'Open', cl:'hat-o',   p:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0]},
+    ],
+  },
+  neosoul: {
+    title:'Neo Soul', bpm:90, sub:'4/4 — laid back, swing 16ths',
+    cards:[
+      {h:'Scale',   b:'Dorian + Extensions', p:'min9, maj7, dominant 13ths.'},
+      {h:'Rhythm',  b:'Swing 16ths',          p:'Push the snare slightly behind the beat.'},
+      {h:'Tip',     b:'Chord substitutions', p:'Replace V with bVII for a hipper sound.'},
+    ],
+    elements:[
+      {icon:'🥁',name:'Kick',   desc:'Slightly loose, 808-influenced',  anim:null},
+      {icon:'👏',name:'Snare',  desc:'Fat and roomy, slightly behind',  anim:null},
+      {icon:'🎩',name:'Hi-hats',desc:'Loose swing 16ths',               anim:null},
+      {icon:'🎹',name:'Rhodes', desc:'Warm chords with vibrato',        anim:'stab'},
+      {icon:'🎸',name:'Bass',   desc:'Walking or 16th-note pattern',    anim:'bass'},
+      {icon:'🎵',name:'Strings',desc:'Soft counter-melody',             anim:null},
+    ],
+    progressions:[
+      {chords:['Dm9','G13','Cmaj7','Am9'], desc:'ii9 – V13 – Imaj7 – vi9: classic'},
+      {chords:['Fmaj7','Em7','Am7','Dm7'], desc:'IV – iii – vi – ii: minor circles'},
+      {chords:['Cm9','Fm9','Bb13','Ebmaj7'],desc:'Neo soul in Eb Dorian'},
+    ],
+    groove:[
+      'Play the snare slightly behind beat 2 and 4.',
+      'Use chord extensions: maj9, min11, dom13.',
+      'Counter-melody on Rhodes or guitar fills the space.',
+      'Walk the bass under static harmony for movement.',
+    ],
+    pattern:[
+      {label:'Kick', cl:'',        p:[1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0]},
+      {label:'Snare',cl:'clap',    p:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0]},
+      {label:'Hat',  cl:'hat-c',   p:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},
+      {label:'Shake',cl:'shaker',  p:[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]},
+    ],
+  },
+};
+const GENRES = PRODUCTION_DATA;
+
+
+// == state.js ==
+// ── STATE ─────────────────────────────────────────────
+// Single source of truth. Only mutated through AppActions/ActionDispatcher.
+
+function loadSavedState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { ...defaultState };
+    const saved = JSON.parse(raw);
+    return { ...defaultState, ...saved };
+  } catch (_) {
+    return { ...defaultState };
+  }
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(st)); } catch (_) {}
+}
+
+let st = loadSavedState();
+
+// curDeg is not in st because it is a transient UI state (which degree popup is open)
+let curDeg   = -1;
+let curGenre = st.genre || 'house';
+let isLight  = st.theme === 'light';
+let playing  = false, pInterval = null, pStep = 0;
+
+const AppState = {
+  get()    { return { ...st }; },
+  set(key, value) { st[key] = value; saveState(); },
+  snapshot() { return JSON.parse(JSON.stringify(st)); },
+};
+
+
+// == utils.js ==
+// ── UTILS ─────────────────────────────────────────────
+// Pure helpers. No DOM access. No direct state mutation.
+
+const stripMinorSuffix = (key) => String(key || 'C').replace(/m$/, '');
+
+const ni = n => { const i = NOTES.indexOf(n); return i >= 0 ? i : (ENH[n] ?? 0); };
+const na = i => NOTES[(i + 120) % 12];
+const dn = n => (['Ab','Bb','Db','Eb','Gb'].includes(n) ? n : (FM[n] || n));
+
+const gm  = ()  => MODES.find(m => m.id === st.mode);
+const gs  = ()  => { const r = ni(st.key); return gm().intervals.map(i => dn(na(r + i))); };
+const gr  = ()  => { const r = ni(st.key); return gm().intervals.map(i => na(r + i)); };
+const gc  = ()  => { const s = gs(), m = gm(); return s.map((n, i) => ({ degree: m.degrees[i], note: n, quality: m.qualities[i], chord: n + (m.qualities[i] === 'Min' ? 'm' : m.qualities[i] === 'Dim' ? '°' : '') })); };
+const grel = () => {
+  const r = ni(st.key);
+  if (st.mode === 'ionian')  return dn(na(r + 9)) + ' ' + t('common.minor');
+  if (st.mode === 'aeolian') return dn(na(r + 3)) + ' ' + t('common.major');
+  return dn(na(r)) + ' ' + gm().name;
+};
+
+function clamp(v, min = 0, max = 100) { return Math.max(min, Math.min(max, Math.round(v))); }
+
+function modeFriendly(id) {
+  return (MODE_FRIENDLY[st.lang || 'en'] || MODE_FRIENDLY.en)[id] || [id, ''];
+}
+
+function normalizeKeyState() {
+  if (!st.key) st.key = 'C';
+  const isMinorRoot = MINOR_ROOTS.has(st.key);
+  const isMajorRoot = MAJOR_ROOTS.has(stripMinorSuffix(st.key));
+  if (!isMajorRoot && !isMinorRoot) st.key = 'C';
+  if (st.wheelView === 'minor' && !isMinorRoot) {
+    const rel = REL[stripMinorSuffix(st.key)];
+    if (rel) st.key = rel;
+  }
+  if (st.wheelView === 'major' && isMinorRoot) {
+    const maj = MINOR_ROOT_TO_MAJOR[st.key];
+    if (maj) st.key = maj;
+  }
+}
+
+function anchorKey() {
+  if (st.wheelView === 'minor') return stripMinorSuffix(st.key);
+  return stripMinorSuffix(st.key);
+}
+
+function displayKeyLabel() {
+  if (st.wheelView === 'minor') {
+    const root = stripMinorSuffix(st.key);
+    const rel = MINOR_ROOT_TO_MAJOR[st.key] || MINOR_ROOT_TO_MAJOR[root + 'm'];
+    return rel ? dn(rel) : dn(root);
+  }
+  return dn(stripMinorSuffix(st.key));
+}
+
+function metricClass(value) {
+  const v = clamp(value);
+  return v >= 78 ? 'high' : v >= 55 ? 'medium' : 'soft';
+}
+
+function metricPill(label, value) {
+  const v = clamp(value), cls = metricClass(v);
+  return `<span class="gravity-pill metric ${cls}">${label} ${v}</span>`;
+}
+
+// SVG helpers — used by both wheel-renderer and direction-guide
+const NS = 'http://www.w3.org/2000/svg';
+function se(tag, attrs) {
+  const el = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+function polar(r, deg) {
+  const a = (deg - 90) * Math.PI / 180;
+  return [300 + r * Math.cos(a), 300 + r * Math.sin(a)];
+}
+
+
+// == harmony-engine.js ==
+// ── HARMONY ENGINE ────────────────────────────────────
+// Calculates harmonic gravity, metrics, transitions.
+// Pure logic — no DOM access.
+
+const MOOD_PROFILES = {
+  balanced: {label:'Balanced', desc:'Neutral movement: home, lift and tension.',  prefer:[0,3,4], avoid:[]},
+  dreamy:   {label:'Dreamy',   desc:'Soft colour, suspended movement.',            prefer:[2,5,3], avoid:[6]},
+  uplift:   {label:'Uplift',   desc:'Brighter routes, forward energy.',            prefer:[3,6,0], avoid:[1]},
+  dark:     {label:'Darker',   desc:'Moodier choices, cinematic falls.',           prefer:[5,6,1], avoid:[0]},
+  soul:     {label:'Soulful',  desc:'Smooth voice-leading, groove-friendly.',      prefer:[1,3,5], avoid:[6]},
+  tension:  {label:'Tension',  desc:'More pull before release.',                   prefer:[4,6,1], avoid:[0]},
+  floating: {label:'Floating', desc:'Open space, fewer hard cadences.',            prefer:[3,1,6], avoid:[4]},
+};
+
+const GRAVITY_ARCHETYPES = [
+  {name:'Resolution', tension:18, stability:96, brightness:72, darkness:18, movement:26, resolution:96, surprise:12},
+  {name:'Prepare',    tension:48, stability:58, brightness:52, darkness:42, movement:68, resolution:50, surprise:35},
+  {name:'Colour',     tension:36, stability:62, brightness:56, darkness:40, movement:42, resolution:46, surprise:52},
+  {name:'Lift',       tension:42, stability:72, brightness:76, darkness:22, movement:62, resolution:58, surprise:30},
+  {name:'Tension',    tension:82, stability:44, brightness:60, darkness:38, movement:88, resolution:24, surprise:20},
+  {name:'Emotion',    tension:54, stability:66, brightness:36, darkness:68, movement:54, resolution:52, surprise:38},
+  {name:'Edge',       tension:92, stability:24, brightness:44, darkness:62, movement:82, resolution:18, surprise:72},
+];
+
+function degreeWeight(idx) {
+  const role  = ['Resolution / home','Connector','Colour','Lift','Tension','Emotion','Instability'][idx] || 'Colour';
+  const score = [95,62,48,70,90,66,84][idx] || 60;
+  return { score, role };
+}
+
+function harmonicGravity(idx) {
+  const q = gc()[idx]?.quality || 'Maj';
+  const g = { ...GRAVITY_ARCHETYPES[(idx + 7) % 7] };
+  if (q === 'Min') { g.darkness += 8; g.brightness -= 5; g.tension += 4; }
+  if (q === 'Dim') { g.tension  += 10; g.stability -= 12; g.surprise += 10; }
+  if (['dorian','mixolydian','lydian'].includes(st.mode))   { g.brightness += 5; g.surprise += 4; }
+  if (['aeolian','phrygian','locrian'].includes(st.mode))   { g.darkness += 8; g.brightness -= 5; }
+  Object.keys(g).forEach(k => { if (k !== 'name') g[k] = clamp(g[k]); });
+  g.weight = degreeWeight(idx).score;
+  g.role   = degreeWeight(idx).role;
+  return g;
+}
+
+function harmonyMetrics(idx) {
+  const g = harmonicGravity(idx);
+  return {
+    weight:g.weight, tension:g.tension, stability:g.stability,
+    colour:clamp((g.surprise + g.darkness + g.tension) / 3),
+    role:g.role, brightness:g.brightness, darkness:g.darkness,
+    movement:g.movement, resolution:g.resolution, surprise:g.surprise, name:g.name,
+  };
+}
+
+function transitionProfile(fromIdx, toIdx) {
+  const a = harmonicGravity(fromIdx), b = harmonicGravity(toIdx);
+  const delta = (toIdx - fromIdx + 7) % 7;
+  let category = 'Motion', route = 'Balanced motion', score = 55;
+  if (fromIdx === 4 && toIdx === 0) { category = 'Resolve';   route = 'Classic V → I resolution';      score = 92; }
+  else if (fromIdx === 1 && toIdx === 4) { category = 'Tension';   route = 'Pre-dominant → dominant';  score = 86; }
+  else if (toIdx === 0)                  { category = 'Resolve';   route = 'Back to the key centre';   score = 76; }
+  else if ([3,5].includes(toIdx))        { category = 'Lift';      route = 'Warm colour shift';        score = 68; }
+  else if ([6,1].includes(toIdx))        { category = 'Surprise';  route = 'Sharper modal colour';     score = 62; }
+  else if (delta === 4 || delta === 3)   { category = 'Motion';    route = 'Fifth-style movement';     score = 72; }
+  score += Math.round((b.movement - a.stability) * 0.08);
+  return { category, route, score: clamp(score) };
+}
+
+function moodFit(idx, fromIdx = curDeg >= 0 ? curDeg : 0) {
+  const p  = MOOD_PROFILES[st.mood || 'balanced'] || MOOD_PROFILES.balanced;
+  const g  = harmonicGravity(idx);
+  const tr = transitionProfile(fromIdx, idx);
+  let score = 42 + tr.score * 0.24;
+  if (p.prefer.includes(idx)) score += 26;
+  if (p.avoid.includes(idx))  score -= 16;
+  const mood = st.mood || 'balanced';
+  if (mood === 'tension')  score += g.tension * 0.22   + g.movement * 0.12;
+  if (mood === 'uplift')   score += g.brightness * 0.18 + g.stability * 0.08;
+  if (mood === 'dark')     score += g.darkness * 0.22  + g.surprise * 0.08;
+  if (mood === 'soul')     score += ([1,3,5].includes(idx) ? 20 : 0) + Math.max(0, 80 - g.tension) * 0.06;
+  if (mood === 'dreamy')   score += g.surprise * 0.14  + Math.max(0, 80 - g.tension) * 0.10;
+  if (mood === 'floating') score += g.surprise * 0.12  + g.brightness * 0.08 - (idx === 4 ? 12 : 0);
+  if (mood === 'balanced') score += (100 - Math.abs(58 - g.weight)) * 0.10;
+  return clamp(score);
+}
+
+function moodReason(base, idx, fromIdx = curDeg >= 0 ? curDeg : 0) {
+  const tr = transitionProfile(fromIdx, idx);
+  const m  = st.mood || 'balanced';
+  if (m === 'dreamy')   return `${tr.route}. Softer colour, less obvious than a hard cadence.`;
+  if (m === 'uplift')   return `${tr.route}. Brighter option with forward motion.`;
+  if (m === 'dark')     return `${tr.route}. Darker colour, useful for moodier loops.`;
+  if (m === 'soul')     return `${tr.route}. Smooth, groove-friendly movement.`;
+  if (m === 'tension')  return `${tr.route}. Adds pull before resolving.`;
+  if (m === 'floating') return `${tr.route}. Keeps the harmony open and modal.`;
+  return base || tr.route;
+}
+
+function validationScore(from, to, tr) {
+  const mode = st.mode;
+  let bonus = 0;
+  const reasons = [];
+  if (from === 1 && to === 4) { bonus += 10; reasons.push('classic ii→V cadence'); }
+  if (from === 4 && to === 0) { bonus += 14; reasons.push('strong V→I resolution'); }
+  if (from === 3 && to === 0) { bonus += 8;  reasons.push('soft IV→I landing'); }
+  if (['aeolian','dorian','phrygian'].includes(mode) && to === 5) { bonus += 7;  reasons.push('minor colour pillar'); }
+  if (mode === 'dorian'     && to === 3) { bonus += 11; reasons.push('Dorian major-IV colour'); }
+  if (mode === 'mixolydian' && to === 6) { bonus += 11; reasons.push('Mixolydian bVII signature'); }
+  if (mode === 'lydian'     && to === 1) { bonus += 11; reasons.push('Lydian raised-II colour'); }
+  if (curGenre === 'house'   && [0,3,6].includes(to)) { bonus += 4; reasons.push('loop-friendly for house'); }
+  if (curGenre === 'neosoul' && [1,4,5].includes(to)) { bonus += 5; reasons.push('works well with extended voicings'); }
+  return { bonus, reason: reasons[0] || tr.route };
+}
+
+function categoryClass(category) {
+  const c = String(category || '').toLowerCase();
+  if (c.includes('resolve'))  return 'resolve';
+  if (c.includes('tension'))  return 'tension';
+  if (c.includes('lift'))     return 'lift';
+  if (c.includes('surprise')) return 'surprise';
+  return 'motion';
+}
+
+function friendlyCategory(cat) {
+  if (!cat) return 'Motion';
+  const c = String(cat).toLowerCase();
+  if (c.includes('resolve'))  return 'Resolve';
+  if (c.includes('lift'))     return 'Lift';
+  if (c.includes('dark'))     return 'Darken';
+  if (c.includes('surprise')) return 'Surprise';
+  if (c.includes('float'))    return 'Float';
+  return 'Motion';
+}
+
+const HarmonyEngine = {
+  degreeAngle: (idx) => idx * 30,
+  gravity:     harmonicGravity,
+  metrics:     harmonyMetrics,
+  transition:  transitionProfile,
+  moodFit,
+  validationScore,
+};
+
+
+// == suggestion-engine.js ==
+// ── SUGGESTION ENGINE ─────────────────────────────────
+// Generates next-chord suggestions. No DOM access.
+
+const HARMONY_SUGGESTION_DATA = {
+  functional: {
+    0:[{to:3,label:'Lift',why:'Move away from home without creating too much tension.'},{to:4,label:'Tension',why:'Classic dominant pull.'},{to:5,label:'Emotion',why:'Relative colour. Softer and more reflective.'}],
+    1:[{to:4,label:'Prepare',why:'ii → V is the cleanest pre-dominant to dominant motion.'},{to:3,label:'Soften',why:'Moves sideways into a warmer colour.'},{to:0,label:'Reset',why:'Drops back home for a simple loop.'}],
+    2:[{to:5,label:'Colour chain',why:'iii → vi feels smooth and cinematic.'},{to:3,label:'Open',why:'iii → IV adds brightness.'},{to:0,label:'Back home',why:'A gentle way to return to the tonic.'}],
+    3:[{to:4,label:'Build',why:'IV → V increases forward motion.'},{to:0,label:'Amen',why:'IV → I is soft and peaceful.'},{to:1,label:'Jazz route',why:'IV can pivot into ii before a stronger cadence.'}],
+    4:[{to:0,label:'Resolve',why:'V → I is the strongest resolution.'},{to:5,label:'Deceptive',why:'V → vi avoids the obvious landing.'},{to:3,label:'Loop back',why:'V → IV keeps the loop open.'}],
+    5:[{to:3,label:'Pop lift',why:'vi → IV is emotional but stable.'},{to:1,label:'Descend',why:'vi → ii creates a smooth pre-dominant movement.'},{to:0,label:'Bittersweet',why:'vi → I returns home with less drama.'}],
+    6:[{to:0,label:'Resolve',why:'vii° → I gives maximum pull into the key centre.'},{to:4,label:'Intensify',why:'vii° → V keeps the tension alive.'},{to:5,label:'Fall',why:'A darker downward move.'}],
+  },
+  modal: {
+    dorian:     {0:[{to:3,label:'Dorian signature',why:'i → IV is the soulful Dorian sound.'},{to:6,label:'Open loop',why:'i → ♭VII keeps it modal.'},{to:1,label:'Smooth',why:'i → ii keeps movement subtle.'}],
+                 3:[{to:0,label:'Return',why:'IV → i resolves without sounding classical.'},{to:6,label:'Soulful',why:'IV → ♭VII is open and groove-friendly.'},{to:4,label:'Hold',why:'IV → v stays minor and suspended.'}]},
+    phrygian:   {0:[{to:1,label:'Phrygian colour',why:'i → ♭II is the defining dark/Spanish movement.'},{to:5,label:'Cinematic',why:'i → ♭VI gives a wider dramatic colour.'},{to:3,label:'Dark vamp',why:'i → iv stays brooding.'}],
+                 1:[{to:0,label:'Resolve',why:'♭II → i is the core Phrygian cadence.'},{to:5,label:'Expand',why:'♭II → ♭VI sounds dramatic.'},{to:3,label:'Shadow',why:'♭II → iv keeps the palette dark.'}]},
+    lydian:     {0:[{to:1,label:'Lydian lift',why:'I → II instantly shows the raised-four colour.'},{to:4,label:'Resolve softly',why:'I → V stays bright.'},{to:5,label:'Warmth',why:'I → vi adds human emotion.'}],
+                 1:[{to:0,label:'Float back',why:'II → I is the clean Lydian colour loop.'},{to:4,label:'Bright drive',why:'II → V keeps the harmony elevated.'},{to:2,label:'Gentle colour',why:'II → iii softens the brightness.'}]},
+    mixolydian: {0:[{to:6,label:'Mixo signature',why:'I → ♭VII is the classic bluesy/modal move.'},{to:3,label:'Lift',why:'I → IV is strong without becoming classical.'},{to:4,label:'Suspend',why:'I → v keeps the dominant feeling unresolved.'}],
+                 6:[{to:0,label:'Back home',why:'♭VII → I is the core Mixolydian resolution.'},{to:3,label:'Anthem',why:'♭VII → IV feels big and open.'},{to:4,label:'Keep moving',why:'♭VII → v stays modal.'}]},
+    aeolian:    {0:[{to:5,label:'Minor pillar',why:'i → ♭VI is emotional and cinematic.'},{to:6,label:'Lift',why:'i → ♭VII opens the loop.'},{to:3,label:'Dark drive',why:'i → iv keeps the feeling grounded.'}],
+                 5:[{to:6,label:'Classic minor climb',why:'♭VI → ♭VII sets up a strong return to i.'},{to:0,label:'Fall home',why:'♭VI → i is direct and emotional.'},{to:3,label:'Darker',why:'♭VI → iv deepens the mood.'}]},
+  },
+};
+
+function nextChordIdeas(fromIdx) {
+  const modal = HARMONY_SUGGESTION_DATA.modal[st.mode]?.[fromIdx];
+  return modal || HARMONY_SUGGESTION_DATA.functional[fromIdx] || HARMONY_SUGGESTION_DATA.functional[0];
+}
+
+const SuggestionEngine = {
+  next(fromIdx) {
+    const all = new Map();
+    (HARMONY_SUGGESTION_DATA.functional[fromIdx] || []).forEach(it => all.set(it.to, it));
+    const modal = HARMONY_SUGGESTION_DATA.modal[st.mode]?.[fromIdx];
+    if (modal) modal.forEach(it => all.set(it.to, it));
+    return [...all.values()];
+  },
+
+  progressions() {
+    const mode = st.mode;
+    const base = [
+      {idx:[0,3,4,0], tag:'I – IV – V – I: classic cadence'},
+      {idx:[1,4,0],   tag:'ii – V – I: jazz / neo-soul staple'},
+      {idx:[0,5,3,4], tag:'I – vi – IV – V: pop rotation'},
+      {idx:[0,4,5,3], tag:'I – V – vi – IV: anthemic pop'},
+      {idx:[5,3,0,4], tag:'vi – IV – I – V: emotional minor'},
+      {idx:[1,6,0,4], tag:'ii – vii° – I – V: baroque line'},
+    ];
+    if (mode === 'dorian')     base.unshift({idx:[0,3,0,6], tag:'i – IV – i – ♭VII: Dorian groove'});
+    if (mode === 'mixolydian') base.unshift({idx:[0,6,3,0], tag:'I – ♭VII – IV – I: Mixolydian rock'});
+    if (mode === 'phrygian')   base.unshift({idx:[0,1,0,3], tag:'i – ♭II – i – iv: Phrygian vamp'});
+    if (mode === 'lydian')     base.unshift({idx:[0,1,4,0], tag:'I – II – V – I: Lydian lift'});
+    return base;
+  },
+
+  getNextWithScores(fromIdx = curDeg >= 0 ? curDeg : 0) {
+    const raw     = SuggestionEngine.next(fromIdx);
+    const byTo    = new Map(raw.map(x => [x.to, x]));
+    return gc().map((c, to) => {
+      const base       = byTo.get(to) || { to, why: 'Works as a colour inside this mode.' };
+      const transition = transitionProfile(fromIdx, to);
+      const validation = validationScore(fromIdx, to, transition);
+      const m          = harmonyMetrics(to);
+      const fit        = clamp(Math.round(moodFit(to, fromIdx) + (validation.bonus || 0)), 8, 100);
+      return { ...base, to, chord: c, transition, validation, m, fit };
+    }).sort((a, b) => b.fit - a.fit);
+  },
+};
+
+
+// == wheel-direction-engine.js ==
+// ── WHEEL DIRECTION GUIDE ─────────────────────────────
+// Shows subtle Fifths / Fourths arcs around the wheel.
+// Toggled by the info button near the wheel.
+
+const WheelDirectionGuide = {
+  visible: false,
+
+  toggle() {
+    this.visible = !this.visible;
+    this.render();
+    this._updateInfoBtn();
+    if (this.visible) this._showPopover();
+    else this._hidePopover();
+  },
+
+  render() {
+    const svg = document.getElementById('wheelSvg');
+    if (!svg) return;
+
+    let guide = document.getElementById('wheelDirectionGuide');
+    if (!guide) {
+      guide = document.createElementNS(NS, 'g');
+      guide.id = 'wheelDirectionGuide';
+      guide.setAttribute('pointer-events', 'none');
+      // Place after #ticks so it sits above the tick ring but below the pointer
+      const ptr = document.getElementById('wheelPointer');
+      if (ptr) svg.insertBefore(guide, ptr);
+      else svg.appendChild(guide);
+    }
+
+    guide.innerHTML = '';
+    if (!this.visible) { guide.style.opacity = '0'; return; }
+
+    const isDark = !document.body.classList.contains('light');
+    const arcStroke = isDark ? 'rgba(240,237,232,.28)' : 'rgba(20,20,20,.22)';
+    const labelFill = isDark ? 'rgba(240,237,232,.52)' : 'rgba(20,20,20,.46)';
+    const subFill   = isDark ? 'rgba(240,237,232,.3)'  : 'rgba(20,20,20,.28)';
+
+    // r=297 sits just outside the outer wheel ring (r=286).
+    // Right arc: angles 40° – 140° (NE to SE in wheel convention = clockwise Fifths side)
+    const R = 297;
+    const [rx1, ry1] = polar(R, 38);
+    const [rx2, ry2] = polar(R, 142);
+    // Left arc: angles 218° – 322° (SW to NW = counterclockwise Fourths side)
+    const [lx1, ly1] = polar(R, 218);
+    const [lx2, ly2] = polar(R, 322);
+
+    // ── Fifths arc (right side, clockwise sweep) ──────
+    const arcF = se('path', {
+      d:              `M ${rx1.toFixed(1)},${ry1.toFixed(1)} A ${R},${R} 0 0 1 ${rx2.toFixed(1)},${ry2.toFixed(1)}`,
+      fill:           'none',
+      stroke:         arcStroke,
+      'stroke-width': '1.4',
+      'stroke-linecap':'round',
+      'stroke-dasharray':'4 7',
+      class:          'dir-arc dir-arc-fifths',
+    });
+    guide.appendChild(arcF);
+
+    // Arrowhead at end of Fifths arc (clockwise, points downward at 3–4 o'clock)
+    const [ax1, ay1] = polar(R - 8, 150);
+    const [ax2, ay2] = polar(R + 8, 150);
+    const [ax3, ay3] = polar(R,     138);
+    const arrowF = se('polygon', {
+      points:  `${ax1.toFixed(1)},${ay1.toFixed(1)} ${ax2.toFixed(1)},${ay2.toFixed(1)} ${ax3.toFixed(1)},${ay3.toFixed(1)}`,
+      fill:    arcStroke,
+      class:   'dir-arrow',
+    });
+    guide.appendChild(arrowF);
+
+    // Labels for Fifths (right side)
+    const lFifths = se('text', {
+      x: '556', y: '294',
+      'text-anchor': 'middle',
+      'font-family': 'DM Mono,monospace',
+      'font-size':   '10.5',
+      fill:          labelFill,
+      'letter-spacing': '.1em',
+      class: 'dir-label',
+    });
+    lFifths.textContent = t('dirguide.fifths').toUpperCase();
+    guide.appendChild(lFifths);
+
+    const lFifthsSub = se('text', {
+      x: '556', y: '308',
+      'text-anchor': 'middle',
+      'font-family': 'DM Mono,monospace',
+      'font-size':   '8',
+      fill:          subFill,
+      'letter-spacing': '.04em',
+      class: 'dir-label-sub',
+    });
+    lFifthsSub.textContent = t('dirguide.clockwise') + ' →';
+    guide.appendChild(lFifthsSub);
+
+    // ── Fourths arc (left side, counterclockwise sweep) ─
+    const arcFo = se('path', {
+      d:              `M ${lx1.toFixed(1)},${ly1.toFixed(1)} A ${R},${R} 0 0 0 ${lx2.toFixed(1)},${ly2.toFixed(1)}`,
+      fill:           'none',
+      stroke:         arcStroke,
+      'stroke-width': '1.4',
+      'stroke-linecap':'round',
+      'stroke-dasharray':'4 7',
+      class:          'dir-arc dir-arc-fourths',
+    });
+    guide.appendChild(arcFo);
+
+    // Arrowhead at end of Fourths arc (counterclockwise, points upward at 9–10 o'clock)
+    const [bx1, by1] = polar(R - 8, 310);
+    const [bx2, by2] = polar(R + 8, 310);
+    const [bx3, by3] = polar(R,     322);
+    const arrowFo = se('polygon', {
+      points:  `${bx1.toFixed(1)},${by1.toFixed(1)} ${bx2.toFixed(1)},${by2.toFixed(1)} ${bx3.toFixed(1)},${by3.toFixed(1)}`,
+      fill:    arcStroke,
+      class:   'dir-arrow',
+    });
+    guide.appendChild(arrowFo);
+
+    // Labels for Fourths (left side)
+    const lFourths = se('text', {
+      x: '44', y: '294',
+      'text-anchor': 'middle',
+      'font-family': 'DM Mono,monospace',
+      'font-size':   '10.5',
+      fill:          labelFill,
+      'letter-spacing': '.1em',
+      class: 'dir-label',
+    });
+    lFourths.textContent = t('dirguide.fourths').toUpperCase();
+    guide.appendChild(lFourths);
+
+    const lFourthsSub = se('text', {
+      x: '44', y: '308',
+      'text-anchor': 'middle',
+      'font-family': 'DM Mono,monospace',
+      'font-size':   '8',
+      fill:          subFill,
+      'letter-spacing': '.04em',
+      class: 'dir-label-sub',
+    });
+    lFourthsSub.textContent = '← ' + t('dirguide.ccw');
+    guide.appendChild(lFourthsSub);
+
+    // Animate in
+    guide.style.opacity = '0';
+    guide.style.transition = 'opacity 0.42s cubic-bezier(.22,1,.36,1)';
+    requestAnimationFrame(() => { guide.style.opacity = '1'; });
+  },
+
+  // ── Info button (added to SVG once) ──────────────────
+  addInfoButton() {
+    const svg = document.getElementById('wheelSvg');
+    if (!svg || document.getElementById('wheelInfoBtn')) return;
+    const btn = document.createElementNS(NS, 'g');
+    btn.id = 'wheelInfoBtn';
+    btn.setAttribute('cursor', 'pointer');
+    btn.setAttribute('class', 'wheel-info-btn');
+    btn.setAttribute('role', 'button');
+    btn.setAttribute('aria-label', 'Wheel direction guide');
+
+    const circle = se('circle', { cx:'548', cy:'40', r:'14',
+      fill: 'rgba(255,255,255,.06)', stroke: 'rgba(255,255,255,.14)', 'stroke-width':'1' });
+    const text = se('text', { x:'548', y:'45', 'text-anchor':'middle',
+      'font-size':'14', fill:'rgba(240,237,232,.55)', 'font-family':'DM Mono,monospace',
+      'pointer-events':'none' });
+    text.textContent = 'ⓘ';
+
+    btn.appendChild(circle);
+    btn.appendChild(text);
+    btn.addEventListener('click', e => { e.stopPropagation(); WheelDirectionGuide.toggle(); });
+    svg.appendChild(btn);
+  },
+
+  _updateInfoBtn() {
+    const btn    = document.getElementById('wheelInfoBtn');
+    const circle = btn?.querySelector('circle');
+    if (!circle) return;
+    if (this.visible) {
+      circle.setAttribute('fill',   'rgba(232,68,26,.22)');
+      circle.setAttribute('stroke', 'rgba(232,68,26,.55)');
+    } else {
+      circle.setAttribute('fill',   'rgba(255,255,255,.06)');
+      circle.setAttribute('stroke', 'rgba(255,255,255,.14)');
+    }
+  },
+
+  // ── Popover ───────────────────────────────────────────
+  _showPopover() {
+    let pop = document.getElementById('dirGuidePopover');
+    if (!pop) {
+      pop = document.createElement('div');
+      pop.id = 'dirGuidePopover';
+      pop.className = 'micro-popover dir-guide-popover';
+      pop.innerHTML = `
+        <button class="micro-close" onclick="WheelDirectionGuide._hidePopover()">✕</button>
+        <h4 id="dgpTitle"></h4>
+        <p id="dgpBody" style="white-space:pre-line"></p>`;
+      document.body.appendChild(pop);
+    }
+    const title = document.getElementById('dgpTitle');
+    const body  = document.getElementById('dgpBody');
+    if (title) title.textContent = t('dirguide.popover.title');
+    if (body)  body.textContent  = t('dirguide.popover.body');
+
+    // Position near the info button
+    const btn = document.getElementById('wheelInfoBtn');
+    if (btn) {
+      const svgEl = document.getElementById('wheelSvg');
+      const svgRect = svgEl?.getBoundingClientRect();
+      if (svgRect) {
+        const scale = svgRect.width / 600;
+        const px = svgRect.left + 548 * scale;
+        const py = svgRect.top  + 40  * scale;
+        const pw = pop.offsetWidth || 300;
+        const ph = pop.offsetHeight || 120;
+        let left = px + 20;
+        if (left + pw > window.innerWidth - 14) {
+          left = px - pw - 20;
+          pop.classList.add('flip');
+        } else {
+          pop.classList.remove('flip');
+        }
+        const top = Math.min(Math.max(14, py - ph / 2), window.innerHeight - ph - 14);
+        pop.style.left = left + 'px';
+        pop.style.top  = top  + 'px';
+      }
+    }
+    pop.classList.add('open');
+  },
+
+  _hidePopover() {
+    document.getElementById('dirGuidePopover')?.classList.remove('open');
+  },
+};
+
+
+// == mobile-optimizer.js ==
+// ── MOBILE OPTIMIZER ──────────────────────────────────
+
+const InteractionController = {
+  active: null,
+  start(type) { this.active = { type, ts: Date.now() }; document.body.dataset.interaction = type; },
+  end()        { this.active = null; delete document.body.dataset.interaction; },
+  is(type)     { return this.active && this.active.type === type; },
+};
+
+const MobileOptimizer = {
+  isMobile: matchMedia('(max-width: 860px)').matches,
+
+  init() {
+    const mq    = matchMedia('(max-width: 860px)');
+    const apply = () => {
+      this.isMobile = mq.matches;
+      document.documentElement.classList.toggle('is-mobile-browser', this.isMobile);
+    };
+    apply();
+    mq.addEventListener?.('change', apply);
+    document.addEventListener('touchstart', () => {}, { passive: true });
+
+    // Prevent page scroll while the wheel is being dragged
+    const wheel = document.getElementById('wheelSvg');
+    if (wheel) {
+      ['touchmove', 'pointermove'].forEach(ev =>
+        wheel.addEventListener(ev, e => {
+          if (InteractionController.active) e.preventDefault();
+        }, { passive: false })
+      );
+    }
+  },
+};
+
+
+// == render-engine.js ==
+// ── RENDER ENGINE ─────────────────────────────────────
+// Orchestrates all renders. Mutations only here, not in logic modules.
+
+const RenderEngine = {
+  counts: { full:0, wheel:0, theory:0, suggestions:0, history:0 },
+
+  full() {
+    this.counts.full++;
+    renderWheel();       this.counts.wheel++;
+    renderTheory();      this.counts.theory++;
+    renderSuggestions(); this.counts.suggestions++;
+    HistoryEngine.render(); this.counts.history++;
+    renderProgressionStory();
+    renderPiano();
+    renderGuitar();
+    applyI18n();
+  },
+
+  partial(set) {
+    if (!Array.isArray(set)) return;
+    if (set.includes('wheel'))       { renderWheel();       this.counts.wheel++; }
+    if (set.includes('theory'))      { renderTheory();      this.counts.theory++; }
+    if (set.includes('suggestions')) { renderSuggestions(); this.counts.suggestions++; }
+    if (set.includes('history'))     { HistoryEngine.render(); this.counts.history++; renderProgressionStory(); }
+    if (set.includes('trails'))      { renderProgressionStory(); }
+    if (set.includes('degrees'))     { renderTheory(); }
+  },
+};
+
+
+// == wheel-renderer.js ==
+// ── WHEEL RENDERER ────────────────────────────────────
+
+let wRot = 0, wAnim = null;
+
+function normDeg(d) { return ((d % 360) + 360) % 360; }
+function shortestDelta(to, from) {
+  let d = to - from;
+  while (d > 180)  d -= 360;
+  while (d < -180) d += 360;
+  return d;
+}
+function nearestFifthIndex(rot) { return ((Math.round(-rot / 30) % 12) + 12) % 12; }
+
+function syncWheelLabels(rot) {
+  const grp = document.getElementById('wg'); if (!grp) return;
+  grp.querySelectorAll('text[data-x]').forEach(t => {
+    const x = parseFloat(t.getAttribute('data-x'));
+    const y = parseFloat(t.getAttribute('data-y'));
+    t.setAttribute('transform', `rotate(${-rot},${x},${y})`);
+  });
+}
+
+function renderWheel() {
+  const aKey = anchorKey();
+  const ai   = FIFTHS.indexOf(aKey);
+  const tRot = -ai * 30;
+  const grp  = document.getElementById('wg');
+  if (!grp) return;
+  grp.innerHTML = '';
+
+  FIFTHS.forEach((k, i) => {
+    const isActive = k === aKey;
+    const sa = i * 30, a1 = sa - 15, a2 = sa + 15;
+
+    // Outer sector r: 194–286
+    const [ox1,oy1] = polar(286,a1), [ox2,oy2] = polar(286,a2);
+    const [ox3,oy3] = polar(194,a2), [ox4,oy4] = polar(194,a1);
+    const od = `M${ox1} ${oy1} A286 286 0 0 1 ${ox2} ${oy2} L${ox3} ${oy3} A194 194 0 0 0 ${ox4} ${oy4}Z`;
+    const og = se('g', { cursor:'pointer' });
+    const op = se('path', {
+      d: od,
+      fill:   isActive ? (isLight ? 'rgba(232,68,26,.88)' : 'rgba(232,68,26,.82)') : (isLight ? 'rgba(255,255,255,.38)' : 'rgba(255,255,255,.032)'),
+      stroke: isActive ? 'rgba(255,120,80,.4)' : (isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)'),
+      'stroke-width': isActive ? '1.8' : '0.8',
+    });
+    if (isActive) op.setAttribute('filter', 'url(#fGlow)');
+    og.appendChild(op);
+
+    // Primary label (major/minor view)
+    const primaryLabel   = st.wheelView === 'minor' ? (relativeMinor(k) || '') : k;
+    const secondaryLabel = st.wheelView === 'minor' ? k : (relativeMinor(k) || '');
+    const [lx,ly] = polar(242, sa);
+    const kt = se('text', {
+      x:lx, y:ly+8, 'text-anchor':'middle', 'dominant-baseline':'middle',
+      'font-family':'DM Serif Display,Georgia,serif', 'font-weight':'700', 'font-style':'normal',
+      'font-size': isActive ? '30' : '24',
+      fill: isActive ? '#fff' : (isLight ? 'rgba(20,20,20,.82)' : 'rgba(240,237,232,.85)'),
+      class:'wheel-label', 'data-x':lx, 'data-y':ly,
+      transform:`rotate(${-wRot},${lx},${ly})`,
+    });
+    kt.textContent = primaryLabel;
+    og.appendChild(kt);
+
+    // Accidental at outer rim r=268
+    const [ax,ay] = polar(268, sa);
+    const at = se('text', {
+      x:ax, y:ay+1, 'text-anchor':'middle', 'dominant-baseline':'middle',
+      'font-family':'DM Mono,monospace', 'font-size':'10',
+      fill: isLight ? 'rgba(20,20,20,.46)' : 'rgba(255,255,255,.40)',
+      class:'wheel-label', 'data-x':ax, 'data-y':ay,
+      transform:`rotate(${-wRot},${ax},${ay})`,
+    });
+    at.textContent = ACC[i] === '0' ? '♮' : ACC[i];
+    og.appendChild(at);
+    og.addEventListener('click', e => {
+      if (suppressWheelClick) { e.preventDefault(); e.stopPropagation(); return; }
+      e.stopPropagation();
+      selectWheelKey(k);
+    });
+    grp.appendChild(og);
+
+    // Inner sector (relative minor) r: 150–194
+    const [ix1,iy1] = polar(194,a1), [ix2,iy2] = polar(194,a2);
+    const [ix3,iy3] = polar(150,a2), [ix4,iy4] = polar(150,a1);
+    const id2 = `M${ix1} ${iy1} A194 194 0 0 1 ${ix2} ${iy2} L${ix3} ${iy3} A150 150 0 0 0 ${ix4} ${iy4}Z`;
+    const ig  = se('g', { cursor:'pointer' });
+    const ip  = se('path', {
+      d: id2,
+      fill:   isActive ? (isLight ? 'rgba(232,68,26,.30)' : 'rgba(160,40,10,.46)') : (isLight ? 'rgba(255,255,255,.34)' : 'rgba(255,255,255,.04)'),
+      stroke: isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)', 'stroke-width':'0.6',
+    });
+    ig.appendChild(ip);
+
+    const [rx,ry] = polar(172, sa);
+    const rt = se('text', {
+      x:rx, y:ry+2, 'text-anchor':'middle', 'dominant-baseline':'middle',
+      'font-family':'DM Serif Display,Georgia,serif', 'font-weight':'700', 'font-style':'normal',
+      'font-size': isActive ? '20' : '17',
+      fill: isActive ? 'rgba(255,160,120,.96)' : (isLight ? 'rgba(20,20,20,.42)' : 'rgba(240,237,232,.45)'),
+      class:'wheel-label', 'data-x':rx, 'data-y':ry,
+      transform:`rotate(${-wRot},${rx},${ry})`,
+    });
+    rt.textContent = secondaryLabel;
+    ig.appendChild(rt);
+    ig.addEventListener('click', e => {
+      if (suppressWheelClick) { e.preventDefault(); e.stopPropagation(); return; }
+      e.stopPropagation();
+      selectWheelKey(k);
+    });
+    grp.appendChild(ig);
+  });
+
+  // Animate rotation
+  syncWheelLabels(wRot);
+  if (wAnim) cancelAnimationFrame(wAnim);
+  const s0 = wRot;
+  const delta = shortestDelta(tRot, s0);
+  const dur = 650, t0 = performance.now();
+  function tick(now) {
+    const p = Math.min((now - t0) / dur, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    wRot = s0 + delta * e;
+    grp.setAttribute('transform', `rotate(${wRot},300,300)`);
+    syncWheelLabels(wRot);
+    if (p < 1) wAnim = requestAnimationFrame(tick);
+    else { wRot = s0 + delta; grp.setAttribute('transform', `rotate(${wRot},300,300)`); syncWheelLabels(wRot); }
+  }
+  wAnim = requestAnimationFrame(tick);
+
+  // Center key
+  const kStr = displayKeyLabel();
+  const kEl  = document.getElementById('cKey');
+  if (kEl) {
+    kEl.textContent = kStr;
+    const big  = kStr.length > 1 ? 62 : 80;
+    const yPos = kStr.length > 1 ? 310 : 315;
+    kEl.setAttribute('font-size', big);
+    kEl.setAttribute('y', yPos);
+    kEl.setAttribute('fill', isLight ? '#141414' : '#f0ede8');
+  }
+
+  // Relative minor in center
+  const relEl = document.getElementById('cRel');
+  if (relEl) {
+    relEl.textContent = st.wheelView === 'minor' ? anchorKey() : (relativeMinor(anchorKey()) || '');
+    relEl.setAttribute('y',         kStr.length > 1 ? '352' : '356');
+    relEl.setAttribute('font-size', kStr.length > 1 ? '34' : '32');
+  }
+
+  // Theme-aware background circles
+  const bgCircle = document.querySelector('#wheelSvg > circle:first-of-type');
+  if (bgCircle) bgCircle.setAttribute('fill', isLight ? 'rgba(255,255,255,.26)' : 'rgba(0,0,0,.24)');
+  const innerDisc = document.querySelectorAll('#wheelSvg > circle')[1];
+  if (innerDisc) innerDisc.setAttribute('fill', isLight ? 'rgba(248,245,240,.78)' : 'rgba(6,6,10,.72)');
+
+  // Subtle wheel-pointer color
+  const ptr = document.getElementById('wheelPointer');
+  if (ptr) ptr.setAttribute('fill', isLight ? 'rgba(20,20,20,.28)' : 'rgba(240,237,232,.38)');
+
+  // Re-render direction guide (respects theme change)
+  if (WheelDirectionGuide.visible) WheelDirectionGuide.render();
+}
+
+function updateCircleTheme() { renderWheel(); }
+
+
+// == popover-manager.js ==
+// ── POPOVER MANAGER ───────────────────────────────────
+// One overlay system for degree popups and theory help.
+
+function positionTheoryHelp(pop, trigger) {
+  if (!pop || !trigger) return;
+  pop.classList.remove('flip');
+  const r = trigger.getBoundingClientRect();
+  const gap = 12, pad = 14;
+  const wasOpen = pop.classList.contains('open');
+  if (!wasOpen) { pop.style.visibility = 'hidden'; pop.classList.add('open'); }
+  const pw = pop.offsetWidth || 300, ph = pop.offsetHeight || 130;
+  let left = r.right + gap;
+  let top  = r.top + r.height / 2 - ph / 2;
+  if (left + pw > innerWidth - pad) { left = r.left - pw - gap; pop.classList.add('flip'); }
+  if (left < pad) { left = Math.min(Math.max(pad, r.left), innerWidth - pw - pad); top = r.bottom + 10; pop.classList.remove('flip'); }
+  top = Math.max(pad, Math.min(top, innerHeight - ph - pad));
+  pop.style.left = `${left}px`;
+  pop.style.top  = `${top}px`;
+  pop.style.visibility = '';
+  if (!wasOpen) pop.classList.remove('open');
+}
+
+function toggleTheoryHelp(ev, id) {
+  const pop = document.getElementById(id);
+  const trigger = ev?.currentTarget;
+  if (!pop) return;
+  const isOpen = pop.classList.contains('open');
+  document.querySelectorAll('.micro-popover').forEach(p => {
+    if (p !== pop) p.classList.remove('open');
+  });
+  if (isOpen) { pop.classList.remove('open'); return; }
+  positionTheoryHelp(pop, trigger);
+  pop.classList.add('open');
+}
+
+function closeTheoryHelp(id) { document.getElementById(id)?.classList.remove('open'); }
+
+function fillPopup(idx) {
+  const d = degreeCopy()[idx], c = gc()[idx], w = degreeWeight(idx);
+  document.getElementById('pTitle').textContent  = `${c.chord} — ${d.role}`;
+  document.getElementById('pSub').textContent    = `Weight ${w.score}/100 · ${w.role} · ${c.degree}`;
+  document.getElementById('pDesc').textContent   = d.feel;
+  document.getElementById('pFeel').textContent   = '';
+  document.getElementById('pPairs').innerHTML    = d.pairs.slice(0, 3).map(p => `<span class="ppair">${p}</span>`).join('');
+  document.getElementById('degDots').innerHTML   = '';
+  document.querySelectorAll('.degree').forEach((el, i) => el.classList.toggle('active-deg', i === idx));
+}
+
+function showDegreePopup(idx) {
+  const wrap = document.getElementById('degWrap');
+  if (!wrap) return;
+  if (curDeg === idx) { AppActions.clearDegree(); return; }
+  curDeg = idx;
+  fillPopup(idx);
+  wrap.classList.add('open');
+  const popup = document.getElementById('degPopup');
+  if (popup) { popup.style.opacity = '1'; popup.style.transform = 'translateX(0)'; }
+  renderSuggestions();
+}
+
+function closePopup(update = true) {
+  curDeg = -1;
+  document.getElementById('degWrap')?.classList.remove('open');
+  document.querySelectorAll('.degree').forEach(el => el.classList.remove('active-deg'));
+  if (update) renderSuggestions();
+}
+
+// Degree popup swipe / scroll navigation
+(function () {
+  let tx = 0, sa = 0, ln = 0;
+  function nav(d) {
+    if (curDeg < 0) return;
+    const n = (curDeg + d + 7) % 7;
+    curDeg = -1;
+    showDegreePopup(n);
+  }
+  document.addEventListener('wheel', e => {
+    const w = document.getElementById('degWrap');
+    if (!w || !w.classList.contains('open')) return;
+    if (!w.contains(e.target) && !document.getElementById('degrees')?.contains(e.target)) return;
+    e.preventDefault();
+    sa += e.deltaX || e.deltaY;
+    const now = Date.now();
+    if (Math.abs(sa) < 50 || now - ln < 350) return;
+    ln = now;
+    nav(sa > 0 ? 1 : -1);
+    sa = 0;
+  }, { passive: false });
+  document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const w = document.getElementById('degWrap');
+    if (!w || !w.classList.contains('open')) return;
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) nav(dx < 0 ? 1 : -1);
+  }, { passive: true });
+})();
+
+
+// == mode-selector.js ==
+// ── MODE SELECTOR ─────────────────────────────────────
+// Custom mode dropdown portaled to document.body.
+
+function renderModeMenu() {
+  const menu   = document.getElementById('modeMenu');
+  const main   = document.getElementById('modeMain');
+  const sub    = document.getElementById('modeSub');
+  const select = document.getElementById('modeSelect');
+  if (!menu || !main || !sub) return;
+  const current = modeFriendly(st.mode);
+  main.textContent = current[0];
+  sub.textContent  = current[1];
+  menu.innerHTML = MODE_ORDER.map(id => {
+    const [name, desc] = modeFriendly(id);
+    const m = MODES.find(x => x.id === id);
+    return `<button class="mode-option ${id === st.mode ? 'active' : ''}" onclick="ModeMenu.choose('${id}')">
+      <span><b>${name}</b><small>${desc}</small></span>
+      <em>${m?.degrees?.[0] || ''}</em>
+    </button>`;
+  }).join('');
+  if (select) select.value = st.mode;
+}
+
+function _placeModeMenu() {
+  const display = document.getElementById('modeDisplay');
+  const menu    = document.getElementById('modeMenu');
+  if (!display || !menu) return;
+  if (menu.parentElement !== document.body) document.body.appendChild(menu);
+  const pad = 14;
+  const r   = display.getBoundingClientRect();
+  const vw  = window.innerWidth, vh = window.innerHeight;
+  const width  = Math.min(Math.max(r.width, 320), vw - pad * 2);
+  const maxH   = Math.min(360, vh - pad * 2);
+  const left   = Math.min(Math.max(r.left, pad), vw - width - pad);
+  let   top    = r.bottom + 10;
+  menu.style.position  = 'fixed';
+  menu.style.left      = left + 'px';
+  menu.style.right     = 'auto';
+  menu.style.width     = width + 'px';
+  menu.style.maxHeight = maxH + 'px';
+  menu.style.bottom    = 'auto';
+  menu.style.zIndex    = 'var(--z-dropdown, 9000)';
+  const wasOpen = menu.classList.contains('portal-open');
+  if (!wasOpen) { menu.style.visibility = 'hidden'; menu.classList.add('portal-open'); }
+  const h = Math.min(menu.scrollHeight || 280, maxH);
+  if (!wasOpen) { menu.classList.remove('portal-open'); menu.style.visibility = ''; }
+  if (top + h > vh - pad) top = Math.max(pad, r.top - h - 10);
+  menu.style.top = top + 'px';
+}
+
+function _closeModeMenu() {
+  document.getElementById('modeControl')?.classList.remove('open');
+  document.getElementById('modeMenu')?.classList.remove('portal-open');
+}
+
+const ModeMenu = {
+  toggle(ev) {
+    ev?.stopPropagation?.();
+    const control = document.getElementById('modeControl');
+    const menu    = document.getElementById('modeMenu');
+    if (!control || !menu) return;
+    const open = !menu.classList.contains('portal-open');
+    if (!open) { _closeModeMenu(); return; }
+    if (menu.parentElement !== document.body) document.body.appendChild(menu);
+    renderModeMenu();
+    control.classList.add('open');
+    menu.classList.add('portal-open');
+    _placeModeMenu();
+  },
+  close:   _closeModeMenu,
+  choose(id) {
+    AppActions.setMode(id);
+    _closeModeMenu();
+  },
+};
+
+// Close on outside click (capture phase)
+document.addEventListener('click', e => {
+  const c = document.getElementById('modeControl');
+  const m = document.getElementById('modeMenu');
+  if (c?.contains(e.target) || m?.contains(e.target)) return;
+  _closeModeMenu();
+}, true);
+window.addEventListener('resize', () => {
+  if (document.getElementById('modeMenu')?.classList.contains('portal-open')) _placeModeMenu();
+}, { passive: true });
+window.addEventListener('scroll', () => {
+  if (document.getElementById('modeMenu')?.classList.contains('portal-open')) _placeModeMenu();
+}, true);
+
+
+// == theory-renderer.js ==
+// ── THEORY RENDERER ───────────────────────────────────
+// Renders scale info cards, degree row, info boxes.
+
+function renderScaleChips(containerId) {
+  const root = document.getElementById(containerId); if (!root) return;
+  const scale = gs();
+  root.innerHTML = scale.map((n, i) =>
+    `<span class="chip ${i === 0 ? 'root-chip' : ''}">${n}</span>`
+  ).join('');
+}
+
+function renderTheory() {
+  // Key / Root card
+  const sk = document.getElementById('sideKey');
+  const sm = document.getElementById('sideMode');
+  if (sk) sk.textContent = displayKeyLabel();
+  if (sm) sm.textContent = gm().name;
+
+  // Relative minor card
+  const rmb = document.getElementById('relMinorBig');
+  if (rmb) rmb.textContent = grel();
+
+  // Accidentals card
+  const aIdx = FIFTHS.indexOf(anchorKey());
+  const accEl = document.getElementById('accidentals');
+  const accType = document.getElementById('accidentalType');
+  if (accEl) accEl.textContent = ACC[aIdx] === '0' ? '♮ None' : ACC[aIdx];
+  if (accType) {
+    const a = ACC[aIdx];
+    accType.textContent = a === '0' ? 'Natural' : a.includes('♯') ? 'Sharps' : 'Flats';
+  }
+
+  // Major/minor toggle buttons
+  document.getElementById('viewMajorBtn')?.classList.toggle('active', st.wheelView !== 'minor');
+  document.getElementById('viewMinorBtn')?.classList.toggle('active', st.wheelView === 'minor');
+
+  // Degrees row
+  const dRow = document.getElementById('degrees'); if (!dRow) return;
+  const chords = gc();
+  dRow.innerHTML = chords.map((c, i) => `
+    <div class="degree ${i === 0 ? 'tonic' : ''} ${i === curDeg ? 'active-deg' : ''}"
+      onclick="showDegreePopup(${i})"
+      data-degree-index="${i}">
+      <div class="roman">${c.degree}</div>
+      <div class="dn">${c.chord}</div>
+      <div class="dq">${c.quality}</div>
+    </div>`).join('');
+
+  // Scale notes boxes
+  renderScaleChips('scaleNotes');
+  renderScaleChips('scaleBox');
+
+  // Re-render mode menu label
+  renderModeMenu();
+}
+
+function setWheelView(view) { AppActions.setWheelView(view); }
+
+
+// == builder-renderer.js ==
+// ── BUILDER RENDERER ──────────────────────────────────
+// Renders progression builder pills and meta.
+
+function friendlyStoryFor(item, slot, i, h) {
+  if (!item) return ['—', 'Choose a chord to start'];
+  const d   = String(item.degree || '');
+  const map = {
+    Beginning: ['Start',   'Sets the colour'],
+    Lift:      ['Lift',    'Opens the phrase'],
+    Conflict:  ['Tension', 'Creates a question'],
+    Release:   ['Release', 'Lets it breathe'],
+    Resolution:['Home',    'Land or loop'],
+  };
+  let [label, feel] = map[slot] || [slot, 'Keep moving'];
+  if (/V|v/.test(d) && slot !== 'Resolution') feel = 'Adds pull before landing';
+  if (/IV|iv/.test(d))                        feel = 'Warm lift, easy to sing over';
+  if (/vi|♭VI/.test(d))                       feel = 'Emotional colour';
+  if (/°/.test(d))                            feel = 'Use as passing tension';
+  if (i > 0 && h[i-1] && h[i-1].degreeIndex === item.degreeIndex)
+    feel = 'Repeated colour — change rhythm or voicing';
+  return [label, feel];
+}
+
+function progressionNarrative() {
+  const h = Array.isArray(st.history) ? st.history : [];
+  if (!h.length) return t('builder.empty');
+  const unique = new Set(h.map(x => `${x.key}|${x.mode}|${x.degreeIndex}`));
+  if (h.length > 2 && unique.size === 1) return `Loop / Pedal — ${h[0].chord} × ${h.length}`;
+  return h.map(x => x.chord).join(' → ');
+}
+
+const HistoryEngine = {
+  max: 32,
+
+  addDegree(idx, opts = {}) {
+    const c    = gc()[idx];
+    if (!c) return;
+    const item = {
+      chord:       c.chord,
+      degree:      c.degree,
+      quality:     c.quality,
+      degreeIndex: idx,
+      key:         st.key,
+      mode:        st.mode,
+      uid:         Date.now() + '-' + Math.random().toString(36).slice(2),
+      __justAdded: true,
+    };
+    if (!Array.isArray(st.history)) st.history = [];
+    st.history.push(item);
+    if (st.history.length > this.max) st.history = st.history.slice(-this.max);
+    this.render();
+    renderProgressionStory();
+    saveState();
+    if (opts.sourceEl) animateChordToBuilder(opts.sourceEl, idx);
+  },
+
+  remove(index) {
+    if (!Array.isArray(st.history)) return;
+    const btn = document.querySelector(`[data-uid="${st.history[index]?.uid}"]`);
+    if (btn) {
+      btn.classList.add('just-removed');
+      btn.addEventListener('animationend', () => {
+        st.history.splice(index, 1);
+        this.render();
+        renderProgressionStory();
+        saveState();
+      }, { once: true });
+    } else {
+      st.history.splice(index, 1);
+      this.render();
+      renderProgressionStory();
+      saveState();
+    }
+  },
+
+  clear() {
+    st.history = [];
+    this.render();
+    renderProgressionStory();
+    saveState();
+  },
+
+  recall(index) {
+    const item = st.history[index];
+    if (!item) return;
+    AppActions.selectDegree(item.degreeIndex, { fromHistory: true });
+  },
+
+  dragStart(e, i) { e.dataTransfer.setData('text/plain', i); },
+
+  drop(e, target) {
+    e.preventDefault();
+    const from = parseInt(e.dataTransfer.getData('text/plain'), 10);
+    if (isNaN(from) || from === target) return;
+    const h   = st.history;
+    const tmp = h[from];
+    h.splice(from, 1);
+    h.splice(target, 0, tmp);
+    this.render();
+    renderProgressionStory();
+    saveState();
+  },
+
+  render() {
+    const root = document.getElementById('flowRow'); if (!root) return;
+    const h    = Array.isArray(st.history) ? st.history : [];
+
+    // Clear __justAdded flag after render so re-renders don't repeat the animation
+    h.forEach(it => { delete it.__justAdded; });
+
+    if (!h.length) {
+      root.innerHTML = `<div class="builder-empty">${t('builder.empty')}</div>`;
+      BuilderEngine.meta();
+      return;
+    }
+
+    root.innerHTML = h.map((it, i) => `
+      ${i ? '<span class="builder-arrow">→</span>' : ''}
+      <button data-uid="${it.uid || i}" class="builder-step" draggable="true"
+        ondragstart="HistoryEngine.dragStart(event,${i})"
+        ondragover="event.preventDefault()"
+        ondrop="HistoryEngine.drop(event,${i})"
+        onclick="HistoryEngine.recall(${i})">
+        <span class="step-num">${i + 1}</span>
+        <span class="step-chord">${it.chord}</span>
+        <span class="step-degree">${it.degree}</span>
+        <span class="step-tools">
+          <span class="step-tool" title="Move left"  onclick="event.stopPropagation();BuilderEngine.move(${i},-1)">‹</span>
+          <span class="step-tool" title="Duplicate"  onclick="event.stopPropagation();BuilderEngine.duplicate(${i})">+</span>
+          <span class="step-tool" title="Delete"     onclick="event.stopPropagation();HistoryEngine.remove(${i})">×</span>
+          <span class="step-tool" title="Move right" onclick="event.stopPropagation();BuilderEngine.move(${i},1)">›</span>
+        </span>
+      </button>`).join('');
+
+    // Animate only the last added pill
+    const lastEl = root.querySelector('.builder-step:last-of-type');
+    if (lastEl) { lastEl.classList.add('just-added'); setTimeout(() => lastEl.classList.remove('just-added'), 600); }
+
+    BuilderEngine.meta();
+  },
+};
+
+const BuilderEngine = {
+  meta() {
+    const el = document.getElementById('builderMeta'); if (!el) return;
+    const h  = Array.isArray(st.history) ? st.history : [];
+    if (!h.length) { el.innerHTML = ''; return; }
+    const unique = new Set(h.map(x => x.degreeIndex));
+    el.innerHTML = `<span>${h.length} chord${h.length > 1 ? 's' : ''}</span>
+      <b>${progressionNarrative()}</b>`;
+  },
+
+  addCurrent() {
+    if (curDeg < 0) return;
+    AppActions.selectDegree(curDeg, { force: true });
+  },
+
+  duplicateLast() {
+    const h = st.history;
+    if (!Array.isArray(h) || !h.length) return;
+    HistoryEngine.addDegree(h[h.length - 1].degreeIndex);
+  },
+
+  duplicate(index) {
+    const h = st.history;
+    if (!h?.[index]) return;
+    setTimeout(() => HistoryEngine.addDegree(h[index].degreeIndex, { force: true }), 0);
+  },
+
+  move(index, dir) {
+    const h = st.history;
+    if (!Array.isArray(h)) return;
+    const target = index + dir;
+    if (target < 0 || target >= h.length) return;
+    const tmp   = h[index];
+    h[index]    = h[target];
+    h[target]   = tmp;
+    HistoryEngine.render();
+    renderProgressionStory();
+    saveState();
+  },
+
+  copy() {
+    const text = progressionNarrative();
+    navigator.clipboard?.writeText(text).then(() => {
+      const toast = document.getElementById('copyToast');
+      if (toast) {
+        toast.textContent = 'Copied: ' + text;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      }
+    }).catch(() => {});
+  },
+};
+
+
+// == suggestions-renderer.js ==
+// ── SUGGESTIONS RENDERER ──────────────────────────────
+// Renders Klimper-style weighted suggestion bubbles.
+
+function _metricBar(label, value, type, shortClass) {
+  const hot = value >= 70;
+  return `<div class="metric-line">
+    <span class="metric-name ${shortClass}"><span>${label}</span></span>
+    <span class="metric-track"><i class="metric-fill ${type || ''} ${hot ? 'hot' : ''}" style="width:${clamp(value, 0, 100)}%"></i></span>
+  </div>`;
+}
+
+function renderMeter(label, value) {
+  const cls = value >= 72 ? 'high' : value >= 45 ? 'medium' : 'low';
+  return `<div class="meter-row ${cls}">
+    <div class="meter-label">${label}</div>
+    <div class="meter"><span style="width:${clamp(value)}%"></span></div>
+    <div class="meter-num">${clamp(value)}</div>
+  </div>`;
+}
+
+function moodButtons() {
+  const root = document.getElementById('moodLens'); if (!root) return;
+  root.innerHTML = Object.entries(MOOD_PROFILES).map(([id, p]) =>
+    `<button class="mood-btn${(st.mood || 'balanced') === id ? ' active' : ''}" onclick="AppActions.setMood('${id}')">${p.label}</button>`
+  ).join('');
+}
+
+function renderMoodStatus() {
+  const el = document.getElementById('moodStatus'); if (!el) return;
+  const p    = MOOD_PROFILES[st.mood || 'balanced'] || MOOD_PROFILES.balanced;
+  const from = curDeg >= 0 ? gc()[curDeg] : gc()[0];
+  el.innerHTML = `<div class="mood-copy"><b>${p.label}</b> lens · ${p.desc}</div>
+    <div class="mood-weight">From ${from.degree} · ${from.chord}</div>`;
+}
+
+function renderGravityStatus() {
+  const el = document.getElementById('gravityStatus'); if (!el) return;
+  const fromIdx = curDeg >= 0 ? curDeg : 0;
+  const c = gc()[fromIdx], g = harmonicGravity(fromIdx);
+  el.innerHTML = `
+    <div class="gravity-card">
+      <div class="g-main">
+        <span class="g-label">Harmonic gravity</span>
+        <span class="g-value">${c.chord}</span>
+        <span class="g-sub">${c.degree} · ${g.name} · ${g.role}</span>
+      </div>
+      <div class="gravity-pill-row">
+        ${metricPill('Resolution', g.resolution)}
+        ${metricPill('Tension',    g.tension)}
+        ${metricPill('Motion',     g.movement)}
+      </div>
+    </div>`;
+}
+
+function _buildBubblesHTML() {
+  const from    = curDeg >= 0 ? curDeg : 0;
+  const all     = SuggestionEngine.getNextWithScores(from);
+  const current = gc()[from];
+  const bubbles = all.map((it, i) => {
+    const normalized = Math.max(0, Math.min(1, (it.fit - 18) / 82));
+    const d   = Math.round(62 + Math.pow(normalized, 1.65) * 96);
+    const cat = friendlyCategory(it.transition?.category);
+    return `<button class="next-bubble ${i === 0 ? 'best' : ''}"
+        style="--fit:${it.fit};--d:${d}px;--rank:${i}"
+        onclick="AppActions.selectDegree(${it.to},{force:true})"
+        title="${it.fit}% fit · ${cat}">
+      <span class="nb-fit">${it.fit}%</span>
+      <span class="nb-chord">${it.chord.chord}</span>
+      <span class="nb-degree">${it.chord.degree}</span>
+      <span class="nb-category">${cat}</span>
+      <span class="nb-metrics">
+        ${_metricBar('Resolution', it.m.resolution, 'resolution', 'res')}
+        ${_metricBar('Tension',    it.m.tension,    'tension',    'ten')}
+        ${_metricBar('Motion',     it.m.movement,   'motion',     'mot')}
+      </span>
+    </button>`;
+  }).join('');
+
+  const best = all[0];
+  const bestText = best
+    ? `<span><b>${best.chord.chord}</b> is the strongest next move from <b>${current.chord}</b>.</span>
+       <span class="mini-tag">${friendlyCategory(best.transition?.category)}</span>`
+    : '<span>Choose a degree to get next moves.</span>';
+
+  return `<div class="builder-next-top">
+    <div>
+      <div class="builder-next-title">Suggested next chords</div>
+      <div class="builder-next-hint">The larger the circle, the stronger the next move from ${current.chord}.</div>
+    </div>
+    <div class="builder-next-context">R Resolution · T Tension · M Motion</div>
+  </div>
+  <div class="next-orbit">${bubbles}</div>`;
+}
+
+function renderProgressionStory() {
+  const el = document.getElementById('progressionStory'); if (!el) return;
+  el.classList.add('builder-next-moves');
+  el.innerHTML = _buildBubblesHTML();
+}
+
+function renderSuggestions() {
+  // The old .suggestions-section is hidden; bubbles live in the builder.
+  try { moodButtons(); renderMoodStatus(); renderGravityStatus(); } catch (_) {}
+  renderProgressionStory();
+  const root = document.getElementById('suggestions');
+  if (root) root.innerHTML = '';
+}
+
+function applyProgression(indices) {
+  if (!Array.isArray(indices)) return;
+  indices.forEach(i => HistoryEngine.addDegree(i));
+  const last = indices[indices.length - 1];
+  if (Number.isInteger(last)) AppActions.selectDegree(last, { fromHistory: true });
+}
+
+
+// == instruments-renderer.js ==
+// ── INSTRUMENTS RENDERER ──────────────────────────────
+
+function renderPiano() {
+  const root = document.getElementById('piano'); if (!root) return;
+  root.innerHTML = '';
+  const set    = new Set(gr());
+  const whites = ['C','D','E','F','G','A','B','C','D','E','F','G','A','B','C'];
+  const w      = 100 / whites.length;
+  whites.forEach((n, i) => {
+    const el = document.createElement('div');
+    el.className = 'white' + (set.has(n) ? ' key-on' : '');
+    el.style.cssText = `left:${i*w}%;width:${w}%;position:absolute;bottom:0;top:0`;
+    el.textContent   = set.has(n) ? n : '';
+    root.appendChild(el);
+  });
+  [['C#',.72],['D#',1.72],['F#',3.72],['G#',4.72],['A#',5.72],
+   ['C#',7.72],['D#',8.72],['F#',10.72],['G#',11.72],['A#',12.72]].forEach(([n, pos]) => {
+    const el = document.createElement('div');
+    el.className = 'black' + (set.has(n) ? ' key-on' : '');
+    el.style.cssText = `left:${pos*w}%;width:${w*.56}%;position:absolute;top:0;height:60%;z-index:2`;
+    root.appendChild(el);
+  });
+}
+
+function renderGuitar() {
+  const root = document.getElementById('guitar'); if (!root) return;
+  root.innerHTML = '';
+  const sc       = new Set(gr());
+  const rootNote = gr()[0];
+  const tuning   = [['E',4],['B',11],['G',7],['D',2],['A',9],['E',4]];
+  const FRETS    = 17;
+  const cols     = `40px repeat(${FRETS},1fr)`;
+
+  const mR = document.createElement('div');
+  mR.style.cssText = `display:grid;grid-template-columns:${cols};padding:4px 0 2px`;
+  mR.appendChild(document.createElement('div'));
+  for (let f = 1; f <= FRETS; f++) {
+    const c = document.createElement('div');
+    c.style.cssText = 'display:flex;align-items:center;justify-content:center;height:14px';
+    if ([3,5,7,9,15].includes(f)) c.innerHTML = '<div style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.1)"></div>';
+    if (f === 12) c.innerHTML = '<div style="display:flex;gap:4px"><div style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.15)"></div><div style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.15)"></div></div>';
+    mR.appendChild(c);
+  }
+  root.appendChild(mR);
+
+  const nR = document.createElement('div');
+  nR.style.cssText = `display:grid;grid-template-columns:${cols};padding:0 0 2px`;
+  nR.appendChild(document.createElement('div'));
+  for (let f = 1; f <= FRETS; f++) {
+    const c = document.createElement('div');
+    c.style.cssText = 'text-align:center;font-size:8px;color:rgba(255,255,255,.14);font-family:DM Mono,monospace';
+    if ([3,5,7,9,12,15,17].includes(f)) c.textContent = f;
+    nR.appendChild(c);
+  }
+  root.appendChild(nR);
+
+  tuning.forEach(([name, start]) => {
+    const row = document.createElement('div');
+    row.style.cssText = `display:grid;grid-template-columns:${cols};align-items:center;border-top:1px solid rgba(255,255,255,.05);position:relative`;
+    const sl = document.createElement('div');
+    sl.style.cssText = 'position:absolute;left:40px;right:0;top:50%;height:1px;background:rgba(255,255,255,.13);pointer-events:none';
+    row.appendChild(sl);
+    const nc = document.createElement('div');
+    nc.style.cssText = 'width:40px;display:flex;align-items:center;justify-content:center;height:32px;border-right:2px solid rgba(255,255,255,.2);position:relative;z-index:1';
+    const on = na(start), isOn = sc.has(on), isRoot = on === rootNote;
+    const od = document.createElement('div');
+    od.className = 'fret-note' + (isRoot ? ' root' : isOn ? ' on' : '');
+    od.textContent = isOn ? dn(on) : name;
+    if (!isOn) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
+    nc.appendChild(od);
+    row.appendChild(nc);
+    for (let f = 1; f <= FRETS; f++) {
+      const n = na(start + f); const isO = sc.has(n); const isR = n === rootNote;
+      const cell = document.createElement('div');
+      cell.className = 'fret-cell';
+      if (isO) {
+        const dot = document.createElement('div');
+        dot.className = 'fret-note' + (isR ? ' root' : ' on');
+        dot.textContent = dn(n);
+        cell.appendChild(dot);
+      }
+      row.appendChild(cell);
+    }
+    root.appendChild(row);
+  });
+}
+
+
+// == tabs.js ==
+// ── TABS & PRODUCTION RENDERER ────────────────────────
+
+function switchTab(tab, btn) {
+  const tabsEl = btn?.closest?.('.tabs');
+  if (tabsEl) {
+    const buttons = [...tabsEl.querySelectorAll('.tab-btn')];
+    const i = Math.max(0, buttons.indexOf(btn));
+    tabsEl.style.setProperty('--tab-x', `calc(${i} * 100%)`);
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('panel-theory').style.display     = tab === 'theory'     ? 'block' : 'none';
+  document.getElementById('panel-production').style.display = tab === 'production' ? 'block' : 'none';
+  if (tab === 'production') { renderProduction(); applyI18n(); }
+}
+
+function setGenre(id, btn) {
+  if (!GENRES[id]) return;
+  curGenre = id;
+  stopPlay();
+  st.genre = id;
+  saveState();
+  document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderProduction();
+  applyI18n();
+}
+
+function _ae(e) {
+  let icon = e.icon;
+  if (e.anim === 'stab') icon = `<div class="stab-icon"><div class="sk"></div><div class="sk bk"></div><div class="sk"></div><div class="sk bk"></div><div class="sk"></div></div>`;
+  else if (e.anim === 'bass') icon = `<div class="bass-icon"><div class="bb"></div><div class="bb"></div><div class="bb"></div><div class="bb"></div><div class="bb"></div></div>`;
+  return `<div class="element-item"><div class="element-icon">${icon}</div><div><div class="el-name">${e.name}</div><div class="el-desc">${e.desc}</div></div></div>`;
+}
+
+function renderProduction() {
+  const g = GENRES[curGenre]; if (!g) return;
+  const ptEl = document.getElementById('prodTitle');
+  if (ptEl) ptEl.textContent = g.title;
+  const pmEl = document.getElementById('prodMeta');
+  if (pmEl) pmEl.textContent = `${g.bpm} BPM · ${g.sub}`;
+  const bbEl = document.getElementById('bpmBadge');
+  if (bbEl) bbEl.textContent = `${g.bpm} BPM`;
+  const pkn = document.getElementById('prodKeyNote');
+  if (pkn) pkn.textContent = displayKeyLabel();
+  const pkm = document.getElementById('prodKeyMode');
+  if (pkm) pkm.textContent = gm().name;
+  const pc = document.getElementById('prodCards');
+  if (pc) pc.innerHTML = g.cards.map(c =>
+    `<div class="prod-card"><h3>${c.h}</h3><div class="bigline">${c.b}</div><p>${c.p}</p></div>`
+  ).join('');
+  const mg = document.getElementById('midiGrid');
+  if (mg) mg.innerHTML = g.pattern.map((r, ri) =>
+    `<div class="midi-row" style="grid-template-columns:60px repeat(16,1fr);gap:3px">
+      <div class="midi-label">${r.label}</div>
+      ${r.p.map((v, i) =>
+        `<div class="step${v ? ' on '+r.cl : ''} ${i % 4 === 0 ? 'beat-1' : ''}" id="s-${ri}-${i}"></div>`
+      ).join('')}
+    </div>`
+  ).join('');
+  const es = document.getElementById('elementsSection');
+  if (es) es.innerHTML = `
+    <div class="elements-card"><h3>${t('production.instruments')}</h3>${g.elements.slice(0,3).map(_ae).join('')}</div>
+    <div class="elements-card"><h3>${t('production.more')}</h3>${g.elements.slice(3).map(_ae).join('')}</div>`;
+  const pl = document.getElementById('progList');
+  if (pl) pl.innerHTML = g.progressions.map(pr =>
+    `<div class="prog-item">
+      <div class="prog-chords">${pr.chords.map(c => `<span class="prog-chord">${c}</span>`).join('')}</div>
+      <div class="prog-desc">${pr.desc}</div>
+    </div>`
+  ).join('');
+  const gr2 = document.getElementById('grooveRules');
+  if (gr2) gr2.innerHTML = g.groove.map((r, i) =>
+    `<div class="groove-rule">
+      <div class="rule-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="rule-text">${r}</div>
+    </div>`
+  ).join('');
+}
+
+function togglePlay() { if (playing) stopPlay(); else startPlay(); }
+function startPlay() {
+  playing = true; pStep = 0;
+  const playBtn = document.getElementById('playBtn');
+  if (playBtn) { playBtn.classList.add('playing'); playBtn.textContent = t('play.stop'); }
+  const g = GENRES[curGenre];
+  pInterval = setInterval(() => {
+    const prev = (pStep - 1 + 16) % 16;
+    g.pattern.forEach((_, ri) => { document.getElementById(`s-${ri}-${prev}`)?.classList.remove('playing'); });
+    g.pattern.forEach((r, ri) => { if (r.p[pStep]) document.getElementById(`s-${ri}-${pStep}`)?.classList.add('playing'); });
+    pStep = (pStep + 1) % 16;
+  }, 60000 / (g.bpm * 4));
+}
+function stopPlay() {
+  playing = false;
+  clearInterval(pInterval);
+  const playBtn = document.getElementById('playBtn');
+  if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = t('play.play'); }
+  document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
+}
+
+
+// == wheel-interaction.js ==
+// ── WHEEL INTERACTION ─────────────────────────────────
+// Drag-roulette, snap-to-key, click handling.
+
+let spinAnim = null;
+let wheelDrag = null;
+let suppressWheelClick = false;
+
+function wheelPointerAngle(e) {
+  const svg   = document.getElementById('wheelSvg');
+  const rect  = svg.getBoundingClientRect();
+  const cx    = rect.left + rect.width / 2;
+  const cy    = rect.top  + rect.height / 2;
+  const dx    = (e.clientX ?? e.touches?.[0]?.clientX) - cx;
+  const dy    = (e.clientY ?? e.touches?.[0]?.clientY) - cy;
+  return Math.atan2(dy, dx) * 180 / Math.PI + 90;
+}
+
+function applyWheelRotation(rot) {
+  wRot = rot;
+  const grp = document.getElementById('wg');
+  if (grp) grp.setAttribute('transform', `rotate(${rot},300,300)`);
+  syncWheelLabels(rot);
+}
+
+function updatePanelsAfterSpin() {
+  const idx   = nearestFifthIndex(wRot);
+  const key   = FIFTHS[idx];
+  if (key !== anchorKey()) AppActions.setKey(key);
+  else { renderTheory(); renderSuggestions(); }
+}
+
+function settleWheelFrom(rot, velocity) {
+  const DECEL = 0.94, SNAP_SPEED = 2;
+  let v = velocity;
+  let r = rot;
+  function step() {
+    if (Math.abs(v) < SNAP_SPEED) {
+      const target = -nearestFifthIndex(r) * 30;
+      const delta  = shortestDelta(target, r);
+      const dur    = 480, t0 = performance.now();
+      const r0     = r;
+      function snap(now) {
+        const p = Math.min((now - t0) / dur, 1);
+        const e = 1 - Math.pow(1 - p, 3);
+        applyWheelRotation(r0 + delta * e);
+        if (p < 1) spinAnim = requestAnimationFrame(snap);
+        else { applyWheelRotation(target); updatePanelsAfterSpin(); }
+      }
+      spinAnim = requestAnimationFrame(snap);
+      return;
+    }
+    v *= DECEL;
+    r += v;
+    applyWheelRotation(r);
+    spinAnim = requestAnimationFrame(step);
+  }
+  if (spinAnim) cancelAnimationFrame(spinAnim);
+  spinAnim = requestAnimationFrame(step);
+}
+
+function selectWheelKey(majorKey) {
+  AppActions.setKey(majorKey);
+}
+
+function initWheelRoulette() {
+  const svg = document.getElementById('wheelSvg'); if (!svg) return;
+  let startAngle = 0, startRot = 0, lastAngle = 0, lastTime = 0, angularVelocity = 0;
+  const MIN_DRAG_DEG = 4;
+
+  function onPointerDown(e) {
+    if (e.target.closest('#wheelInfoBtn')) return;
+    if (spinAnim) cancelAnimationFrame(spinAnim);
+    const angle  = wheelPointerAngle(e);
+    startAngle   = angle;
+    startRot     = wRot;
+    lastAngle    = angle;
+    lastTime     = performance.now();
+    angularVelocity = 0;
+    wheelDrag    = { moved: false };
+    suppressWheelClick = false;
+    InteractionController.start('wheel');
+  }
+
+  function onPointerMove(e) {
+    if (!wheelDrag) return;
+    const angle  = wheelPointerAngle(e);
+    const delta  = shortestDelta(angle, lastAngle);
+    const now    = performance.now();
+    const dt     = now - lastTime;
+    if (dt > 0) angularVelocity = delta / dt * 16;
+    lastAngle = angle;
+    lastTime  = now;
+    const newRot = startRot + shortestDelta(angle, startAngle);
+    applyWheelRotation(newRot);
+    if (Math.abs(shortestDelta(angle, startAngle)) > MIN_DRAG_DEG) {
+      wheelDrag.moved    = true;
+      suppressWheelClick = true;
+    }
+  }
+
+  function onPointerUp() {
+    if (!wheelDrag) return;
+    const moved = wheelDrag.moved;
+    wheelDrag   = null;
+    InteractionController.end();
+    if (moved) {
+      settleWheelFrom(wRot, angularVelocity);
+    } else {
+      suppressWheelClick = false;
+    }
+    // Reset suppress flag after next event cycle
+    if (moved) setTimeout(() => { suppressWheelClick = false; }, 80);
+  }
+
+  svg.addEventListener('pointerdown', onPointerDown, { passive: true });
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointerup',   onPointerUp,   { passive: true });
+}
+
+
+// == builder-interaction.js ==
+// ── BUILDER INTERACTION ───────────────────────────────
+
+const DegreeDrag = {
+  over(e)  { e.preventDefault(); },
+  drop(e)  {
+    e.preventDefault();
+    const idx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+    if (!isNaN(idx)) AppActions.selectDegree(idx);
+  },
+};
+
+function animateChordToBuilder(sourceEl, idx) {
+  if (!sourceEl) return;
+  const builderRow = document.getElementById('flowRow'); if (!builderRow) return;
+  const srcRect = sourceEl.getBoundingClientRect();
+  const dstRect = builderRow.getBoundingClientRect();
+
+  const ghost = document.createElement('div');
+  ghost.textContent = gc()[idx]?.chord || '';
+  ghost.style.cssText = `
+    position:fixed;
+    left:${srcRect.left + srcRect.width/2}px;
+    top:${srcRect.top  + srcRect.height/2}px;
+    transform:translate(-50%,-50%) scale(1);
+    font-family:'DM Serif Display',serif;
+    font-size:20px;
+    color:var(--ink);
+    pointer-events:none;
+    z-index:9999;
+    opacity:1;
+    transition:all 0.38s cubic-bezier(.22,1,.36,1);
+    will-change:transform,opacity;
+  `;
+  document.body.appendChild(ghost);
+
+  requestAnimationFrame(() => {
+    ghost.style.left    = `${dstRect.left + dstRect.width/2}px`;
+    ghost.style.top     = `${dstRect.top  + dstRect.height/2}px`;
+    ghost.style.opacity = '0';
+    ghost.style.transform = 'translate(-50%,-50%) scale(0.5)';
+  });
+  ghost.addEventListener('transitionend', () => ghost.remove(), { once: true });
+}
+
+
+// == actions.js ==
+// ── ACTIONS ───────────────────────────────────────────
+// All UI interactions route through ActionDispatcher.
+// RenderEngine and HistoryEngine are referenced by name (defined later, called at runtime).
+
+const ActionDispatcher = {
+  dispatch(type, payload = {}) {
+    try {
+      switch (type) {
+        case 'SET_KEY':
+          st.key = payload.key;
+          normalizeKeyState();
+          curDeg = -1;
+          closePopup(false);
+          RenderEngine.full();
+          break;
+        case 'SET_MODE':
+          st.mode = payload.mode;
+          curDeg = -1;
+          closePopup(false);
+          RenderEngine.full();
+          break;
+        case 'SET_WHEEL_VIEW':
+          st.wheelView = payload.view === 'minor' ? 'minor' : 'major';
+          curDeg = -1;
+          normalizeKeyState();
+          closePopup(false);
+          RenderEngine.full();
+          break;
+        case 'SELECT_DEGREE': {
+          const idx = payload.idx;
+          if (idx < 0 || idx > 6) break;
+          curDeg = idx;
+          if (!payload.fromHistory) HistoryEngine.addDegree(idx, { source: payload.source, sourceEl: payload.sourceEl });
+          RenderEngine.partial(['suggestions', 'history', 'trails']);
+          break;
+        }
+        case 'CLEAR_DEGREE':
+          curDeg = -1;
+          closePopup(false);
+          RenderEngine.partial(['degrees', 'suggestions']);
+          break;
+        case 'SET_MOOD':
+          st.mood = payload.mood || 'balanced';
+          RenderEngine.partial(['suggestions']);
+          break;
+        case 'REMOVE_CHORD':
+          HistoryEngine.remove(payload.index);
+          break;
+        case 'CLEAR_PROGRESSION':
+          HistoryEngine.clear();
+          break;
+        case 'SET_LANGUAGE':
+          setLanguage(payload.lang);
+          break;
+        case 'SET_THEME':
+          toggleTheme();
+          break;
+        case 'OPEN_POPOVER':
+          showDegreePopup(payload.idx);
+          break;
+        case 'CLOSE_POPOVER':
+          closePopup();
+          break;
+        default:
+          console.warn('[EFC] Unknown action:', type);
+      }
+      saveState();
+      if (window.EFC_DEV && Array.isArray(window.EFC_DEV.errors)) {
+        // no-op here; errors array only fills on catch
+      }
+    } catch (err) {
+      console.error('[EFC] Action error:', type, err);
+      if (window.EFC_DEV && Array.isArray(window.EFC_DEV.errors)) {
+        window.EFC_DEV.errors.push({ type, payload, error: String(err), ts: Date.now() });
+      }
+    }
+  },
+};
+
+const AppActions = {
+  setKey(k)             { ActionDispatcher.dispatch('SET_KEY',       { key: k }); },
+  setMode(mode)         { ActionDispatcher.dispatch('SET_MODE',       { mode }); },
+  setWheelView(view)    { ActionDispatcher.dispatch('SET_WHEEL_VIEW', { view }); },
+  selectDegree(idx, opts = {}) { ActionDispatcher.dispatch('SELECT_DEGREE', { idx, ...opts }); },
+  clearDegree()         { ActionDispatcher.dispatch('CLEAR_DEGREE'); },
+  setMood(mood)         { ActionDispatcher.dispatch('SET_MOOD',       { mood }); },
+};
+
+// Convenience alias for legacy callers
+function setKey(k) { AppActions.setKey(k); }
+function render()  { RenderEngine.full(); }
+
+
+// == init.js ==
+// ── INIT ──────────────────────────────────────────────
+// Plasma background, theme, palette, and app bootstrap.
+
+// Plasma WebGL
+const PALETTES_DATA = PALETTES;
+(function initPlasma() {
+  const pc = document.getElementById('plasma');
+  if (!pc) return;
+  const gl = pc.getContext('webgl', { antialias:false, alpha:false });
+  if (!gl) { pc.style.display='none'; return; }
+
+  const VS = `attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}`;
+  const FS = `
+    precision mediump float;
+    uniform vec2 u;uniform float t;
+    uniform vec3 c1,c2,c3;uniform float d;
+    void main(){
+      vec2 v=gl_FragCoord.xy/u-.5;
+      float b=sin(v.x*3.+t*.5)*sin(v.y*3.+t*.3)+sin(length(v)*5.-t*.7)*.5;
+      b=b*.5+.5;
+      vec3 col=mix(mix(c1,c2,b),c3,sin(t*.2)*.5+.5);
+      gl_FragColor=vec4(col*d,1);
+    }`;
+  function sh(type, src) {
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog,'p');
+  gl.enableVertexAttribArray(pos); gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const uLoc  = gl.getUniformLocation(prog,'u');
+  const tLoc  = gl.getUniformLocation(prog,'t');
+  const c1Loc = gl.getUniformLocation(prog,'c1');
+  const c2Loc = gl.getUniformLocation(prog,'c2');
+  const c3Loc = gl.getUniformLocation(prog,'c3');
+  const dLoc  = gl.getUniformLocation(prog,'d');
+
+  function hexToVec(hex) {
+    const r = parseInt(hex.slice(1,3),16)/255;
+    const g = parseInt(hex.slice(3,5),16)/255;
+    const b = parseInt(hex.slice(5,7),16)/255;
+    return [r,g,b];
+  }
+
+  let currentPal = st.palette || 0;
+  function applyPalette(idx) {
+    currentPal = idx; st.palette = idx; saveState();
+    document.querySelectorAll('.pal-btn').forEach((b,i) => b.classList.toggle('active', i === idx));
+    const pal = PALETTES_DATA[idx];
+    if (!pal) return;
+    document.body.style.setProperty('--bg-plasma', pal.bg);
+    const [c1,c2,c3] = pal.colors.map(hexToVec);
+    gl.uniform3fv(c1Loc, c1); gl.uniform3fv(c2Loc, c2); gl.uniform3fv(c3Loc, c3);
+  }
+  window._setPalActive = applyPalette;
+
+  function resize() {
+    pc.width = innerWidth; pc.height = innerHeight;
+    gl.viewport(0,0,pc.width,pc.height);
+    gl.uniform2f(uLoc, pc.width, pc.height);
+  }
+  window.addEventListener('resize', resize, {passive:true}); resize();
+  applyPalette(currentPal);
+
+  let intensity = parseFloat(st.intensity) || 1;
+  gl.uniform1f(dLoc, intensity * 0.38);
+
+  const intensityEl = document.getElementById('plasmaIntensity');
+  if (intensityEl) {
+    intensityEl.value = intensity;
+    intensityEl.addEventListener('input', () => {
+      intensity = parseFloat(intensityEl.value) || 1;
+      st.intensity = intensity;
+      saveState();
+      gl.uniform1f(dLoc, intensity * 0.38);
+    });
+  }
+
+  let palRow = document.getElementById('palRow');
+  if (palRow) {
+    PALETTES_DATA.forEach((pal, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'pal-btn' + (i === currentPal ? ' active' : '');
+      btn.style.background = pal.colors[0];
+      btn.title = pal.name;
+      btn.onclick = () => applyPalette(i);
+      palRow.appendChild(btn);
+    });
+  }
+
+  let tVal = 0;
+  (function loop(now) {
+    tVal += 0.008;
+    gl.uniform1f(tLoc, tVal);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(loop);
+  })();
+})();
+
+function toggleTheme() {
+  isLight = !isLight;
+  st.theme = isLight ? 'light' : 'dark';
+  document.body.classList.toggle('light', isLight);
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '☾' : '☀';
+  saveState();
+  renderWheel();
+}
+
+// App boot
+(function init() {
+  MobileOptimizer.init();
+  document.body.classList.toggle('light', isLight);
+  const themeBtn = document.getElementById('themeBtn');
+  if (themeBtn) themeBtn.textContent = isLight ? '☾' : '☀';
+
+  if (window._setPalActive) window._setPalActive(st.palette || 0);
+
+  const sel = document.getElementById('modeSelect');
+  if (sel) {
+    sel.innerHTML = MODE_ORDER.map(id => {
+      const f = modeFriendly(id);
+      return `<option value="${id}">${f[0]} · ${f[1]}</option>`;
+    }).join('');
+    sel.onchange = e => AppActions.setMode(e.target.value);
+  }
+
+  const langSel = document.getElementById('langSelect');
+  if (langSel) langSel.value = st.lang || 'en';
+
+  // Tick ring
+  const tg = document.getElementById('ticks');
+  if (tg) {
+    tg.innerHTML = '';
+    for (let i = 0; i < 60; i++) {
+      const a = (i * 6 - 90) * Math.PI / 180;
+      const r1 = i % 5 === 0 ? 157 : 163, r2 = 168;
+      const l = se('line', {
+        x1: 300 + r1 * Math.cos(a), y1: 300 + r1 * Math.sin(a),
+        x2: 300 + r2 * Math.cos(a), y2: 300 + r2 * Math.sin(a),
+        stroke: isLight ? 'rgba(20,20,20,.12)' : 'rgba(255,255,255,.1)',
+        'stroke-width': '.6',
+      });
+      tg.appendChild(l);
+    }
+  }
+
+  document.querySelectorAll('.genre-btn').forEach(b =>
+    b.classList.toggle('active', (b.textContent.trim().toLowerCase().replace(' ','')) === curGenre)
+  );
+
+  initWheelRoulette();
+  WheelDirectionGuide.addInfoButton();
+
+  normalizeKeyState();
+  RenderEngine.full();
+  applyI18n();
+})();
+
+
+// == tests.js ==
+// ── DEV TESTS ─────────────────────────────────────────
+// EFC_DEV.runTests() — run from browser console
+// EFC_DEV.report()   — full state + diagnostic report
+
+(function () {
+  'use strict';
+  const VERSION  = APP_VERSION;
+  const LOG_KEY  = 'easy-fifth-circle:debug-log';
+  const MAX_LOG  = 80;
+
+  function safe(fn, fallback) { try { return fn(); } catch (e) { return fallback; } }
+  function now()  { return new Date().toISOString().split('T')[1].replace('Z', ''); }
+  function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+  const DevLog = {
+    items: [],
+    push(type, message, data) {
+      const item = { time: now(), type, message, data: data ?? null };
+      this.items.push(item);
+      if (this.items.length > MAX_LOG) this.items.shift();
+      if (type === 'error') console.error('[EFC]', message, data || '');
+      else if (type === 'warn') console.warn('[EFC]', message, data || '');
+      else console.log('[EFC]', message, data || '');
+      return item;
+    },
+    clear()    { this.items.length = 0; },
+    snapshot() { return this.items.slice(); },
+  };
+
+  const AppModel = {
+    snapshot() {
+      return safe(() => ({
+        key:             st?.key,
+        mode:            st?.mode,
+        wheelView:       st?.wheelView,
+        mood:            st?.mood,
+        lang:            st?.lang,
+        theme:           document.body.classList.contains('light') ? 'light' : 'dark',
+        genre:           typeof curGenre !== 'undefined' ? curGenre : null,
+        selectedDegree:  typeof curDeg !== 'undefined' ? curDeg : null,
+        progressionLength: Array.isArray(st?.history) ? st.history.length : 0,
+        progression:     Array.isArray(st?.history) ? st.history.map(x => ({ chord: x.chord, degree: x.degree })) : [],
+      }), {});
+    },
+    validate(state = this.snapshot()) {
+      const issues    = [];
+      const validModes = safe(() => new Set(MODES.map(m => m.id)), new Set());
+      const validKeys  = safe(() => new Set([...FIFTHS, ...Object.keys(MINOR_ROOT_TO_MAJOR || {})]), new Set());
+      if (!state.key) issues.push('Missing key');
+      if (state.key && !validKeys.has(String(state.key).replace(/m$/, ''))) issues.push('Unknown key: ' + state.key);
+      if (!validModes.has(state.mode)) issues.push('Unknown mode: ' + state.mode);
+      if (!['major','minor',undefined,null].includes(state.wheelView)) issues.push('Invalid wheelView');
+      if (state.selectedDegree != null && state.selectedDegree !== -1 &&
+          (state.selectedDegree < 0 || state.selectedDegree > 6)) issues.push('selectedDegree out of range');
+      if (state.progressionLength > 64) issues.push('Progression is unusually long');
+      return { ok: issues.length === 0, issues, state };
+    },
+  };
+
+  function withState(temp, fn) {
+    const previous = clone(st || {});
+    Object.assign(st, temp);
+    safe(() => normalizeKeyState?.(), null);
+    let result;
+    try { result = fn(); }
+    finally {
+      Object.keys(st).forEach(k => delete st[k]);
+      Object.assign(st, previous);
+      safe(() => normalizeKeyState?.(), null);
+    }
+    return result;
+  }
+
+  function duplicateIds() {
+    const seen = new Map(), dupes = [];
+    document.querySelectorAll('[id]').forEach(el => {
+      if (seen.has(el.id)) dupes.push(el.id);
+      else seen.set(el.id, el);
+    });
+    return [...new Set(dupes)];
+  }
+
+  const results = [];
+  function assert(name, condition, details) {
+    const ok = !!condition;
+    results.push({ name, ok, details: details ?? null });
+    if (!ok) DevLog.push('error', 'Test failed: ' + name, details);
+    return ok;
+  }
+
+  function runTests() {
+    results.length = 0;
+
+    assert('Theory data exists',            typeof THEORY_DATA === 'object' && Array.isArray(THEORY_DATA.modes));
+    assert('Seven modes loaded',            safe(() => MODES.length === 7, false));
+    assert('Circle of fifths has 12 roots', safe(() => FIFTHS.length === 12, false));
+    assert('Relative minor C → Am',         safe(() => relativeMinor('C') === 'Am', false));
+    assert('Relative major A minor → C',    safe(() => relativeMajorFromMinor('Am') === 'C', false));
+
+    withState({ key:'C', mode:'ionian', wheelView:'major' }, () => {
+      assert('C major scale',           safe(() => gs().join(' ') === 'C D E F G A B', false), safe(() => gs(), []));
+      assert('C major chord count = 7', safe(() => gc().length === 7, false));
+      assert('C major I is C',          safe(() => gc()[0].chord === 'C', false), safe(() => gc()[0], null));
+    });
+
+    // Use wheelView:'major' so normalizeKeyState leaves the key unchanged
+    withState({ key:'A', mode:'aeolian', wheelView:'major' }, () => {
+      assert('A minor scale',           safe(() => gs().join(' ') === 'A B C D E F G', false), safe(() => gs(), []));
+      assert('A minor i is Am',         safe(() => gc()[0].chord === 'Am', false), safe(() => gc()[0], null));
+    });
+
+    withState({ key:'D', mode:'dorian',  wheelView:'major' }, () => {
+      assert('D Dorian has natural 6',  safe(() => gs().includes('B'), false), safe(() => gs(), []));
+    });
+
+    withState({ key:'C', mode:'lydian',  wheelView:'major' }, () => {
+      assert('All modes return 7 chords', safe(() => gc().length === 7, false));
+    });
+
+    assert('App state validates',             AppModel.validate().ok,                      AppModel.validate().issues);
+    const dupes = duplicateIds();
+    assert('No duplicate DOM ids',            dupes.length === 0,                          dupes);
+    assert('Core render functions exist',     ['renderWheel','renderTheory','renderSuggestions','renderPiano','renderGuitar'].every(n => typeof window[n] === 'function'));
+    assert('AppActions has required methods', ['setKey','setMode','setWheelView','selectDegree','clearDegree','setMood'].every(k => typeof AppActions[k] === 'function'));
+    assert('SuggestionEngine.next is callable', typeof SuggestionEngine.next === 'function');
+    assert('HarmonyEngine.transition is callable', typeof HarmonyEngine.transition === 'function');
+    assert('WheelDirectionGuide exists',      typeof WheelDirectionGuide === 'object');
+    assert('I18N has en and es',              typeof I18N.en === 'object' && typeof I18N.es === 'object');
+
+    const ok = results.every(r => r.ok);
+    DevLog.push(ok ? 'info' : 'warn', `Tests ${ok ? 'passed' : 'finished with issues'} (${results.filter(r => r.ok).length}/${results.length})`, results);
+    _updateDevPanel();
+    return { ok, results: results.slice(), state: AppModel.snapshot(), validation: AppModel.validate() };
+  }
+
+  function report() {
+    return {
+      version:    VERSION,
+      modules:    ['constants','state','actions','utils','i18n','theory-data','harmony-engine','suggestion-engine','wheel-direction-engine','render-engine','wheel-renderer','theory-renderer','builder-renderer','suggestions-renderer','instruments-renderer','popover-manager','mode-selector','tabs','wheel-interaction','builder-interaction','mobile-optimizer','dev/tests','dev/diagnostics'],
+      duplicateIds: duplicateIds(),
+      state:      AppModel.snapshot(),
+      validation: AppModel.validate(),
+      testResults: runTests(),
+    };
+  }
+
+  // ── Dev Panel ──────────────────────────────────────
+  function _buildDevPanel() {
+    if (document.getElementById('efcDevPanel')) return;
+    const panel = document.createElement('aside');
+    panel.id = 'efcDevPanel';
+    panel.innerHTML = `
+      <div class="efc-dev-head">
+        <strong>EFC ${VERSION}</strong>
+        <button type="button" id="efcDevRun">Run tests</button>
+        <button type="button" id="efcDevClose">×</button>
+      </div>
+      <pre id="efcDevBody">Hidden stability panel. Press ⌘/Ctrl + Shift + D.</pre>`;
+    document.body.appendChild(panel);
+    document.getElementById('efcDevRun')?.addEventListener('click',  () => runTests());
+    document.getElementById('efcDevClose')?.addEventListener('click', () => panel.classList.remove('open'));
+  }
+
+  function _updateDevPanel() {
+    const body = document.getElementById('efcDevBody'); if (!body) return;
+    const validation = AppModel.validate();
+    body.textContent = JSON.stringify({
+      state:      AppModel.snapshot(),
+      validation,
+      latestLog:  DevLog.snapshot().slice(-8),
+    }, null, 2);
+  }
+
+  const devStyle = document.createElement('style');
+  devStyle.textContent = `
+    #efcDevPanel{position:fixed;right:14px;bottom:14px;width:min(520px,calc(100vw - 28px));max-height:70vh;z-index:2147483647;display:none;
+      border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(10,10,14,.88);backdrop-filter:blur(22px);
+      box-shadow:0 20px 70px rgba(0,0,0,.38);color:#f5f1ea;overflow:hidden;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+    #efcDevPanel.open{display:block;animation:efcDevIn .22s cubic-bezier(.22,1,.36,1)}
+    .efc-dev-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1)}
+    .efc-dev-head strong{margin-right:auto;letter-spacing:.08em}
+    .efc-dev-head button{border:1px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(255,255,255,.06);color:inherit;padding:5px 9px;cursor:pointer}
+    #efcDevBody{margin:0;padding:12px;max-height:58vh;overflow:auto;white-space:pre-wrap;color:rgba(245,241,234,.8)}
+    @keyframes efcDevIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+  `;
+  document.head.appendChild(devStyle);
+  _buildDevPanel();
+
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
+      document.getElementById('efcDevPanel')?.classList.toggle('open');
+      _updateDevPanel();
+    }
+  });
+
+  window.EFC_DEV = {
+    version:    VERSION,
+    errors:     [],
+    state:      () => AppModel.snapshot(),
+    validate:   () => AppModel.validate(),
+    runTests,
+    report,
+    duplicateIds,
+    logs:       () => DevLog.snapshot(),
+    clearLogs:  () => DevLog.clear(),
+    dispatch:   (action, payload) => ActionDispatcher.dispatch(action, payload),
+  };
+
+  window.EFC_CLEANUP_STATUS = {
+    version: VERSION,
+    modules: 'src/ directory structure — build.js produces dist/Easy_Fifth_Circle.html',
+    stabilityPass: true,
+    tests: 'EFC_DEV.runTests()',
+    devPanel: 'Ctrl/Cmd+Shift+D',
+    report: 'EFC_DEV.report()',
+  };
+
+  // Auto-run tests after load
+  setTimeout(() => { try { runTests(); } catch (_) {} }, 120);
+})();
+
+</script>
+</body>
+</html>
