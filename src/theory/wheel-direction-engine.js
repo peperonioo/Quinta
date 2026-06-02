@@ -39,8 +39,13 @@ const WheelDirectionGuide = {
     // The wheel sectors end at r=286 and the viewBox edge is at r=300.
     // The arcs sit OUTSIDE the wheel in the SVG overflow region (overflow:visible),
     // and labels sit further out still, so nothing overlaps the chord names.
-    const R   = 312;   // arc radius — outside the wheel ring (sectors end at 286)
-    const RL  = 332;   // label radius — outside the arcs, in the empty corners
+    // The wheel sectors end at r=286 and the viewBox edge is at r=300. The SVG
+    // has a CSS drop-shadow filter whose region clips anything past the viewBox,
+    // so the arc must stay at r<=300 (otherwise its 3 o'clock / 9 o'clock middle
+    // gets clipped — the "split" the arc used to show). R=298 sits in the gap
+    // just outside the wheel ring and renders continuously.
+    const R   = 298;   // arc radius — just outside the wheel ring, inside viewBox
+    const RL  = 330;   // label radius — outside the arcs, in the empty corners
 
     // Build the arc as a sampled polyline of concentric points around (300,300).
     // This avoids the SVG `A` command's center/sweep ambiguity (which was
@@ -204,16 +209,22 @@ const WheelDirectionGuide = {
       pop = document.createElement('div');
       pop.id = 'dirGuidePopover';
       pop.className = 'micro-popover dir-guide-popover';
-      pop.innerHTML = `
-        <button class="micro-close" onclick="WheelDirectionGuide._hidePopover()">✕</button>
-        <h4 id="dgpTitle"></h4>
-        <p id="dgpBody" style="white-space:pre-line"></p>`;
       document.body.appendChild(pop);
     }
-    const title = document.getElementById('dgpTitle');
-    const body  = document.getElementById('dgpBody');
-    if (title) title.textContent = t('dirguide.popover.title');
-    if (body)  body.textContent  = t('dirguide.popover.body');
+    const row = (mk, mkClass, key) =>
+      `<li><span class="dgp-mk ${mkClass}">${mk}</span><span>${t(key)}</span></li>`;
+    pop.innerHTML = `
+      <button class="micro-close" onclick="WheelDirectionGuide._hidePopover()">✕</button>
+      <h4>${t('dirguide.popover.title')}</h4>
+      <p class="dgp-intro">${t('dirguide.popover.intro')}</p>
+      <ul class="dgp-legend">
+        ${row('', 'mk-tonic', 'dirguide.popover.tonic')}
+        ${row('', 'mk-outer', 'dirguide.popover.outer')}
+        ${row('', 'mk-inner', 'dirguide.popover.inner')}
+        ${row('♯♭', 'mk-sig', 'dirguide.popover.sig')}
+        ${row('↻', 'mk-dir', 'dirguide.popover.cw')}
+        ${row('↺', 'mk-dir', 'dirguide.popover.ccw')}
+      </ul>`;
 
     // Position near the info button
     const btn = document.getElementById('wheelInfoBtn');

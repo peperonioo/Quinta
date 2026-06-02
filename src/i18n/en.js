@@ -38,5 +38,11 @@ const I18N_EN = {
   'dirguide.clockwise':'clockwise',
   'dirguide.ccw':      'counterclockwise',
   'dirguide.popover.title': 'Reading the wheel',
-  'dirguide.popover.body':  'Fifths: read clockwise around the wheel.\nFourths: read counterclockwise. This direction is common in cadential movement, like ii–V–I.',
+  'dirguide.popover.intro': 'Each step around the wheel is a fifth. Neighbouring keys share almost all their notes — the closer they sit, the more related they sound.',
+  'dirguide.popover.tonic': 'Top sector — your selected key (tonic)',
+  'dirguide.popover.outer': 'Outer ring — major keys',
+  'dirguide.popover.inner': 'Inner ring — relative minors',
+  'dirguide.popover.sig':   'Key signature — how many sharps or flats',
+  'dirguide.popover.cw':    'Clockwise — fifths',
+  'dirguide.popover.ccw':   'Counter-clockwise — fourths (cadences: ii–V–I)',
 };
