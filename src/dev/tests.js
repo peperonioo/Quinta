@@ -127,6 +127,40 @@
     assert('WheelDirectionGuide exists',      typeof WheelDirectionGuide === 'object');
     assert('I18N has en and es',              typeof I18N.en === 'object' && typeof I18N.es === 'object');
 
+    // ── Suggestion engine validation (Audit §6 / §8.5 / V3.19) ──
+    const sugg = (from) => safe(() => SuggestionEngine.getNextWithScores(from), []);
+    const topTo = (from) => safe(() => sugg(from)[0].to, -1);
+    const reasonFor = (from, to) => safe(() => sugg(from).find(s => s.to === to).reason, '');
+
+    withState({ key:'C', mode:'ionian', wheelView:'major', mood:'balanced', history:[] }, () => {
+      assert('V → I is the strongest move',     topTo(4) === 0, sugg(4).map(s => [s.chord.chord, s.fit]));
+      assert('ii → V is the strongest move',    topTo(1) === 4, sugg(1).map(s => [s.chord.chord, s.fit]));
+      assert('IV resolves to V or I',           [0,4].includes(topTo(3)), sugg(3).map(s => [s.chord.chord, s.fit]));
+      assert('V → I reason is a resolution',    /resol/i.test(reasonFor(4, 0)), reasonFor(4, 0));
+      assert('Scores sorted strongest first',   sugg(0).every((s,i,a) => i === 0 || a[i-1].fit >= s.fit));
+      assert('Seven unique suggestions',        new Set(sugg(0).map(s => s.to)).size === 7);
+    });
+
+    // Cadence memory: a ii–V already played should pull strongly to I.
+    withState({ key:'C', mode:'ionian', wheelView:'major', mood:'balanced',
+                history:[{degreeIndex:1},{degreeIndex:4}] }, () => {
+      assert('ii–V in progress completes to I', topTo(4) === 0);
+      assert('Cadence reason names ii–V–I',     /ii.?.?V.?.?I/i.test(reasonFor(4, 0)) || /complete/i.test(reasonFor(4, 0)), reasonFor(4, 0));
+    });
+
+    // Repetition recognised as a vamp/loop, not random events.
+    withState({ key:'C', mode:'ionian', wheelView:'major', mood:'balanced',
+                history:[{degreeIndex:0},{degreeIndex:0},{degreeIndex:0}] }, () => {
+      assert('Repeated chord detected as vamp', safe(() => SuggestionEngine.context(0).isVamp === true, false));
+      assert('Vamp: staying keeps loop open',   /loop/i.test(reasonFor(0, 0)), reasonFor(0, 0));
+      assert('Vamp offers an exit (IV/V/vi)',   safe(() => sugg(0).slice(0,4).some(s => [3,4,5].includes(s.to)), false));
+    });
+
+    // Modal behaviour: Mixolydian should favour the ♭VII signature.
+    withState({ key:'C', mode:'mixolydian', wheelView:'major', mood:'balanced', history:[] }, () => {
+      assert('Mixolydian favours ♭VII from I',  safe(() => sugg(0).slice(0,2).some(s => s.to === 6), false), sugg(0).map(s => [s.chord.chord, s.fit]));
+    });
+
     const ok = results.every(r => r.ok);
     DevLog.push(ok ? 'info' : 'warn', `Tests ${ok ? 'passed' : 'finished with issues'} (${results.filter(r => r.ok).length}/${results.length})`, results);
     _updateDevPanel();

@@ -30,6 +30,75 @@ function nextChordIdeas(fromIdx) {
   return modal || HARMONY_SUGGESTION_DATA.functional[fromIdx] || HARMONY_SUGGESTION_DATA.functional[0];
 }
 
+// Signature degrees that define each mode's colour (Audit §6: mode behaviour).
+// These get a boost so a modal context actually sounds modal instead of
+// defaulting to the major I–IV–V gravity.
+const MODAL_PREFER = {
+  dorian:     [3, 6],   // IV (major), ♭VII
+  mixolydian: [6, 3],   // ♭VII, IV
+  phrygian:   [1, 5],   // ♭II, ♭VI
+  lydian:     [1],      // II (raised 4)
+  aeolian:    [5, 6],   // ♭VI, ♭VII
+};
+
+// ── Progression context ───────────────────────────────
+// Gives the engine MEMORY: instead of treating the current chord in isolation,
+// it reads the built progression for cadence setups, repetition (vamp/pedal)
+// and position. Pure logic — no DOM. (Audit §6: repetition, cadences, position.)
+function progressionContext(fromIdx) {
+  const h    = Array.isArray(st.history) ? st.history : [];
+  const tail = h.map(x => x.degreeIndex);
+  const last = tail.length ? tail[tail.length - 1] : fromIdx;
+  const prev = tail.length > 1 ? tail[tail.length - 2] : null;
+  const mode = st.mode;
+
+  // The suggestions are "from fromIdx". Context only applies when fromIdx is
+  // actually the tail of the progression (otherwise the user is just exploring
+  // a degree on the wheel and history shouldn't bias it).
+  const coherent = h.length > 0 && last === fromIdx;
+
+  // Repetition: how many times the current degree repeats at the tail.
+  let repeat = 1;
+  if (coherent) { for (let i = tail.length - 2; i >= 0 && tail[i] === last; i--) repeat++; }
+  const isVamp = coherent && repeat >= 2;
+
+  // Cadence-in-progress: what is the harmony pulling toward next?
+  let expect = null, expectWhy = '';
+  if (coherent) {
+    if      (prev === 1 && last === 4)                                              { expect = 0; expectWhy = 'Completes ii–V–I'; }
+    else if (prev === 3 && last === 4)                                              { expect = 0; expectWhy = 'Completes IV–V–I'; }
+    else if (prev === 5 && last === 6 && ['aeolian','dorian','phrygian'].includes(mode)) { expect = 0; expectWhy = 'Completes ♭VI–♭VII–i'; }
+    else if (last === 4)                                                            { expect = 0; expectWhy = 'V pulls home to I'; }
+    else if (last === 6 && mode === 'mixolydian')                                   { expect = 0; expectWhy = '♭VII resolves to I'; }
+    else if (last === 6)                                                            { expect = 0; expectWhy = 'vii° pulls to I'; }
+    else if (last === 1)                                                            { expect = 4; expectWhy = 'ii sets up V'; }
+  }
+
+  return { length: h.length, tail, last, prev, repeat, isVamp, expect, expectWhy, coherent };
+}
+
+// Short, honest, musical reason for a single move. Audit §6 wants the engine to
+// "explain itself simply": Strong resolution / Keeps the loop open / etc.
+function suggestionReason(fromIdx, to, ctx, mode) {
+  if (ctx.expect === to && ctx.expectWhy)        return ctx.expectWhy;
+  if (ctx.isVamp) {
+    if (to === ctx.last)                         return 'Keeps the loop open';
+    if (to === 0)                                return 'Lands the loop home';
+    if ([3,4,5].includes(to))                    return 'Lifts out of the loop';
+  }
+  if (fromIdx === 4 && to === 0)                 return 'Strong resolution';
+  if (fromIdx === 1 && to === 4)                 return 'Sets up the cadence';
+  if (mode === 'mixolydian' && to === 6)         return 'Mixolydian ♭VII lift';
+  if (mode === 'dorian'     && to === 3)         return 'Dorian major-IV colour';
+  if (mode === 'lydian'     && to === 1)         return 'Lydian raised-II colour';
+  if (mode === 'phrygian'   && to === 1)         return 'Phrygian ♭II colour';
+  if (['aeolian','phrygian','dorian'].includes(mode) && to === 5) return 'Adds darker colour';
+  if (to === 0)                                  return 'Returns home';
+  if ([3,5].includes(to))                        return 'Warm colour shift';
+  if ([6,1].includes(to))                        return 'Sharper modal colour';
+  return 'Keeps it moving';
+}
+
 const SuggestionEngine = {
   next(fromIdx) {
     const all = new Map();
@@ -56,16 +125,30 @@ const SuggestionEngine = {
     return base;
   },
 
+  context: progressionContext,
+
   getNextWithScores(fromIdx = curDeg >= 0 ? curDeg : 0) {
     const raw     = SuggestionEngine.next(fromIdx);
     const byTo    = new Map(raw.map(x => [x.to, x]));
+    const ctx     = progressionContext(fromIdx);
     return gc().map((c, to) => {
       const base       = byTo.get(to) || { to, why: 'Works as a colour inside this mode.' };
       const transition = transitionProfile(fromIdx, to);
       const validation = validationScore(fromIdx, to, transition);
       const m          = harmonyMetrics(to);
-      const fit        = clamp(Math.round(moodFit(to, fromIdx) + (validation.bonus || 0)), 8, 100);
-      return { ...base, to, chord: c, transition, validation, m, fit };
+      let   fit        = clamp(Math.round(moodFit(to, fromIdx) + (validation.bonus || 0)), 8, 100);
+
+      // Modal signature boost so modes sound modal, not major-by-default.
+      if ((MODAL_PREFER[st.mode] || []).includes(to)) fit = clamp(fit + 16, 8, 100);
+
+      // Context-aware adjustments (the engine's "memory"):
+      if (ctx.expect === to)                       fit = clamp(fit + 16, 8, 100); // cadence pull
+      if (ctx.isVamp && to === ctx.last)           fit = clamp(fit + 6,  8, 100); // staying is a valid loop
+      if (ctx.isVamp && [3,4,5].includes(to))      fit = clamp(fit + 4,  8, 100); // but offer a clean exit
+      if (ctx.length <= 1 && fromIdx === 0 && to === 0) fit = clamp(fit - 12, 8, 100); // don't open by sitting on I
+
+      const reason = suggestionReason(fromIdx, to, ctx, st.mode);
+      return { ...base, to, chord: c, transition, validation, m, fit, reason };
     }).sort((a, b) => b.fit - a.fit);
   },
 };

@@ -65,21 +65,20 @@ function _buildBubblesHTML() {
     return `<button class="next-bubble ${i === 0 ? 'best' : ''}"
         style="--fit:${it.fit};--d:${d}px;--rank:${i}"
         onclick="AppActions.selectDegree(${it.to},{force:true})"
-        title="${it.chord.chord} · ${it.chord.degree} · ${it.fit}% fit · ${cat}">
+        title="${it.chord.chord} · ${it.chord.degree} — ${it.reason || cat} · ${it.fit}% fit">
       <span class="nb-chord">${it.chord.chord}</span>
     </button>`;
   }).join('');
 
   const best = all[0];
-  const bestText = best
-    ? `<span><b>${best.chord.chord}</b> is the strongest next move from <b>${current.chord}</b>.</span>
-       <span class="mini-tag">${friendlyCategory(best.transition?.category)}</span>`
-    : '<span>Choose a degree to get next moves.</span>';
+  const hint = best
+    ? `Strongest from <b>${current.chord}</b>: <b>${best.chord.chord}</b> — ${best.reason || friendlyCategory(best.transition?.category)}`
+    : `The larger the circle, the stronger the next move from ${current.chord}.`;
 
   return `<div class="builder-next-top">
     <div>
       <div class="builder-next-title">Suggested next chords</div>
-      <div class="builder-next-hint">The larger the circle, the stronger the next move from ${current.chord}.</div>
+      <div class="builder-next-hint">${hint}</div>
     </div>
   </div>
   <div class="next-orbit">${bubbles}</div>`;
