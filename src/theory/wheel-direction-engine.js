@@ -212,29 +212,18 @@ const WheelDirectionGuide = {
     wrap = document.createElement('div');
     wrap.id = 'dirGuidePanels';
     wrap.className = 'dir-panels';
-    const row = (mk, mkClass, key) =>
-      `<li><span class="dgp-mk ${mkClass}">${mk}</span><span data-i18n="${key}">${t(key)}</span></li>`;
     wrap.innerHTML = `
-      <div class="dir-scrim"></div>
       <article class="dir-panel dir-panel-intro">
         <button class="micro-close" onclick="WheelDirectionGuide.toggle()" aria-label="Close">✕</button>
         <h4 data-i18n="dirguide.why.title">${t('dirguide.why.title')}</h4>
         <p data-i18n="dirguide.why.body">${t('dirguide.why.body')}</p>
-        <ul class="dgp-legend">
-          ${row('', 'mk-tonic', 'dirguide.popover.tonic')}
-          ${row('', 'mk-outer', 'dirguide.popover.outer')}
-          ${row('', 'mk-inner', 'dirguide.popover.inner')}
-          ${row('♯♭', 'mk-sig', 'dirguide.popover.sig')}
-        </ul>
       </article>
       <article class="dir-panel dir-panel-fourths">
-        <span class="dir-panel-tag">↺</span>
-        <h4 data-i18n="dirguide.fourthsCard.title">${t('dirguide.fourthsCard.title')}</h4>
+        <h4><span class="dir-panel-tag">↺</span> <span data-i18n="dirguide.fourthsCard.title">${t('dirguide.fourthsCard.title')}</span></h4>
         <p data-i18n="dirguide.fourthsCard.body">${t('dirguide.fourthsCard.body')}</p>
       </article>
       <article class="dir-panel dir-panel-fifths">
-        <span class="dir-panel-tag">↻</span>
-        <h4 data-i18n="dirguide.fifthsCard.title">${t('dirguide.fifthsCard.title')}</h4>
+        <h4><span class="dir-panel-tag">↻</span> <span data-i18n="dirguide.fifthsCard.title">${t('dirguide.fifthsCard.title')}</span></h4>
         <p data-i18n="dirguide.fifthsCard.body">${t('dirguide.fifthsCard.body')}</p>
       </article>`;
     // Click on the scrim / empty backdrop (desktop or mobile) closes the guide.
@@ -280,17 +269,14 @@ const WheelDirectionGuide = {
     const clampTop  = (y, h) => Math.min(Math.max(12, y), vh - h - 12);
     const place = (el, left, top) => { el.style.left = Math.round(left) + 'px'; el.style.top = Math.round(top) + 'px'; };
 
+    // Small banners spread around the wheel: "what / why" + Fifths on the
+    // right (next to the wheel), Fourths on the left.
+    if (intro)   place(intro,   clampLeft(r.right + gap - 4, intro.offsetWidth),
+                                clampTop(r.top + r.height * 0.06, intro.offsetHeight));
     if (fifths)  place(fifths,  clampLeft(r.right + gap - 4, fifths.offsetWidth),
-                                clampTop(r.top + r.height * 0.42 - fifths.offsetHeight / 2, fifths.offsetHeight));
+                                clampTop(r.top + r.height * 0.64, fifths.offsetHeight));
     if (fourths) place(fourths, clampLeft(r.left - gap - fourths.offsetWidth + 4, fourths.offsetWidth),
-                                clampTop(r.top + r.height * 0.42 - fourths.offsetHeight / 2, fourths.offsetHeight));
-    if (intro) {
-      const topbar = document.querySelector('.topbar')?.getBoundingClientRect();
-      const minTop = (topbar ? topbar.bottom : 12) + 8;
-      let top = r.top - intro.offsetHeight - gap;
-      if (top < minTop) top = minTop;
-      place(intro, clampLeft(r.left + r.width / 2 - intro.offsetWidth / 2, intro.offsetWidth), top);
-    }
+                                clampTop(r.top + r.height * 0.40 - fourths.offsetHeight / 2, fourths.offsetHeight));
   },
 
   _hidePanels() {

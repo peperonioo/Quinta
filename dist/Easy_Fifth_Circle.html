@@ -540,9 +540,9 @@ body.light .step-tool  { background:rgba(0,0,0,.06) }
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:13px;
-  min-height:164px;
-  padding:16px 4px 12px;
+  gap:11px;
+  min-height:118px;
+  padding:12px 4px 10px;
   overflow-x:auto;
   overflow-y:visible;
   -webkit-overflow-scrolling:touch;
@@ -564,9 +564,9 @@ body.light .next-orbit::-webkit-scrollbar-thumb { background:rgba(0,0,0,.14) }
 
 /* Bubble */
 .next-bubble {
-  --d: 72px;
+  --d: 56px;
   --fit: 50;
-  --diam: clamp(40px, var(--d), 120px);
+  --diam: clamp(32px, var(--d), 84px);
   width:var(--diam) !important; height:var(--diam) !important;
   min-width:var(--diam) !important; min-height:var(--diam) !important;
   max-width:var(--diam) !important; max-height:var(--diam) !important;
@@ -584,8 +584,8 @@ body.light .next-orbit::-webkit-scrollbar-thumb { background:rgba(0,0,0,.14) }
     radial-gradient(circle at 34% 24%, rgba(255,255,255,.14), transparent 28%),
     radial-gradient(circle at 50% 55%, rgba(255,112,72,calc(.05 + var(--fit)*.0045)), rgba(255,112,72,calc(.025 + var(--fit)*.002)) 48%, rgba(255,255,255,.035) 100%) !important;
   box-shadow:
-    0 calc(8px + var(--fit)*.12px) calc(18px + var(--fit)*.32px) rgba(0,0,0,.18),
-    inset 0 1px 0 rgba(255,255,255,.09) !important;
+    0 calc(3px + var(--fit)*.05px) calc(9px + var(--fit)*.14px) rgba(0,0,0,.13),
+    inset 0 1px 0 rgba(255,255,255,.08) !important;
   opacity:calc(.48 + var(--fit)*.0052) !important;
   cursor:pointer;
   /* Springy ease so hover lifts feel alive and in-motion */
@@ -611,22 +611,22 @@ body.light .next-bubble {
   box-shadow:0 calc(8px + var(--fit)*.09px) calc(18px + var(--fit)*.22px) rgba(0,0,0,.105), inset 0 1px 0 rgba(255,255,255,.8) !important;
 }
 .next-bubble.best {
-  border-color:rgba(255,112,72,.72) !important;
+  border-color:rgba(255,112,72,.7) !important;
   box-shadow:
-    0 calc(14px + var(--fit)*.12px) calc(30px + var(--fit)*.32px) rgba(232,68,26,.20),
-    0 0 0 1px rgba(255,112,72,.16),
-    inset 0 1px 0 rgba(255,255,255,.14) !important;
+    0 calc(6px + var(--fit)*.06px) calc(14px + var(--fit)*.16px) rgba(232,68,26,.16),
+    0 0 0 1px rgba(255,112,72,.14),
+    inset 0 1px 0 rgba(255,255,255,.12) !important;
   animation:bubbleOrbitIn .55s cubic-bezier(.2,1.3,.3,1) both,
     bubbleFloat 3.8s ease-in-out .65s infinite;
 }
 .next-bubble:hover {
-  transform:translateY(-8px) scale(1.06) !important;
-  border-color:rgba(255,112,72,.82) !important;
+  transform:translateY(-6px) scale(1.07) !important;
+  border-color:rgba(255,112,72,.8) !important;
   opacity:1 !important;
   box-shadow:
-    0 24px 50px rgba(232,68,26,.26),
-    0 0 0 1px rgba(255,112,72,.34),
-    inset 0 1px 0 rgba(255,255,255,.18) !important;
+    0 14px 30px rgba(232,68,26,.22),
+    0 0 0 1px rgba(255,112,72,.3),
+    inset 0 1px 0 rgba(255,255,255,.16) !important;
   z-index:4;
 }
 .next-bubble:active { transform:translateY(-2px) scale(.965) !important }
@@ -639,7 +639,7 @@ body.light .next-bubble {
   font-family:var(--wheel-font) !important;
   font-weight:700 !important;
   letter-spacing:-.03em !important;
-  font-size:clamp(15px, calc(var(--diam, 88px) * .34), 58px) !important;
+  font-size:clamp(13px, calc(var(--diam, 56px) * .33), 36px) !important;
   line-height:.9 !important; text-align:center !important;
   white-space:nowrap !important;
   color:var(--ink) !important;
@@ -753,47 +753,44 @@ body.light .gravity-pill.metric.high { color:#fff }
   border-right:1px solid var(--ui-border-strong); border-top:1px solid var(--ui-border-strong);
 }
 
-/* ── Direction-guide explanation panels ────────────── */
+/* ── Direction-guide explanation banners ───────────── */
+/* Small, spread banners around the wheel — no full-screen scrim. */
 .dir-panels { position:fixed; inset:0; z-index:var(--z-popover) !important; pointer-events:none;
-  opacity:0; transition:opacity .26s var(--ease); }
+  opacity:0; transition:opacity .22s var(--ease); }
 .dir-panels.open { opacity:1; }
-.dir-scrim { position:absolute; inset:0; pointer-events:auto;
-  background:rgba(8,8,10,.30); backdrop-filter:blur(2px); }
-body.light .dir-scrim { background:rgba(40,36,32,.13); }
 
 .dir-panel {
-  position:fixed; width:250px; max-width:calc(100vw - 28px);
-  padding:15px 16px; border-radius:var(--r-md) !important;
-  border:1px solid var(--ui-border-strong) !important;
-  background:var(--ui-surface-strong) !important;
-  backdrop-filter:blur(24px) !important;
-  box-shadow:0 24px 70px rgba(0,0,0,.32) !important;
+  position:fixed; width:196px; max-width:calc(100vw - 28px);
+  padding:11px 13px; border-radius:14px;
+  border:1px solid var(--ui-border-strong);
+  background:var(--ui-surface-strong);
+  backdrop-filter:blur(22px);
+  box-shadow:0 14px 40px rgba(0,0,0,.24);
   pointer-events:auto; text-align:left;
-  opacity:0; transform:translateY(10px) scale(.985);
-  transition:opacity .3s var(--ease), transform .3s var(--ease);
+  opacity:0; transform:translateY(7px) scale(.99);
+  transition:opacity .26s var(--ease), transform .26s var(--ease);
 }
 .dir-panels.open .dir-panel { opacity:1; transform:none; }
-.dir-panels.open .dir-panel-fourths { transition-delay:.05s }
-.dir-panels.open .dir-panel-fifths  { transition-delay:.10s }
-.dir-panel h4 { font-family:'DM Serif Display',serif; font-size:15.5px; line-height:1.14; margin:0 0 7px; color:var(--ink); }
-.dir-panel p  { font-size:11.5px; line-height:1.55; color:var(--muted); margin:0; }
-.dir-panel-intro { width:300px; }
-.dir-panel-intro .dgp-legend { margin-top:12px; }
+.dir-panels.open .dir-panel-fourths { transition-delay:.04s }
+.dir-panels.open .dir-panel-fifths  { transition-delay:.08s }
+.dir-panel h4 { font-family:'DM Serif Display',serif; font-size:12.5px; line-height:1.18;
+  margin:0 0 5px; color:var(--ink); display:flex; align-items:center; gap:6px; }
+.dir-panel p  { font-size:10.5px; line-height:1.5; color:var(--muted); margin:0; }
+.dir-panel-intro { width:212px; }
 .dir-panel-tag {
-  display:inline-grid; place-items:center; width:26px; height:26px; border-radius:50%;
-  border:1px solid var(--ui-border-strong); font-size:15px; color:var(--ink); opacity:.8; margin-bottom:9px;
+  display:inline-grid; place-items:center; width:19px; height:19px; border-radius:50%;
+  border:1px solid var(--ui-border-strong); font-size:11px; color:var(--ink); opacity:.75; flex:0 0 auto;
 }
-.dir-panel .micro-close { top:9px; right:9px; }
+.dir-panel .micro-close { top:7px; right:7px; width:18px; height:18px; font-size:11px; }
+.dir-panel-intro h4 { padding-right:18px; }
 
-/* Mobile: stack the panels as a centred, scrollable column over a scrim. */
+/* Mobile: small stacked banners pinned top — NOT a full-screen takeover. */
 @media (max-width:860px) {
-  .dir-panels.open { pointer-events:auto; overflow-y:auto;
+  .dir-panels.open { pointer-events:none;
     display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-    gap:12px; padding:78px 16px 28px; }
-  .dir-scrim { position:fixed; }
+    gap:9px; padding:64px 14px 0; }
   .dir-panel { position:relative !important; left:auto !important; top:auto !important;
-    width:min(440px,100%) !important; transform:none; }
-  .dir-panel-intro { width:min(440px,100%) !important; }
+    width:min(360px,92vw) !important; transform:none; }
 }
 
 /* ── Direction-guide didactic legend ───────────────── */
@@ -996,7 +993,7 @@ body.light .dir-scrim { background:rgba(40,36,32,.13); }
   .builder-next-context { white-space:normal }
   .builder-next-moves .next-orbit { justify-content:flex-start !important; padding-inline:6px !important; gap:11px }
   /* Raise the floor so every bubble is tappable, but keep the size difference. */
-  .builder-next-moves .next-bubble { --diam:clamp(56px, var(--d), 116px) !important; padding:6px !important }
+  .builder-next-moves .next-bubble { --diam:clamp(46px, var(--d), 78px) !important; padding:5px !important }
   .info-row       { grid-template-columns:1fr }
   .prod-grid,.elements-section { grid-template-columns:1fr }
   .deg-popup-wrap { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) }
@@ -2153,29 +2150,18 @@ const WheelDirectionGuide = {
     wrap = document.createElement('div');
     wrap.id = 'dirGuidePanels';
     wrap.className = 'dir-panels';
-    const row = (mk, mkClass, key) =>
-      `<li><span class="dgp-mk ${mkClass}">${mk}</span><span data-i18n="${key}">${t(key)}</span></li>`;
     wrap.innerHTML = `
-      <div class="dir-scrim"></div>
       <article class="dir-panel dir-panel-intro">
         <button class="micro-close" onclick="WheelDirectionGuide.toggle()" aria-label="Close">✕</button>
         <h4 data-i18n="dirguide.why.title">${t('dirguide.why.title')}</h4>
         <p data-i18n="dirguide.why.body">${t('dirguide.why.body')}</p>
-        <ul class="dgp-legend">
-          ${row('', 'mk-tonic', 'dirguide.popover.tonic')}
-          ${row('', 'mk-outer', 'dirguide.popover.outer')}
-          ${row('', 'mk-inner', 'dirguide.popover.inner')}
-          ${row('♯♭', 'mk-sig', 'dirguide.popover.sig')}
-        </ul>
       </article>
       <article class="dir-panel dir-panel-fourths">
-        <span class="dir-panel-tag">↺</span>
-        <h4 data-i18n="dirguide.fourthsCard.title">${t('dirguide.fourthsCard.title')}</h4>
+        <h4><span class="dir-panel-tag">↺</span> <span data-i18n="dirguide.fourthsCard.title">${t('dirguide.fourthsCard.title')}</span></h4>
         <p data-i18n="dirguide.fourthsCard.body">${t('dirguide.fourthsCard.body')}</p>
       </article>
       <article class="dir-panel dir-panel-fifths">
-        <span class="dir-panel-tag">↻</span>
-        <h4 data-i18n="dirguide.fifthsCard.title">${t('dirguide.fifthsCard.title')}</h4>
+        <h4><span class="dir-panel-tag">↻</span> <span data-i18n="dirguide.fifthsCard.title">${t('dirguide.fifthsCard.title')}</span></h4>
         <p data-i18n="dirguide.fifthsCard.body">${t('dirguide.fifthsCard.body')}</p>
       </article>`;
     // Click on the scrim / empty backdrop (desktop or mobile) closes the guide.
@@ -2221,17 +2207,14 @@ const WheelDirectionGuide = {
     const clampTop  = (y, h) => Math.min(Math.max(12, y), vh - h - 12);
     const place = (el, left, top) => { el.style.left = Math.round(left) + 'px'; el.style.top = Math.round(top) + 'px'; };
 
+    // Small banners spread around the wheel: "what / why" + Fifths on the
+    // right (next to the wheel), Fourths on the left.
+    if (intro)   place(intro,   clampLeft(r.right + gap - 4, intro.offsetWidth),
+                                clampTop(r.top + r.height * 0.06, intro.offsetHeight));
     if (fifths)  place(fifths,  clampLeft(r.right + gap - 4, fifths.offsetWidth),
-                                clampTop(r.top + r.height * 0.42 - fifths.offsetHeight / 2, fifths.offsetHeight));
+                                clampTop(r.top + r.height * 0.64, fifths.offsetHeight));
     if (fourths) place(fourths, clampLeft(r.left - gap - fourths.offsetWidth + 4, fourths.offsetWidth),
-                                clampTop(r.top + r.height * 0.42 - fourths.offsetHeight / 2, fourths.offsetHeight));
-    if (intro) {
-      const topbar = document.querySelector('.topbar')?.getBoundingClientRect();
-      const minTop = (topbar ? topbar.bottom : 12) + 8;
-      let top = r.top - intro.offsetHeight - gap;
-      if (top < minTop) top = minTop;
-      place(intro, clampLeft(r.left + r.width / 2 - intro.offsetWidth / 2, intro.offsetWidth), top);
-    }
+                                clampTop(r.top + r.height * 0.40 - fourths.offsetHeight / 2, fourths.offsetHeight));
   },
 
   _hidePanels() {
@@ -2995,10 +2978,10 @@ function _buildBubblesHTML() {
   const all     = SuggestionEngine.getNextWithScores(from);
   const current = gc()[from];
   const bubbles = all.map((it, i) => {
-    // Smaller overall scale, but keep a clear size difference between strong
-    // and weak suggestions. The bubble shows only the chord, centered.
+    // Compact scale, but keep a clear size difference between strong and weak
+    // suggestions. The bubble shows only the chord, centered.
     const normalized = Math.max(0, Math.min(1, (it.fit - 12) / 88));
-    const d   = Math.round(40 + Math.pow(normalized, 1.85) * 78); // ~40px → ~118px
+    const d   = Math.round(32 + Math.pow(normalized, 1.8) * 48); // ~32px → ~80px
     const cat = friendlyCategory(it.transition?.category);
     return `<button class="next-bubble ${i === 0 ? 'best' : ''}"
         style="--fit:${it.fit};--d:${d}px;--rank:${i}"

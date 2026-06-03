@@ -9,9 +9,9 @@
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:13px;
-  min-height:164px;
-  padding:16px 4px 12px;
+  gap:11px;
+  min-height:118px;
+  padding:12px 4px 10px;
   overflow-x:auto;
   overflow-y:visible;
   -webkit-overflow-scrolling:touch;
@@ -33,9 +33,9 @@ body.light .next-orbit::-webkit-scrollbar-thumb { background:rgba(0,0,0,.14) }
 
 /* Bubble */
 .next-bubble {
-  --d: 72px;
+  --d: 56px;
   --fit: 50;
-  --diam: clamp(40px, var(--d), 120px);
+  --diam: clamp(32px, var(--d), 84px);
   width:var(--diam) !important; height:var(--diam) !important;
   min-width:var(--diam) !important; min-height:var(--diam) !important;
   max-width:var(--diam) !important; max-height:var(--diam) !important;
@@ -53,8 +53,8 @@ body.light .next-orbit::-webkit-scrollbar-thumb { background:rgba(0,0,0,.14) }
     radial-gradient(circle at 34% 24%, rgba(255,255,255,.14), transparent 28%),
     radial-gradient(circle at 50% 55%, rgba(255,112,72,calc(.05 + var(--fit)*.0045)), rgba(255,112,72,calc(.025 + var(--fit)*.002)) 48%, rgba(255,255,255,.035) 100%) !important;
   box-shadow:
-    0 calc(8px + var(--fit)*.12px) calc(18px + var(--fit)*.32px) rgba(0,0,0,.18),
-    inset 0 1px 0 rgba(255,255,255,.09) !important;
+    0 calc(3px + var(--fit)*.05px) calc(9px + var(--fit)*.14px) rgba(0,0,0,.13),
+    inset 0 1px 0 rgba(255,255,255,.08) !important;
   opacity:calc(.48 + var(--fit)*.0052) !important;
   cursor:pointer;
   /* Springy ease so hover lifts feel alive and in-motion */
@@ -80,22 +80,22 @@ body.light .next-bubble {
   box-shadow:0 calc(8px + var(--fit)*.09px) calc(18px + var(--fit)*.22px) rgba(0,0,0,.105), inset 0 1px 0 rgba(255,255,255,.8) !important;
 }
 .next-bubble.best {
-  border-color:rgba(255,112,72,.72) !important;
+  border-color:rgba(255,112,72,.7) !important;
   box-shadow:
-    0 calc(14px + var(--fit)*.12px) calc(30px + var(--fit)*.32px) rgba(232,68,26,.20),
-    0 0 0 1px rgba(255,112,72,.16),
-    inset 0 1px 0 rgba(255,255,255,.14) !important;
+    0 calc(6px + var(--fit)*.06px) calc(14px + var(--fit)*.16px) rgba(232,68,26,.16),
+    0 0 0 1px rgba(255,112,72,.14),
+    inset 0 1px 0 rgba(255,255,255,.12) !important;
   animation:bubbleOrbitIn .55s cubic-bezier(.2,1.3,.3,1) both,
     bubbleFloat 3.8s ease-in-out .65s infinite;
 }
 .next-bubble:hover {
-  transform:translateY(-8px) scale(1.06) !important;
-  border-color:rgba(255,112,72,.82) !important;
+  transform:translateY(-6px) scale(1.07) !important;
+  border-color:rgba(255,112,72,.8) !important;
   opacity:1 !important;
   box-shadow:
-    0 24px 50px rgba(232,68,26,.26),
-    0 0 0 1px rgba(255,112,72,.34),
-    inset 0 1px 0 rgba(255,255,255,.18) !important;
+    0 14px 30px rgba(232,68,26,.22),
+    0 0 0 1px rgba(255,112,72,.3),
+    inset 0 1px 0 rgba(255,255,255,.16) !important;
   z-index:4;
 }
 .next-bubble:active { transform:translateY(-2px) scale(.965) !important }
@@ -108,7 +108,7 @@ body.light .next-bubble {
   font-family:var(--wheel-font) !important;
   font-weight:700 !important;
   letter-spacing:-.03em !important;
-  font-size:clamp(15px, calc(var(--diam, 88px) * .34), 58px) !important;
+  font-size:clamp(13px, calc(var(--diam, 56px) * .33), 36px) !important;
   line-height:.9 !important; text-align:center !important;
   white-space:nowrap !important;
   color:var(--ink) !important;

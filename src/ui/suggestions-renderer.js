@@ -57,10 +57,10 @@ function _buildBubblesHTML() {
   const all     = SuggestionEngine.getNextWithScores(from);
   const current = gc()[from];
   const bubbles = all.map((it, i) => {
-    // Smaller overall scale, but keep a clear size difference between strong
-    // and weak suggestions. The bubble shows only the chord, centered.
+    // Compact scale, but keep a clear size difference between strong and weak
+    // suggestions. The bubble shows only the chord, centered.
     const normalized = Math.max(0, Math.min(1, (it.fit - 12) / 88));
-    const d   = Math.round(40 + Math.pow(normalized, 1.85) * 78); // ~40px → ~118px
+    const d   = Math.round(32 + Math.pow(normalized, 1.8) * 48); // ~32px → ~80px
     const cat = friendlyCategory(it.transition?.category);
     return `<button class="next-bubble ${i === 0 ? 'best' : ''}"
         style="--fit:${it.fit};--d:${d}px;--rank:${i}"

@@ -32,7 +32,7 @@
   .builder-next-context { white-space:normal }
   .builder-next-moves .next-orbit { justify-content:flex-start !important; padding-inline:6px !important; gap:11px }
   /* Raise the floor so every bubble is tappable, but keep the size difference. */
-  .builder-next-moves .next-bubble { --diam:clamp(56px, var(--d), 116px) !important; padding:6px !important }
+  .builder-next-moves .next-bubble { --diam:clamp(46px, var(--d), 78px) !important; padding:5px !important }
   .info-row       { grid-template-columns:1fr }
   .prod-grid,.elements-section { grid-template-columns:1fr }
   .deg-popup-wrap { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) }

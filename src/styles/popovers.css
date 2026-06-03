@@ -86,47 +86,44 @@
   border-right:1px solid var(--ui-border-strong); border-top:1px solid var(--ui-border-strong);
 }
 
-/* ── Direction-guide explanation panels ────────────── */
+/* ── Direction-guide explanation banners ───────────── */
+/* Small, spread banners around the wheel — no full-screen scrim. */
 .dir-panels { position:fixed; inset:0; z-index:var(--z-popover) !important; pointer-events:none;
-  opacity:0; transition:opacity .26s var(--ease); }
+  opacity:0; transition:opacity .22s var(--ease); }
 .dir-panels.open { opacity:1; }
-.dir-scrim { position:absolute; inset:0; pointer-events:auto;
-  background:rgba(8,8,10,.30); backdrop-filter:blur(2px); }
-body.light .dir-scrim { background:rgba(40,36,32,.13); }
 
 .dir-panel {
-  position:fixed; width:250px; max-width:calc(100vw - 28px);
-  padding:15px 16px; border-radius:var(--r-md) !important;
-  border:1px solid var(--ui-border-strong) !important;
-  background:var(--ui-surface-strong) !important;
-  backdrop-filter:blur(24px) !important;
-  box-shadow:0 24px 70px rgba(0,0,0,.32) !important;
+  position:fixed; width:196px; max-width:calc(100vw - 28px);
+  padding:11px 13px; border-radius:14px;
+  border:1px solid var(--ui-border-strong);
+  background:var(--ui-surface-strong);
+  backdrop-filter:blur(22px);
+  box-shadow:0 14px 40px rgba(0,0,0,.24);
   pointer-events:auto; text-align:left;
-  opacity:0; transform:translateY(10px) scale(.985);
-  transition:opacity .3s var(--ease), transform .3s var(--ease);
+  opacity:0; transform:translateY(7px) scale(.99);
+  transition:opacity .26s var(--ease), transform .26s var(--ease);
 }
 .dir-panels.open .dir-panel { opacity:1; transform:none; }
-.dir-panels.open .dir-panel-fourths { transition-delay:.05s }
-.dir-panels.open .dir-panel-fifths  { transition-delay:.10s }
-.dir-panel h4 { font-family:'DM Serif Display',serif; font-size:15.5px; line-height:1.14; margin:0 0 7px; color:var(--ink); }
-.dir-panel p  { font-size:11.5px; line-height:1.55; color:var(--muted); margin:0; }
-.dir-panel-intro { width:300px; }
-.dir-panel-intro .dgp-legend { margin-top:12px; }
+.dir-panels.open .dir-panel-fourths { transition-delay:.04s }
+.dir-panels.open .dir-panel-fifths  { transition-delay:.08s }
+.dir-panel h4 { font-family:'DM Serif Display',serif; font-size:12.5px; line-height:1.18;
+  margin:0 0 5px; color:var(--ink); display:flex; align-items:center; gap:6px; }
+.dir-panel p  { font-size:10.5px; line-height:1.5; color:var(--muted); margin:0; }
+.dir-panel-intro { width:212px; }
 .dir-panel-tag {
-  display:inline-grid; place-items:center; width:26px; height:26px; border-radius:50%;
-  border:1px solid var(--ui-border-strong); font-size:15px; color:var(--ink); opacity:.8; margin-bottom:9px;
+  display:inline-grid; place-items:center; width:19px; height:19px; border-radius:50%;
+  border:1px solid var(--ui-border-strong); font-size:11px; color:var(--ink); opacity:.75; flex:0 0 auto;
 }
-.dir-panel .micro-close { top:9px; right:9px; }
+.dir-panel .micro-close { top:7px; right:7px; width:18px; height:18px; font-size:11px; }
+.dir-panel-intro h4 { padding-right:18px; }
 
-/* Mobile: stack the panels as a centred, scrollable column over a scrim. */
+/* Mobile: small stacked banners pinned top — NOT a full-screen takeover. */
 @media (max-width:860px) {
-  .dir-panels.open { pointer-events:auto; overflow-y:auto;
+  .dir-panels.open { pointer-events:none;
     display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-    gap:12px; padding:78px 16px 28px; }
-  .dir-scrim { position:fixed; }
+    gap:9px; padding:64px 14px 0; }
   .dir-panel { position:relative !important; left:auto !important; top:auto !important;
-    width:min(440px,100%) !important; transform:none; }
-  .dir-panel-intro { width:min(440px,100%) !important; }
+    width:min(360px,92vw) !important; transform:none; }
 }
 
 /* ── Direction-guide didactic legend ───────────────── */
