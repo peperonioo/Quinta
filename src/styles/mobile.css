@@ -42,7 +42,3 @@
   .micro-popover  { width:min(320px,calc(100vw - 28px)); transform:translateY(8px) scale(.985) }
   .micro-popover.open { transform:translateY(0) scale(1) }
 }
-
-@media (max-width:560px) {
-  .builder-actions { justify-content:flex-start }
-}

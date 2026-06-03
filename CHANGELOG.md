@@ -1,5 +1,28 @@
 # Easy Fifth Circle — Changelog
 
+## V3.20 — CSS De-override Pass (Audit §8.3)
+
+**Release date:** 2026-06-03
+
+- Verified duplicates: the modular split already cut duplicate selector groups
+  from ~126 (old single file) to a handful of real ones; the rest are
+  legitimate responsive overrides (layout + mobile layers).
+- Removed a redundant `@media (max-width:560px)` block that only re-applied a
+  value already set at 860px.
+- Merged `.info-row` (was split across `layout.css` and `popovers.css`) into a
+  single canonical rule.
+- Dropped 11 unnecessary `!important` from `.next-orbit` (verified the
+  more-specific mobile/`body.light` rules still win) — 154 → 143 in source.
+- New `EFC_DEV.cssHealth()` diagnostic (rule count + !important density) in
+  `report()`, so the visual system stays measurable across versions.
+
+## Circle-of-Fifths explanation panels
+
+- Replaced the single info dropdown with positioned panels around the wheel:
+  intro (what/why + parts legend), Fourths (left), Fifths (right), each
+  explaining a direction musically. Desktop positions them around the wheel;
+  mobile stacks them in a scrollable column. EN/ES.
+
 ## V3.19 — Suggestion Engine Validation (Audit §6)
 
 **Release date:** 2026-06-03

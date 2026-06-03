@@ -207,6 +207,28 @@
     return { ok, isMobile, checks };
   }
 
+  // ── CSS health (Audit §8.3 / V3.20 de-override) ────
+  // Tracks !important density and rule count so the visual system can be kept
+  // stable across versions instead of re-growing override layers.
+  function cssHealth() {
+    let rules = 0, important = 0, importantRules = 0;
+    for (const sheet of document.styleSheets) {
+      let list; try { list = sheet.cssRules; } catch (_) { continue; }
+      const walk = (rs) => {
+        for (const r of rs) {
+          if (r.type === 1 /* STYLE_RULE */) {
+            rules++;
+            const hits = (r.cssText.match(/!important/g) || []).length;
+            if (hits) { important += hits; importantRules++; }
+          } else if (r.cssRules) walk(r.cssRules); // @media / @supports
+        }
+      };
+      walk(list);
+    }
+    const pct = rules ? Math.round((importantRules / rules) * 100) : 0;
+    return { rules, importantDeclarations: important, importantRules, importantRulePct: pct };
+  }
+
   function report() {
     return {
       version:    VERSION,
@@ -215,6 +237,7 @@
       state:      AppModel.snapshot(),
       validation: AppModel.validate(),
       mobile:     mobileCheck(),
+      css:        cssHealth(),
       testResults: runTests(),
     };
   }
@@ -287,6 +310,7 @@
     validate:   () => AppModel.validate(),
     runTests,
     mobileCheck,
+    cssHealth,
     report,
     duplicateIds,
     logs:       () => DevLog.snapshot(),

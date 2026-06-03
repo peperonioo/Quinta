@@ -3,21 +3,23 @@
 .suggestions-section { display:none !important }
 
 /* Next-orbit container */
+/* No !important needed: the only other rules are body.light (more specific)
+   and the mobile .builder-next-moves override (more specific + !important). */
 .next-orbit {
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:13px !important;
-  min-height:164px !important;
-  padding:16px 4px 12px !important;
-  overflow-x:auto !important;
-  overflow-y:visible !important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  min-height:164px;
+  padding:16px 4px 12px;
+  overflow-x:auto;
+  overflow-y:visible;
   -webkit-overflow-scrolling:touch;
-  touch-action:pan-x !important;            /* horizontal swipe scrolls bubbles, vertical scrolls page */
-  overscroll-behavior-x:contain !important; /* don't chain scroll to the page */
-  scroll-snap-type:x proximity !important;
-  scrollbar-width:thin !important;
-  border-radius:22px !important;
+  touch-action:pan-x;            /* horizontal swipe scrolls bubbles, vertical scrolls page */
+  overscroll-behavior-x:contain; /* don't chain scroll to the page */
+  scroll-snap-type:x proximity;
+  scrollbar-width:thin;
+  border-radius:22px;
   background:linear-gradient(180deg,rgba(255,255,255,.034),rgba(255,255,255,.014));
   border:1px solid rgba(255,255,255,.045);
 }
