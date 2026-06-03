@@ -1,5 +1,19 @@
 # Easy Fifth Circle — Changelog
 
+## V4.0 — Motion & Life (batch 2)
+
+**Release date:** 2026-06-04
+
+- **Harmonic gravity:** selecting a chord now draws faint luminous arcs from it
+  toward its strongest next moves on the wheel (e.g. V→I), with a flowing dash
+  animation and a pulsing node at each target — showing *why* a chord wants to
+  resolve. Degree→wheel position is computed from the mode's fifths geometry.
+- **Ambient idle life** on static elements: a light sweep slowly circles the
+  wheel rim, the tonic sector breathes a soft glow, and the strongest
+  suggestion bubble has a gently pulsing glow.
+
+All effects pause during wheel interaction and respect prefers-reduced-motion.
+
 ## V4.0 — Motion & Life (batch 1)
 
 **Release date:** 2026-06-04

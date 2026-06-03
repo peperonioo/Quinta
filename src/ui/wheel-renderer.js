@@ -202,3 +202,58 @@ const WheelFX = {
     });
   },
 };
+
+// ── Harmonic gravity (V4.0 batch 2) ───────────────────
+// When a chord is selected, draw faint flowing arcs from it toward its
+// strongest next moves — showing *why* it wants to resolve somewhere.
+const WheelGravity = {
+  _layer() {
+    const svg = document.getElementById('wheelSvg'); if (!svg) return null;
+    let g = document.getElementById('gravityLayer');
+    if (!g) {
+      g = document.createElementNS(NS, 'g');
+      g.id = 'gravityLayer'; g.setAttribute('pointer-events', 'none');
+      const ticks = document.getElementById('ticks');
+      if (ticks && ticks.nextSibling) svg.insertBefore(g, ticks.nextSibling);
+      else svg.appendChild(g);
+    }
+    return g;
+  },
+  // Visual angle of a degree on the wheel: its root's distance in fifths from
+  // the tonic (which sits at the top), works for any mode.
+  _angle(d) {
+    const semis = (gm().intervals || [])[d] || 0;
+    let f = ((semis * 7) % 12 + 12) % 12; if (f > 6) f -= 12;
+    return f * 30;
+  },
+  clear() { const g = document.getElementById('gravityLayer'); if (g) g.innerHTML = ''; },
+  show(fromDeg) {
+    const g = this._layer(); if (!g) return;
+    g.innerHTML = '';
+    if (fromDeg == null || fromDeg < 0) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let all;
+    try { all = SuggestionEngine.getNextWithScores(fromDeg).filter(s => s.to !== fromDeg).slice(0, 2); }
+    catch (_) { return; }
+    const R = 236;
+    const [sx, sy] = polar(R, this._angle(fromDeg));
+    all.forEach(s => {
+      const [tx, ty] = polar(R, this._angle(s.to));
+      const cx = 300 + (sx + tx - 600) * 0.16;
+      const cy = 300 + (sy + ty - 600) * 0.16;
+      const strength = Math.max(0, Math.min(1, (s.fit - 30) / 70));
+      const op = (0.34 + strength * 0.5).toFixed(2);
+      g.appendChild(se('path', {
+        d: `M${sx.toFixed(1)},${sy.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}`,
+        fill: 'none', 'stroke-width': (1.6 + strength * 1.8).toFixed(1),
+        'stroke-linecap': 'round', 'stroke-dasharray': '5 9', class: 'gravity-arc',
+        style: `--op:${op}`,
+      }));
+      g.appendChild(se('circle', {
+        cx: tx.toFixed(1), cy: ty.toFixed(1), r: (2.6 + strength * 2.8).toFixed(1),
+        class: 'gravity-node',
+        style: `transform-box:fill-box;transform-origin:center;--op:${op}`,
+      }));
+    });
+  },
+};

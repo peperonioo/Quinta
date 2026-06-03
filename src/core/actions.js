@@ -13,12 +13,14 @@ const ActionDispatcher = {
           closePopup(false);
           RenderEngine.full();
           if (typeof WheelFX === 'object') WheelFX.select();
+          if (typeof WheelGravity === 'object') WheelGravity.clear();
           break;
         case 'SET_MODE':
           st.mode = payload.mode;
           curDeg = -1;
           closePopup(false);
           RenderEngine.full();
+          if (typeof WheelGravity === 'object') WheelGravity.clear();
           break;
         case 'SET_WHEEL_VIEW':
           st.wheelView = payload.view === 'minor' ? 'minor' : 'major';
@@ -26,6 +28,7 @@ const ActionDispatcher = {
           normalizeKeyState();
           closePopup(false);
           RenderEngine.full();
+          if (typeof WheelGravity === 'object') WheelGravity.clear();
           break;
         case 'SELECT_DEGREE': {
           const idx = payload.idx;
@@ -33,12 +36,14 @@ const ActionDispatcher = {
           curDeg = idx;
           if (!payload.fromHistory) HistoryEngine.addDegree(idx, { source: payload.source, sourceEl: payload.sourceEl });
           RenderEngine.partial(['suggestions', 'history', 'trails']);
+          if (typeof WheelGravity === 'object') WheelGravity.show(curDeg);
           break;
         }
         case 'CLEAR_DEGREE':
           curDeg = -1;
           closePopup(false);
           RenderEngine.partial(['degrees', 'suggestions']);
+          if (typeof WheelGravity === 'object') WheelGravity.clear();
           break;
         case 'SET_MOOD':
           st.mood = payload.mood || 'balanced';

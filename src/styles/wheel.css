@@ -36,6 +36,23 @@ body.light #wheelSheen { stroke:rgba(0,0,0,.05); }
 .active-sector { animation:sectorBreath 4.2s ease-in-out infinite; }
 @keyframes sectorBreath { 0%,100%{ opacity:1 } 50%{ opacity:.86 } }
 
+/* Harmonic gravity: luminous flowing pull arcs toward the strongest next moves */
+.gravity-arc {
+  opacity:var(--op,.6); stroke:rgba(255,232,210,.95);
+  filter:drop-shadow(0 0 4px rgba(255,140,90,.85)) drop-shadow(0 0 9px rgba(232,68,26,.5));
+  animation:gravityFlow 1.05s linear infinite, gravityFade .4s ease both;
+}
+.gravity-node {
+  opacity:var(--op,.6); fill:rgba(255,238,222,.98);
+  filter:drop-shadow(0 0 5px rgba(255,140,90,.9));
+  animation:gravityNode 1.7s ease-in-out infinite, gravityFade .4s ease both;
+}
+body.light .gravity-arc  { stroke:rgba(232,68,26,.95); filter:drop-shadow(0 0 4px rgba(232,68,26,.5)); }
+body.light .gravity-node { fill:rgba(232,68,26,.98);   filter:drop-shadow(0 0 4px rgba(232,68,26,.45)); }
+@keyframes gravityFlow { to { stroke-dashoffset:-14; } }
+@keyframes gravityFade { from { opacity:0; } to { opacity:var(--op,.6); } }
+@keyframes gravityNode { 0%,100%{ transform:scale(.85) } 50%{ transform:scale(1.25) } }
+
 /* Pause ambient motion while turning the wheel */
 body[data-interaction="wheel"] #wheelSheen,
 body[data-interaction="wheel"] .active-sector { animation-play-state:paused; }
