@@ -162,3 +162,43 @@ function renderWheel() {
 }
 
 function updateCircleTheme() { renderWheel(); }
+
+// ── Selection FX (V4.0 batch 2) ───────────────────────
+// A ripple from the centre, a bloom of the centre letter, and a staggered
+// cascade through degrees / piano / guitar when the key changes.
+const WheelFX = {
+  _prevKey: null,
+  select() {
+    const key = anchorKey();
+    const changed = key !== this._prevKey;
+    this._prevKey = key;
+    this.ripple();
+    this.bloom();
+    if (changed) this.cascade();
+  },
+  ripple() {
+    const svg = document.getElementById('wheelSvg'); if (!svg) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const ptr = document.getElementById('wheelPointer');
+    const c = se('circle', { cx:300, cy:300, r:148, class:'wheel-ripple' });
+    if (ptr) svg.insertBefore(c, ptr); else svg.appendChild(c);
+    c.addEventListener('animationend', () => c.remove(), { once:true });
+    setTimeout(() => { if (c.isConnected) c.remove(); }, 900);
+  },
+  bloom() {
+    ['cKey','cRel'].forEach(id => {
+      const el = document.getElementById(id); if (!el) return;
+      el.classList.remove('bloom'); void el.getBoundingClientRect();
+      el.classList.add('bloom');
+      el.addEventListener('animationend', () => el.classList.remove('bloom'), { once:true });
+    });
+  },
+  cascade() {
+    ['.degrees-row', '#piano', '#guitar'].forEach(sel => {
+      const el = document.querySelector(sel); if (!el) return;
+      el.classList.remove('fx-cascade'); void el.offsetWidth;
+      el.classList.add('fx-cascade');
+      setTimeout(() => el.classList.remove('fx-cascade'), 800);
+    });
+  },
+};

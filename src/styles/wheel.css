@@ -27,6 +27,22 @@ body[data-interaction="wheel"] #wheelSvg { animation-play-state:paused; }
   #tonicPulse{ animation:none; opacity:0; }
 }
 
+/* ── Selection FX: ripple + centre bloom ──────────────── */
+.wheel-ripple {
+  fill:none; stroke:var(--accent); stroke-width:2; pointer-events:none;
+  transform-box:fill-box; transform-origin:center;
+  animation:wheelRippleFX .72s cubic-bezier(.2,.7,.3,1) forwards;
+}
+@keyframes wheelRippleFX { from{ opacity:.32; transform:scale(1) } to{ opacity:0; transform:scale(1.95) } }
+#cKey.bloom, #cRel.bloom {
+  transform-box:fill-box; transform-origin:center;
+  animation:centerBloom .42s cubic-bezier(.2,1.3,.35,1) both;
+}
+@keyframes centerBloom { 0%{ opacity:.4; transform:scale(.88) } 60%{ transform:scale(1.05) } 100%{ opacity:1; transform:scale(1) } }
+@media (prefers-reduced-motion: reduce) {
+  #cKey.bloom, #cRel.bloom { animation:none; }
+}
+
 /* Wheel toggle */
 .wheel-toggle {
   display:flex; gap:3px; margin-top:10px; padding:3px;

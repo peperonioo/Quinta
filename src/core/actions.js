@@ -12,6 +12,7 @@ const ActionDispatcher = {
           curDeg = -1;
           closePopup(false);
           RenderEngine.full();
+          if (typeof WheelFX === 'object') WheelFX.select();
           break;
         case 'SET_MODE':
           st.mode = payload.mode;
