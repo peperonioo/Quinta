@@ -57,7 +57,21 @@ body.light .builder-step  { background:rgba(0,0,0,.04) }
 }
 body.light .step-tool  { background:rgba(0,0,0,.06) }
 .step-tool:hover       { background:rgba(232,68,26,.18); color:var(--accent2) }
-.builder-arrow   { font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); opacity:.42; flex:0 0 auto }
+.builder-arrow   {
+  font-family:'DM Mono',monospace; font-size:12px; color:var(--accent); flex:0 0 auto;
+  opacity:.42; animation:arrowFlow 2.6s ease-in-out infinite;
+}
+@keyframes arrowFlow {
+  0%,100% { opacity:.28; transform:translateX(-1.5px); }
+  50%     { opacity:.78; transform:translateX(1.5px); }
+}
+/* Stagger so the pulse travels along the progression like a flow */
+.builder-arrow:nth-of-type(1){ animation-delay:0ms }
+.builder-arrow:nth-of-type(2){ animation-delay:200ms }
+.builder-arrow:nth-of-type(3){ animation-delay:400ms }
+.builder-arrow:nth-of-type(4){ animation-delay:600ms }
+.builder-arrow:nth-of-type(n+5){ animation-delay:800ms }
+@media (prefers-reduced-motion: reduce){ .builder-arrow{ animation:none; opacity:.42 } }
 
 /* Pill animations — only new/leaving pills animate */
 .builder-step.just-added   { animation:efcPillIn .48s var(--ui-ease) both !important }
