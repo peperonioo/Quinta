@@ -107,8 +107,13 @@ function build() {
   const dest = path.join(DIST, 'Easy_Fifth_Circle.html');
   fs.writeFileSync(dest, out, 'utf8');
 
+  // Also emit index.html at the repo root so GitHub Pages serves the current
+  // build straight from the main branch.
+  fs.writeFileSync(path.join(ROOT, 'index.html'), out, 'utf8');
+
   const kb = Math.round(fs.statSync(dest).size / 1024);
   console.log(`\n✓  dist/Easy_Fifth_Circle.html  (${kb} KB)`);
+  console.log(`✓  index.html  (GitHub Pages entry)`);
 }
 
 console.log('\nEasy Fifth Circle — building...\n');
