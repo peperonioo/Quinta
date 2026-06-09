@@ -890,11 +890,13 @@ body.light .gravity-pill.metric.high { color:#fff }
   background:var(--ui-surface-strong);
   backdrop-filter:blur(22px);
   box-shadow:0 14px 40px rgba(0,0,0,.24);
-  pointer-events:auto; text-align:left;
+  pointer-events:none; text-align:left;          /* only clickable when open (below) */
   opacity:0; transform:translateY(7px) scale(.99);
   transition:opacity .26s var(--ease), transform .26s var(--ease);
 }
-.dir-panels.open .dir-panel { opacity:1; transform:none; }
+.dir-panels.open .dir-panel { opacity:1; transform:none; pointer-events:auto; }
+/* Belt-and-braces: a closed guide must never intercept clicks */
+.dir-panels:not(.open) { pointer-events:none !important; }
 .dir-panels.open .dir-panel-fourths { transition-delay:.04s }
 .dir-panels.open .dir-panel-fifths  { transition-delay:.08s }
 .dir-panel h4 { font-family:'DM Serif Display',serif; font-size:12.5px; line-height:1.18;
