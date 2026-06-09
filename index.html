@@ -3851,11 +3851,12 @@ const PALETTES_DATA = PALETTES;
     });
   }
 
-  // On mobile, render the plasma at a lower internal resolution and dim it a
-  // little — invisible quality drop, much lower GPU/battery cost (§10.6).
+  // On mobile, render the plasma at a slightly lower internal resolution to
+  // save some GPU — but keep full brightness so the background stays dynamic
+  // and vivid (the earlier 0.6x/0.72x made it look like a flat colour).
   const mobileBg = matchMedia('(max-width: 860px)').matches;
-  const resScale = mobileBg ? 0.6 : 1;
-  const dimFactor = mobileBg ? 0.72 : 1;
+  const resScale = mobileBg ? 0.85 : 1;
+  const dimFactor = 1;
 
   let intensity = parseFloat(st.intensity) || 1;
   const setIntensity = () => { if (hasGL) gl.uniform1f(dLoc, intensity * 0.38 * dimFactor); };
@@ -3883,7 +3884,7 @@ const PALETTES_DATA = PALETTES;
 
   let tVal = 0;
   (function loop() {
-    tVal += 0.008;
+    tVal += 0.014;
     gl.uniform1f(tLoc, tVal);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     requestAnimationFrame(loop);
