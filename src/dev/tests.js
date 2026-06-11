@@ -213,6 +213,25 @@
       }
     })();
 
+    // Key signature (accidentals) is mode-aware and correct for sharps & flats
+    (function () {
+      const sv = { key: st.key, mode: st.mode, view: st.wheelView };
+      const accFor = (key, mode, view) => {
+        st.key = key; st.mode = mode; st.wheelView = view;
+        safe(() => normalizeKeyState()); safe(() => renderTheory());
+        return document.getElementById('accidentals')?.textContent;
+      };
+      try {
+        assert('G major key signature is 1 sharp', accFor('G', 'ionian', 'major') === '1♯');
+        assert('F major key signature is 1 flat',  accFor('F', 'ionian', 'major') === '1♭');
+        assert('C natural minor is 3 flats',       accFor('C', 'aeolian', 'minor') === '3♭');
+        assert('C dorian is 2 flats',              accFor('C', 'dorian', 'major') === '2♭');
+      } finally {
+        st.key = sv.key; st.mode = sv.mode; st.wheelView = sv.view;
+        safe(() => normalizeKeyState()); safe(() => renderTheory());
+      }
+    })();
+
     // ── Interaction guard (V4.0): critical controls must not be covered ──
     // Catches the bug class where a closed overlay's cards form an invisible
     // click-wall over the top bar / wheel.

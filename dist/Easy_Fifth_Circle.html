@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#0a0a0b"/>
-<title>Easy Fifth Circle · V4.0</title>
+<title>Easy Fifth Circle · V4.1</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 /* == tokens.css == */
@@ -1144,7 +1144,7 @@ body.light .gravity-pill.metric.high { color:#fff }
     <div class="brand">
       <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1" fill="none" opacity=".5"/><circle cx="10" cy="10" r="5" stroke="currentColor" stroke-width="1" fill="none" opacity=".4"/><circle cx="10" cy="10" r="2" fill="currentColor" opacity=".7"/></svg>
       <h1>Easy Fifth Circle</h1>
-      <span class="version">V4.0</span>
+      <span class="version">V4.1</span>
     </div>
     <div class="topbar-right">
       <div class="settings-mini">
@@ -1365,7 +1365,7 @@ body.light .gravity-pill.metric.high { color:#fff }
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V4.0';
+const APP_VERSION = 'V4.1';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -1432,6 +1432,7 @@ const I18N_EN = {
   'labels.mode':       'Mode',
   'labels.accidentals':'Accidentals',
   'labels.relativeMinor':'Relative minor',
+  'labels.relativeMajor':'Relative major',
   'labels.scaleNotes': 'Scale notes',
   'toggle.major':      'Major',
   'toggle.minor':      'Minor',
@@ -1489,6 +1490,7 @@ const I18N_ES = {
   'labels.mode':       'Modo',
   'labels.accidentals':'Alteraciones',
   'labels.relativeMinor':'Relativo menor',
+  'labels.relativeMajor':'Relativo mayor',
   'labels.scaleNotes': 'Notas de la escala',
   'toggle.major':      'Mayor',
   'toggle.minor':      'Menor',
@@ -2918,19 +2920,30 @@ function renderTheory() {
   if (sk) sk.textContent = displayKeyLabel();
   if (sm) sm.textContent = gm().name;
 
-  // Relative minor card
+  // Relative card — its label flips between "Relative minor" (major view) and
+  // "Relative major" (minor view) so it matches what grel() actually returns.
   const rmb = document.getElementById('relMinorBig');
   if (rmb) rmb.textContent = grel();
+  const relLabel = document.querySelector('[data-i18n^="labels.relative"]');
+  if (relLabel) {
+    const key = st.wheelView === 'minor' ? 'labels.relativeMajor' : 'labels.relativeMinor';
+    relLabel.setAttribute('data-i18n', key);
+    relLabel.textContent = t(key);
+  }
 
-  // Accidentals card
-  const aIdx = FIFTHS.indexOf(anchorKey());
+  // Accidentals card — the key signature of the current scale, derived from its
+  // PARENT major key (mode-aware, so e.g. C natural minor = 3 flats). Computed
+  // from the tonic pitch + the mode's offset in fifths, which avoids the
+  // flat-biased note spelling that made earlier attempts read sharp keys wrong.
+  const MODE_FIFTHS_OFF = { ionian:0, lydian:1, mixolydian:-1, dorian:-2, aeolian:-3, phrygian:-4, locrian:-5 };
+  const tonicPitch = ni(st.key);                       // same root gs() uses
+  const fifthsIdx  = ((tonicPitch * 7) % 12 + 12) % 12;
+  const off        = MODE_FIFTHS_OFF[st.mode] ?? 0;
+  const accStr     = ACC[((fifthsIdx + off) % 12 + 12) % 12];
   const accEl = document.getElementById('accidentals');
   const accType = document.getElementById('accidentalType');
-  if (accEl) accEl.textContent = ACC[aIdx] === '0' ? '♮ None' : ACC[aIdx];
-  if (accType) {
-    const a = ACC[aIdx];
-    accType.textContent = a === '0' ? 'Natural' : a.includes('♯') ? 'Sharps' : 'Flats';
-  }
+  if (accEl)   accEl.textContent   = accStr === '0' ? '♮ None' : accStr;
+  if (accType) accType.textContent = accStr === '0' ? 'Natural' : accStr.includes('♯') ? 'Sharps' : 'Flats';
 
   // Major/minor toggle buttons
   document.getElementById('viewMajorBtn')?.classList.toggle('active', st.wheelView !== 'minor');
@@ -4188,6 +4201,25 @@ function toggleTheme() {
         assert('Minor view changes the centre display', maj.k !== min.k || maj.r !== min.r, { maj, min });
       } finally {
         st.key = sv.key; st.mode = sv.mode; st.wheelView = sv.view; safe(() => renderWheel());
+      }
+    })();
+
+    // Key signature (accidentals) is mode-aware and correct for sharps & flats
+    (function () {
+      const sv = { key: st.key, mode: st.mode, view: st.wheelView };
+      const accFor = (key, mode, view) => {
+        st.key = key; st.mode = mode; st.wheelView = view;
+        safe(() => normalizeKeyState()); safe(() => renderTheory());
+        return document.getElementById('accidentals')?.textContent;
+      };
+      try {
+        assert('G major key signature is 1 sharp', accFor('G', 'ionian', 'major') === '1♯');
+        assert('F major key signature is 1 flat',  accFor('F', 'ionian', 'major') === '1♭');
+        assert('C natural minor is 3 flats',       accFor('C', 'aeolian', 'minor') === '3♭');
+        assert('C dorian is 2 flats',              accFor('C', 'dorian', 'major') === '2♭');
+      } finally {
+        st.key = sv.key; st.mode = sv.mode; st.wheelView = sv.view;
+        safe(() => normalizeKeyState()); safe(() => renderTheory());
       }
     })();
 

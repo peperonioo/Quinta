@@ -6,6 +6,7 @@ const I18N_ES = {
   'labels.mode':       'Modo',
   'labels.accidentals':'Alteraciones',
   'labels.relativeMinor':'Relativo menor',
+  'labels.relativeMajor':'Relativo mayor',
   'labels.scaleNotes': 'Notas de la escala',
   'toggle.major':      'Mayor',
   'toggle.minor':      'Menor',

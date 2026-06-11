@@ -6,6 +6,7 @@ const I18N_EN = {
   'labels.mode':       'Mode',
   'labels.accidentals':'Accidentals',
   'labels.relativeMinor':'Relative minor',
+  'labels.relativeMajor':'Relative major',
   'labels.scaleNotes': 'Scale notes',
   'toggle.major':      'Major',
   'toggle.minor':      'Minor',

@@ -16,19 +16,30 @@ function renderTheory() {
   if (sk) sk.textContent = displayKeyLabel();
   if (sm) sm.textContent = gm().name;
 
-  // Relative minor card
+  // Relative card — its label flips between "Relative minor" (major view) and
+  // "Relative major" (minor view) so it matches what grel() actually returns.
   const rmb = document.getElementById('relMinorBig');
   if (rmb) rmb.textContent = grel();
+  const relLabel = document.querySelector('[data-i18n^="labels.relative"]');
+  if (relLabel) {
+    const key = st.wheelView === 'minor' ? 'labels.relativeMajor' : 'labels.relativeMinor';
+    relLabel.setAttribute('data-i18n', key);
+    relLabel.textContent = t(key);
+  }
 
-  // Accidentals card
-  const aIdx = FIFTHS.indexOf(anchorKey());
+  // Accidentals card — the key signature of the current scale, derived from its
+  // PARENT major key (mode-aware, so e.g. C natural minor = 3 flats). Computed
+  // from the tonic pitch + the mode's offset in fifths, which avoids the
+  // flat-biased note spelling that made earlier attempts read sharp keys wrong.
+  const MODE_FIFTHS_OFF = { ionian:0, lydian:1, mixolydian:-1, dorian:-2, aeolian:-3, phrygian:-4, locrian:-5 };
+  const tonicPitch = ni(st.key);                       // same root gs() uses
+  const fifthsIdx  = ((tonicPitch * 7) % 12 + 12) % 12;
+  const off        = MODE_FIFTHS_OFF[st.mode] ?? 0;
+  const accStr     = ACC[((fifthsIdx + off) % 12 + 12) % 12];
   const accEl = document.getElementById('accidentals');
   const accType = document.getElementById('accidentalType');
-  if (accEl) accEl.textContent = ACC[aIdx] === '0' ? '♮ None' : ACC[aIdx];
-  if (accType) {
-    const a = ACC[aIdx];
-    accType.textContent = a === '0' ? 'Natural' : a.includes('♯') ? 'Sharps' : 'Flats';
-  }
+  if (accEl)   accEl.textContent   = accStr === '0' ? '♮ None' : accStr;
+  if (accType) accType.textContent = accStr === '0' ? 'Natural' : accStr.includes('♯') ? 'Sharps' : 'Flats';
 
   // Major/minor toggle buttons
   document.getElementById('viewMajorBtn')?.classList.toggle('active', st.wheelView !== 'minor');
