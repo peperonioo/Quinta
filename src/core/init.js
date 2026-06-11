@@ -146,6 +146,10 @@ function toggleTheme() {
 // App boot
 (function init() {
   MobileOptimizer.init();
+  // Single source of truth for the version (badge + title derive from APP_VERSION).
+  const verEl = document.querySelector('.version');
+  if (verEl) verEl.textContent = APP_VERSION;
+  document.title = 'Easy Fifth Circle · ' + APP_VERSION;
   document.body.classList.toggle('light', isLight);
   const themeBtn = document.getElementById('themeBtn');
   if (themeBtn) themeBtn.textContent = isLight ? '☾' : '☀';

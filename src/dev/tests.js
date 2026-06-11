@@ -213,6 +213,22 @@
       }
     })();
 
+    // ── Interaction guard (V4.0): critical controls must not be covered ──
+    // Catches the bug class where a closed overlay's cards form an invisible
+    // click-wall over the top bar / wheel.
+    (function () {
+      const reachable = (el) => {
+        if (!el) return true;
+        const b = el.getBoundingClientRect();
+        if (!b.width || !b.height) return true;            // hidden → skip
+        const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+        return !hit || el === hit || el.contains(hit) || hit.contains(el);
+      };
+      assert('Theme toggle is not covered by an overlay', reachable(document.getElementById('themeBtn')));
+      assert('Tabs are not covered by an overlay',         reachable(document.querySelector('.tab-btn')));
+      assert('Wheel is not covered by an overlay',         reachable(document.getElementById('wheelInfoBtn')));
+    })();
+
     // ── Overlay manager (Audit §8.2 / V3.21) ──
     assert('OverlayManager exists', typeof OverlayManager === 'object' && typeof OverlayManager.opened === 'function');
     if (typeof OverlayManager === 'object' && typeof WheelDirectionGuide === 'object') {
