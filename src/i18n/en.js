@@ -14,6 +14,7 @@ const I18N_EN = {
   'common.major':      'major',
   'builder.title':     'Progression builder',
   'builder.subtitle':  'Tap a degree or bubble to add it to your progression.',
+  'builder.play':      '▶ Play',
   'builder.add':       'Add selected',
   'builder.duplicate': 'Duplicate',
   'builder.copy':      'Copy',

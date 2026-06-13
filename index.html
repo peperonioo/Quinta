@@ -516,6 +516,16 @@ body.light #wheelDirectionGuide .dir-arrow { fill:rgba(20,20,20,.22) }
 .builder-btn.primary       { background:var(--degree-tonic); border-color:rgba(232,68,26,.28); color:var(--accent2) }
 .builder-btn.danger:hover  { background:rgba(232,68,26,.16); color:var(--accent2) }
 .builder-btn.icon          { width:26px; height:26px; padding:0; border-radius:50%; display:grid; place-items:center; font-size:12px }
+.builder-btn.play          { background:var(--accent); border-color:transparent; color:#fff; font-weight:600 }
+.builder-btn.play:hover    { color:#fff; border-color:transparent; box-shadow:0 4px 14px rgba(232,68,26,.32) }
+/* Pill lit by the playback playhead */
+.builder-step.playing {
+  border-color:rgba(232,68,26,.8) !important;
+  box-shadow:0 0 0 1px rgba(232,68,26,.5), 0 6px 20px rgba(232,68,26,.32) !important;
+  transform:translateY(-2px) scale(1.03);
+  transition:transform .12s var(--ui-ease), box-shadow .12s var(--ui-ease);
+}
+.builder-step.playing .step-chord { color:var(--accent2) }
 
 /* Pills row */
 .builder-row {
@@ -1209,7 +1219,7 @@ body.light .gravity-pill.metric.high { color:#fff }
               <stop offset="100%" stop-color="rgba(0,0,0,.0)"/>
             </radialGradient>
           </defs>
-          <circle cx="300" cy="300" r="296" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+          <circle id="wheelBg" cx="300" cy="300" r="296" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
           <g id="wg"></g>
           <g id="ticks"></g>
           <!-- Ambient light sweep slowly circling the rim -->
@@ -1273,6 +1283,7 @@ body.light .gravity-pill.metric.high { color:#fff }
             <div class="builder-sub" data-i18n="builder.subtitle">Tap a degree or bubble to add it to your progression.</div>
           </div>
           <div class="builder-actions">
+            <button class="builder-btn play" id="playProgBtn" onclick="playProgression()" data-i18n="builder.play">▶ Play</button>
             <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
             <button class="builder-btn" onclick="BuilderEngine.duplicateLast()" data-i18n="builder.duplicate">Duplicate</button>
             <button class="builder-btn" onclick="BuilderEngine.copy()" data-i18n="builder.copy">Copy</button>
@@ -1440,6 +1451,7 @@ const I18N_EN = {
   'common.major':      'major',
   'builder.title':     'Progression builder',
   'builder.subtitle':  'Tap a degree or bubble to add it to your progression.',
+  'builder.play':      '▶ Play',
   'builder.add':       'Add selected',
   'builder.duplicate': 'Duplicate',
   'builder.copy':      'Copy',
@@ -1498,6 +1510,7 @@ const I18N_ES = {
   'common.major':      'mayor',
   'builder.title':     'Constructor de progresión',
   'builder.subtitle':  'Toca un grado o burbuja para añadirlo a tu progresión.',
+  'builder.play':      '▶ Reproducir',
   'builder.add':       'Añadir seleccionado',
   'builder.duplicate': 'Duplicar',
   'builder.copy':      'Copiar',
@@ -1768,6 +1781,124 @@ function se(tag, attrs) {
 function polar(r, deg) {
   const a = (deg - 90) * Math.PI / 180;
   return [300 + r * Math.cos(a), 300 + r * Math.sin(a)];
+}
+
+
+// == audio-engine.js ==
+// ── AUDIO ENGINE (V4.1) ───────────────────────────────
+// A small, pleasant Web Audio synth: tap a chord to hear it, play the
+// progression. Lazily creates the AudioContext on the first user gesture.
+
+const AudioEngine = {
+  ctx: null, master: null, wet: null, _playToken: 0,
+
+  _ensure() {
+    if (this.ctx) return true;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    try { this.ctx = new AC(); } catch (_) { return false; }
+    const ctx = this.ctx;
+    this.master = ctx.createGain();
+    this.master.gain.value = 0.32;
+    // A soft reverb tail for a calmer, more "instrument" feel.
+    const conv = ctx.createConvolver();
+    conv.buffer = this._impulse(1.7, 2.6);
+    this.wet = ctx.createGain(); this.wet.gain.value = 0.20;
+    this.master.connect(ctx.destination);
+    this.master.connect(conv); conv.connect(this.wet); this.wet.connect(ctx.destination);
+    return true;
+  },
+
+  _impulse(dur, decay) {
+    const rate = this.ctx.sampleRate, len = Math.floor(rate * dur);
+    const buf = this.ctx.createBuffer(2, len, rate);
+    for (let c = 0; c < 2; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return buf;
+  },
+
+  // Must run inside a user gesture (we call it from click handlers).
+  resume() {
+    if (!this._ensure()) return false;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    return true;
+  },
+
+  ready() { return !!this.ctx; },
+
+  _freq(pitch) { return 261.63 * Math.pow(2, pitch / 12); }, // pitch 0 = middle C
+
+  // One warm voice: two slightly-detuned oscillators through a lowpass + ADSR.
+  _voice(freq, t0, dur, gainScale = 1) {
+    const ctx = this.ctx;
+    const o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
+    o1.type = 'triangle'; o2.type = 'sine'; o2.detune.value = 5;
+    o1.frequency.value = freq; o2.frequency.value = freq;
+    const g = ctx.createGain();
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 2600; lp.Q.value = 0.6;
+    o1.connect(g); o2.connect(g); g.connect(lp); lp.connect(this.master);
+    const peak = 0.42 * gainScale, atk = 0.012, rel = 0.55;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + atk);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + rel);
+    o1.start(t0); o2.start(t0);
+    o1.stop(t0 + dur + rel + 0.05); o2.stop(t0 + dur + rel + 0.05);
+  },
+
+  // pitches: array of relative semitones (0 = middle C). Tiny strum for life.
+  playChord(pitches, dur = 0.95, when = 0) {
+    if (!this.resume() || !Array.isArray(pitches) || !pitches.length) return;
+    const t0 = this.ctx.currentTime + when;
+    pitches.forEach((p, i) => this._voice(this._freq(p), t0 + i * 0.014, dur, 0.9));
+  },
+
+  playNote(pitch, dur = 0.7) {
+    if (!this.resume()) return;
+    this._voice(this._freq(pitch), this.ctx.currentTime, dur, 1);
+  },
+
+  // Play a list of chords (arrays of pitches) in sequence.
+  playSequence(chordList, step = 0.62, dur = 0.7) {
+    if (!this.resume() || !Array.isArray(chordList) || !chordList.length) return;
+    const token = ++this._playToken;
+    chordList.forEach((pitches, i) => {
+      if (!pitches || !pitches.length) return;
+      this.playChord(pitches, dur, i * step);
+    });
+    return token;
+  },
+
+  stop() {
+    this._playToken++;
+    if (this.ctx) {
+      try { this.master.gain.setTargetAtTime(0.0001, this.ctx.currentTime, 0.02); } catch (_) {}
+      setTimeout(() => { try { this.master.gain.setTargetAtTime(0.32, this.ctx.currentTime, 0.05); } catch (_) {} }, 80);
+    }
+  },
+};
+
+// ── Chord → pitches helpers ───────────────────────────
+// Build a triad (relative to middle C) from a chord's root + quality.
+function triadIntervals(quality) {
+  return quality === 'Min' ? [0, 3, 7] : quality === 'Dim' ? [0, 3, 6] : [0, 4, 7];
+}
+
+// Pitches for the chord at degree `idx` of the current key/mode.
+function chordPitchesForDegree(idx) {
+  const c = (typeof gc === 'function') && gc()[idx];
+  if (!c) return [];
+  const root = ni(c.note);                       // 0–11
+  return triadIntervals(c.quality).map(iv => root + iv);
+}
+
+// Pitches for a built progression item ({ degreeIndex, quality, note }).
+function chordPitchesForItem(item) {
+  if (!item) return [];
+  const root = ni(item.note != null ? item.note : item.chord.replace(/m|°/g, ''));
+  return triadIntervals(item.quality).map(iv => root + iv);
 }
 
 
@@ -2592,7 +2723,7 @@ function renderWheel() {
   }
 
   // Theme-aware background circles
-  const bgCircle = document.querySelector('#wheelSvg > circle:first-of-type');
+  const bgCircle = document.getElementById('wheelBg');
   if (bgCircle) bgCircle.setAttribute('fill', isLight ? 'rgba(255,255,255,.26)' : 'rgba(0,0,0,.24)');
   const innerDisc = document.getElementById('centerDisc');
   if (innerDisc) innerDisc.setAttribute('fill', isLight ? 'rgba(248,245,240,.78)' : 'rgba(6,6,10,.72)');
@@ -2761,6 +2892,7 @@ function showDegreePopup(idx) {
   const wrap = document.getElementById('degWrap');
   if (!wrap) return;
   if (curDeg === idx) { AppActions.clearDegree(); return; }
+  if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(idx));
   OverlayManager.opened('degree-popup');
   curDeg = idx;
   fillPopup(idx);
@@ -3168,6 +3300,30 @@ const BuilderEngine = {
   },
 };
 
+// ── Progression playback (V4.1) ───────────────────────
+let _progPlayTimers = [];
+function playProgression() {
+  if (typeof AudioEngine !== 'object') return;
+  const h = Array.isArray(st.history) ? st.history : [];
+  _progPlayTimers.forEach(clearTimeout); _progPlayTimers = [];
+  document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
+
+  // Nothing built yet → just sound the currently selected chord.
+  if (!h.length) { AudioEngine.playChord(chordPitchesForDegree(curDeg >= 0 ? curDeg : 0)); return; }
+
+  const step = 0.62;
+  AudioEngine.playSequence(h.map(it => chordPitchesForItem(it)), step, 0.72);
+
+  const pills = [...document.querySelectorAll('#flowRow .builder-step')];
+  pills.forEach((p, i) => {
+    _progPlayTimers.push(setTimeout(() => {
+      pills.forEach(x => x.classList.remove('playing'));
+      p.classList.add('playing');
+      if (i === pills.length - 1) _progPlayTimers.push(setTimeout(() => p.classList.remove('playing'), step * 1000));
+    }, i * step * 1000));
+  });
+}
+
 
 // == suggestions-renderer.js ==
 // ── SUGGESTIONS RENDERER ──────────────────────────────
@@ -3275,6 +3431,7 @@ function addSuggestion(to, ev) {
   const bubble = ev?.currentTarget;
   const from   = bubble?.getBoundingClientRect();
   const chord  = bubble?.querySelector('.nb-chord')?.textContent || '';
+  if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(to));
   AppActions.selectDegree(to, { force: true });
   if (!from || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   requestAnimationFrame(() => {
@@ -4238,6 +4395,14 @@ function toggleTheme() {
       assert('Tabs are not covered by an overlay',         reachable(document.querySelector('.tab-btn')));
       assert('Wheel is not covered by an overlay',         reachable(document.getElementById('wheelInfoBtn')));
     })();
+
+    // ── Audio engine (V4.1) ──
+    assert('AudioEngine exists', typeof AudioEngine === 'object' && typeof AudioEngine.playChord === 'function');
+    withState({ key:'C', mode:'ionian', wheelView:'major' }, () => {
+      assert('C major triad pitches are C–E–G', safe(() => chordPitchesForDegree(0).join(',') === '0,4,7', false), safe(() => chordPitchesForDegree(0), []));
+      assert('ii is a minor triad (3rd = 3 semitones)', safe(() => { const p = chordPitchesForDegree(1); return p[1] - p[0] === 3; }, false));
+      assert('vii° is a diminished triad (5th = 6 semitones)', safe(() => { const p = chordPitchesForDegree(6); return p[2] - p[0] === 6; }, false));
+    });
 
     // ── Overlay manager (Audit §8.2 / V3.21) ──
     assert('OverlayManager exists', typeof OverlayManager === 'object' && typeof OverlayManager.opened === 'function');

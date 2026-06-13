@@ -109,6 +109,7 @@ function showDegreePopup(idx) {
   const wrap = document.getElementById('degWrap');
   if (!wrap) return;
   if (curDeg === idx) { AppActions.clearDegree(); return; }
+  if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(idx));
   OverlayManager.opened('degree-popup');
   curDeg = idx;
   fillPopup(idx);

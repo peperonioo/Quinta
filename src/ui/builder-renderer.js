@@ -192,3 +192,27 @@ const BuilderEngine = {
     }).catch(() => {});
   },
 };
+
+// ── Progression playback (V4.1) ───────────────────────
+let _progPlayTimers = [];
+function playProgression() {
+  if (typeof AudioEngine !== 'object') return;
+  const h = Array.isArray(st.history) ? st.history : [];
+  _progPlayTimers.forEach(clearTimeout); _progPlayTimers = [];
+  document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
+
+  // Nothing built yet → just sound the currently selected chord.
+  if (!h.length) { AudioEngine.playChord(chordPitchesForDegree(curDeg >= 0 ? curDeg : 0)); return; }
+
+  const step = 0.62;
+  AudioEngine.playSequence(h.map(it => chordPitchesForItem(it)), step, 0.72);
+
+  const pills = [...document.querySelectorAll('#flowRow .builder-step')];
+  pills.forEach((p, i) => {
+    _progPlayTimers.push(setTimeout(() => {
+      pills.forEach(x => x.classList.remove('playing'));
+      p.classList.add('playing');
+      if (i === pills.length - 1) _progPlayTimers.push(setTimeout(() => p.classList.remove('playing'), step * 1000));
+    }, i * step * 1000));
+  });
+}

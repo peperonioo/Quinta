@@ -43,6 +43,8 @@ const JS_FILES = [
   'src/core/state.js',
   // Pure helpers — uses state (at runtime only), constants
   'src/core/utils.js',
+  // Audio engine (Web Audio synth) — uses utils at runtime
+  'src/core/audio-engine.js',
   // Harmony logic — pure, uses state/utils at runtime
   'src/theory/harmony-engine.js',
   'src/theory/suggestion-engine.js',

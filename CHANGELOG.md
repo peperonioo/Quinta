@@ -1,5 +1,20 @@
 # Easy Fifth Circle — Changelog
 
+## V4.1 — Sound
+
+**Release date:** 2026-06-05
+
+- **Audio engine (Web Audio):** a small, warm synth (two detuned voices per
+  note, lowpass + ADSR, soft reverb). The AudioContext is created lazily on the
+  first tap, so it's gesture-safe.
+- **Tap to hear:** tapping a degree or a suggestion bubble now plays the chord.
+- **▶ Play:** plays the built progression in sequence with a moving playhead
+  lighting each pill; respects the chords' actual voicings.
+- Key-signature & relative-label fixes for minor/modal keys (V4.1 patch).
+- Hardening: H3 — wheel background + centre disc are addressed by id (no
+  positional SVG selectors); interaction-guard tests (H2); single version
+  source (H4). 52 tests total, all green.
+
 ## V4.0 — Motion & Life (batch 2)
 
 **Release date:** 2026-06-04

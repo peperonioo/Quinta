@@ -22,6 +22,16 @@
 .builder-btn.primary       { background:var(--degree-tonic); border-color:rgba(232,68,26,.28); color:var(--accent2) }
 .builder-btn.danger:hover  { background:rgba(232,68,26,.16); color:var(--accent2) }
 .builder-btn.icon          { width:26px; height:26px; padding:0; border-radius:50%; display:grid; place-items:center; font-size:12px }
+.builder-btn.play          { background:var(--accent); border-color:transparent; color:#fff; font-weight:600 }
+.builder-btn.play:hover    { color:#fff; border-color:transparent; box-shadow:0 4px 14px rgba(232,68,26,.32) }
+/* Pill lit by the playback playhead */
+.builder-step.playing {
+  border-color:rgba(232,68,26,.8) !important;
+  box-shadow:0 0 0 1px rgba(232,68,26,.5), 0 6px 20px rgba(232,68,26,.32) !important;
+  transform:translateY(-2px) scale(1.03);
+  transition:transform .12s var(--ui-ease), box-shadow .12s var(--ui-ease);
+}
+.builder-step.playing .step-chord { color:var(--accent2) }
 
 /* Pills row */
 .builder-row {

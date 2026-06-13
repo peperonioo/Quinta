@@ -103,6 +103,7 @@ function addSuggestion(to, ev) {
   const bubble = ev?.currentTarget;
   const from   = bubble?.getBoundingClientRect();
   const chord  = bubble?.querySelector('.nb-chord')?.textContent || '';
+  if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(to));
   AppActions.selectDegree(to, { force: true });
   if (!from || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   requestAnimationFrame(() => {

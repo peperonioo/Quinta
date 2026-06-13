@@ -14,6 +14,7 @@ const I18N_ES = {
   'common.major':      'mayor',
   'builder.title':     'Constructor de progresión',
   'builder.subtitle':  'Toca un grado o burbuja para añadirlo a tu progresión.',
+  'builder.play':      '▶ Reproducir',
   'builder.add':       'Añadir seleccionado',
   'builder.duplicate': 'Duplicar',
   'builder.copy':      'Copiar',

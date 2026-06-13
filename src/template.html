@@ -82,7 +82,7 @@
               <stop offset="100%" stop-color="rgba(0,0,0,.0)"/>
             </radialGradient>
           </defs>
-          <circle cx="300" cy="300" r="296" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+          <circle id="wheelBg" cx="300" cy="300" r="296" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
           <g id="wg"></g>
           <g id="ticks"></g>
           <!-- Ambient light sweep slowly circling the rim -->
@@ -146,6 +146,7 @@
             <div class="builder-sub" data-i18n="builder.subtitle">Tap a degree or bubble to add it to your progression.</div>
           </div>
           <div class="builder-actions">
+            <button class="builder-btn play" id="playProgBtn" onclick="playProgression()" data-i18n="builder.play">▶ Play</button>
             <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
             <button class="builder-btn" onclick="BuilderEngine.duplicateLast()" data-i18n="builder.duplicate">Duplicate</button>
             <button class="builder-btn" onclick="BuilderEngine.copy()" data-i18n="builder.copy">Copy</button>
