@@ -1771,6 +1771,19 @@ function anchorKey() {
   return stripMinorSuffix(st.key);
 }
 
+// The FIFTHS (major) key whose SECTOR the current selection occupies. In minor
+// view a minor key (e.g. Am) is shown on the sector of its relative major (C),
+// so the wheel must rotate/highlight by that sector — not by the minor root's
+// own major position, which sent the wheel to the wrong sector.
+function wheelKey() {
+  if (st.wheelView === 'minor') {
+    return MINOR_ROOT_TO_MAJOR[st.key]
+        || MINOR_ROOT_TO_MAJOR[stripMinorSuffix(st.key) + 'm']
+        || stripMinorSuffix(st.key);
+  }
+  return stripMinorSuffix(st.key);
+}
+
 function displayKeyLabel() {
   if (st.wheelView === 'minor') {
     const root = stripMinorSuffix(st.key);
@@ -2634,7 +2647,7 @@ function syncWheelLabels(rot) {
 }
 
 function renderWheel() {
-  const aKey = anchorKey();
+  const aKey = wheelKey();           // rotate/highlight by the SECTOR, not the minor letter
   const ai   = FIFTHS.indexOf(aKey);
   const tRot = -ai * 30;
   const grp  = document.getElementById('wg');
@@ -3743,8 +3756,8 @@ function applyWheelRotation(rot) {
 
 function updatePanelsAfterSpin() {
   const idx   = nearestFifthIndex(wRot);
-  const key   = FIFTHS[idx];
-  if (key !== anchorKey()) AppActions.setKey(key);
+  const key   = FIFTHS[idx];          // the major key of the sector now at top
+  if (key !== wheelKey()) AppActions.setKey(key);
   else { renderTheory(); renderSuggestions(); }
 }
 
@@ -4452,6 +4465,14 @@ function toggleTheme() {
       assert('Tabs are not covered by an overlay',         reachable(document.querySelector('.tab-btn')));
       assert('Wheel is not covered by an overlay',         reachable(document.getElementById('wheelInfoBtn')));
     })();
+
+    // Wheel anchor follows the clicked SECTOR in minor view (no jump)
+    withState({ key:'Dm', mode:'aeolian', wheelView:'minor' }, () => {
+      assert('Minor view: wheel anchors on the relative-major sector', wheelKey() === 'F', { st_key: st.key, wheelKey: wheelKey() });
+    });
+    withState({ key:'C', mode:'ionian', wheelView:'major' }, () => {
+      assert('Major view: wheel anchors on the key itself', wheelKey() === 'C');
+    });
 
     // ── Audio engine (V4.1) ──
     assert('AudioEngine exists', typeof AudioEngine === 'object' && typeof AudioEngine.playChord === 'function');

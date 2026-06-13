@@ -24,8 +24,8 @@ function applyWheelRotation(rot) {
 
 function updatePanelsAfterSpin() {
   const idx   = nearestFifthIndex(wRot);
-  const key   = FIFTHS[idx];
-  if (key !== anchorKey()) AppActions.setKey(key);
+  const key   = FIFTHS[idx];          // the major key of the sector now at top
+  if (key !== wheelKey()) AppActions.setKey(key);
   else { renderTheory(); renderSuggestions(); }
 }
 

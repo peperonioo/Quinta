@@ -248,6 +248,14 @@
       assert('Wheel is not covered by an overlay',         reachable(document.getElementById('wheelInfoBtn')));
     })();
 
+    // Wheel anchor follows the clicked SECTOR in minor view (no jump)
+    withState({ key:'Dm', mode:'aeolian', wheelView:'minor' }, () => {
+      assert('Minor view: wheel anchors on the relative-major sector', wheelKey() === 'F', { st_key: st.key, wheelKey: wheelKey() });
+    });
+    withState({ key:'C', mode:'ionian', wheelView:'major' }, () => {
+      assert('Major view: wheel anchors on the key itself', wheelKey() === 'C');
+    });
+
     // ── Audio engine (V4.1) ──
     assert('AudioEngine exists', typeof AudioEngine === 'object' && typeof AudioEngine.playChord === 'function');
     withState({ key:'C', mode:'ionian', wheelView:'major' }, () => {

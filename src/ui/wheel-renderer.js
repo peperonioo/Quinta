@@ -21,7 +21,7 @@ function syncWheelLabels(rot) {
 }
 
 function renderWheel() {
-  const aKey = anchorKey();
+  const aKey = wheelKey();           // rotate/highlight by the SECTOR, not the minor letter
   const ai   = FIFTHS.indexOf(aKey);
   const tRot = -ai * 30;
   const grp  = document.getElementById('wg');

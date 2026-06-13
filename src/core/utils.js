@@ -44,6 +44,19 @@ function anchorKey() {
   return stripMinorSuffix(st.key);
 }
 
+// The FIFTHS (major) key whose SECTOR the current selection occupies. In minor
+// view a minor key (e.g. Am) is shown on the sector of its relative major (C),
+// so the wheel must rotate/highlight by that sector — not by the minor root's
+// own major position, which sent the wheel to the wrong sector.
+function wheelKey() {
+  if (st.wheelView === 'minor') {
+    return MINOR_ROOT_TO_MAJOR[st.key]
+        || MINOR_ROOT_TO_MAJOR[stripMinorSuffix(st.key) + 'm']
+        || stripMinorSuffix(st.key);
+  }
+  return stripMinorSuffix(st.key);
+}
+
 function displayKeyLabel() {
   if (st.wheelView === 'minor') {
     const root = stripMinorSuffix(st.key);
