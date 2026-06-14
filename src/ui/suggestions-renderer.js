@@ -76,7 +76,7 @@ function _buildBubblesHTML() {
     return `<button class="next-bubble ${it.to === bestTo ? 'best' : ''}"
         style="--fit:${it.fit};--d:${d}px;--tier:${t}"
         onclick="addSuggestion(${it.to},event)"
-        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit">
+        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap for variants">
       <span class="nb-deg">${it.chord.degree}</span>
       <span class="nb-chord">${it.chord.chord}</span>
     </button>`;
@@ -96,13 +96,16 @@ function _buildBubblesHTML() {
   <div class="next-orbit">${bubbles}</div>`;
 }
 
-// ── Fly-to-pill (V4.0 batch 3) ────────────────────────
-// Clicking a suggestion adds it AND flies a ghost of the bubble into its new
-// pill in the builder, so the chord visibly travels into the progression.
+// ── Tap a suggestion → choose a variant (V4.4) ────────
+// Tapping a suggestion bubble opens the chord-variant chooser (Dynamic-Island
+// style). Picking a variant adds it to the progression and flies it into its
+// new pill. (The plain triad is the first chip for a one-extra-tap quick add.)
 function addSuggestion(to, ev) {
   const bubble = ev?.currentTarget;
-  const from   = bubble?.getBoundingClientRect();
-  const chord  = bubble?.querySelector('.nb-chord')?.textContent || '';
+  if (typeof ChordVariants === 'object') { ChordVariants.openForSuggestion(to, bubble); return; }
+  // Fallback (variants module missing): old direct quick-add.
+  const from  = bubble?.getBoundingClientRect();
+  const chord = bubble?.querySelector('.nb-chord')?.textContent || '';
   if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(to));
   AppActions.selectDegree(to, { force: true });
   if (!from || matchMedia('(prefers-reduced-motion: reduce)').matches) return;

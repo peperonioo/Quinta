@@ -62,6 +62,34 @@ const Metronome = {
     if (b) b.textContent = this.playing ? '■' : '▶';
   },
 
+  // ── Tap tempo ─────────────────────────────────────────
+  // Average the intervals over the last few taps for an accurate, stable BPM
+  // (using the rolling average means the number doesn't jump around on each tap).
+  _taps: [],
+  tap() {
+    const now = performance.now();
+    if (this._taps.length && now - this._taps[this._taps.length - 1] > 2000) this._taps = []; // new burst
+    this._taps.push(now);
+    if (this._taps.length > 5) this._taps.shift();   // keep last 5 taps → up to 4 intervals
+
+    const el = document.getElementById('metronome');
+    if (el) { el.classList.remove('beat'); void el.offsetWidth; el.classList.add('beat'); }
+    if (typeof AudioEngine === 'object') AudioEngine.tick(300, 0.08);
+
+    const hint = document.getElementById('metroTapHint');
+    if (this._taps.length < 4) { if (hint) hint.textContent = `keep tapping… ${this._taps.length}/4`; }
+    if (this._taps.length < 2) return;
+
+    const ivs = [];
+    for (let i = 1; i < this._taps.length; i++) ivs.push(this._taps[i] - this._taps[i - 1]);
+    const avg = ivs.reduce((a, b) => a + b, 0) / ivs.length;
+    const bpm = 60000 / avg;
+    if (bpm >= this.MIN - 6 && bpm <= this.MAX + 6) {
+      this.setBpm(bpm);
+      if (hint && this._taps.length >= 4) hint.textContent = 'tempo set · keep tapping';
+    }
+  },
+
   // ── Dial geometry (from-top, clockwise) ──────────────
   _pt(r, deg) {
     const a = deg * Math.PI / 180;

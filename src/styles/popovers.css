@@ -209,6 +209,78 @@ body.light .metro-pill, body.light .metro-panel { background:rgba(255,255,255,.9
 .metro-step  { width:42px; height:42px; border-radius:50%; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:inherit; font-size:22px; cursor:pointer; line-height:1 }
 body.light .metro-step { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04) }
 .metro-play  { width:56px; height:56px; border-radius:50%; border:0; background:var(--accent); color:#fff; font-size:20px; cursor:pointer; box-shadow:0 6px 18px rgba(232,68,26,.32) }
+/* Didactic note shown under the Mode card for advanced modes */
+.mode-note {
+  margin-top:9px; padding:8px 10px; border-radius:10px;
+  background:rgba(232,68,26,.1); border:1px solid rgba(232,68,26,.22);
+  font-size:10.5px; line-height:1.4; color:var(--muted);
+}
+.mode-note b { color:var(--accent2); font-style:normal }
+/* Wheel tonic marker — slow dash rotation to draw the eye */
+.tonic-marker { animation:tonicSpin 8s linear infinite }
+@keyframes tonicSpin { to { stroke-dashoffset:-28 } }
+@media (prefers-reduced-motion: reduce){ .tonic-marker{ animation:none } }
+
+.metro-tap {
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  width:100%; margin-top:12px; padding:9px 10px; cursor:pointer;
+  border:1px solid rgba(255,255,255,.14); border-radius:14px;
+  background:rgba(255,255,255,.05); color:inherit;
+  transition:transform .08s var(--ui-ease), background .12s;
+}
+body.light .metro-tap { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04) }
+.metro-tap:active { transform:scale(.97); background:rgba(232,68,26,.18) }
+.metro-tap-label { font-family:'DM Mono',monospace; font-size:12px; letter-spacing:.22em; font-weight:600 }
+.metro-tap-hint  { font-size:8.5px; opacity:.5; letter-spacing:.06em }
 #metronome.beat .metro-led, #metronome.beat .metro-play { animation:metroBeat .13s ease }
 @keyframes metroBeat { 0%{transform:scale(1)} 45%{transform:scale(1.16)} 100%{transform:scale(1)} }
 @media (prefers-reduced-motion: reduce) { #metronome.beat .metro-led, #metronome.beat .metro-play { animation:none } }
+
+/* ── Per-bar toolbar (portaled to <body>) ─────────────── */
+.bar-tools {
+  position:fixed; display:none; align-items:center; gap:3px;
+  z-index:var(--z-dropdown, 9000); padding:5px 6px; border-radius:999px;
+  background:var(--card); border:1px solid var(--card-bd);
+  box-shadow:0 10px 30px rgba(0,0,0,.34); backdrop-filter:blur(14px);
+  opacity:0; transform:translateY(4px) scale(.96);
+  transition:opacity .14s var(--ui-ease), transform .16s var(--ui-ease);
+}
+.bar-tools.show { opacity:1; transform:none }
+.bar-tools .step-tool {
+  width:26px; height:26px; border-radius:50%; border:0; cursor:pointer;
+  background:rgba(255,255,255,.08); color:var(--muted); font-size:13px;
+  line-height:1; display:grid; place-items:center;
+}
+body.light .bar-tools .step-tool { background:rgba(0,0,0,.06) }
+.bar-tools .step-tool:hover { background:rgba(232,68,26,.18); color:var(--accent2) }
+.bar-tools .step-tool.wide {
+  width:auto; padding:0 11px; border-radius:13px;
+  font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.04em;
+}
+.bar-tools .step-tool.danger:hover { background:rgba(232,68,26,.24); color:#fff }
+
+/* ── Chord-variant chooser — Dynamic-Island vertical expand ── */
+.chord-variants {
+  position:fixed; display:none; z-index:var(--z-modal, 9500);
+  width:min(300px, calc(100vw - 24px)); padding:13px 14px 12px; border-radius:22px;
+  background:rgba(14,14,18,.95); border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 30px 80px rgba(0,0,0,.5); backdrop-filter:blur(26px); color:#f0ede8;
+  opacity:0; transform:scaleY(.32) scaleX(.86); transform-origin:center;
+  transition:opacity .2s var(--ease), transform .34s cubic-bezier(.34,1.45,.4,1);
+}
+body.light .chord-variants { background:rgba(255,255,255,.96); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
+.chord-variants.open { opacity:1; transform:none }
+.cv-head { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:baseline; gap:8px }
+.cv-head b { font-size:13px; color:var(--accent2) }
+.cv-hint { margin-left:auto; font-size:8.5px; opacity:.5; text-transform:uppercase; letter-spacing:.1em }
+.cv-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:7px }
+.cv-chip {
+  padding:11px 4px; border-radius:12px; cursor:pointer; color:inherit;
+  border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05);
+  font-family:'DM Serif Display',Georgia,serif; font-size:15px; line-height:1;
+  transition:transform .12s var(--ui-ease), background .12s, border-color .12s;
+}
+body.light .cv-chip { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
+.cv-chip:hover  { transform:translateY(-2px); border-color:rgba(232,68,26,.5) }
+.cv-chip.active { background:var(--accent); border-color:transparent; color:#fff }
+@media (prefers-reduced-motion: reduce){ .chord-variants{ transition:opacity .15s } .chord-variants.open{ transform:none } }

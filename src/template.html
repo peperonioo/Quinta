@@ -63,6 +63,10 @@
         <button class="metro-play" id="metroPlay" onclick="Metronome.toggle()" aria-label="Start/stop">▶</button>
         <button class="metro-step" onclick="Metronome.setBpm((st.bpm||100)+1)" aria-label="Faster">+</button>
       </div>
+      <button class="metro-tap" id="metroTap" onclick="Metronome.tap()">
+        <span class="metro-tap-label">TAP</span>
+        <span class="metro-tap-hint" id="metroTapHint">tap 4× to set tempo</span>
+      </button>
     </div>
   </div>
 
@@ -92,6 +96,7 @@
             <div class="mode-menu" id="modeMenu"></div>
             <select id="modeSelect" aria-hidden="true" tabindex="-1"></select>
           </div>
+          <div class="mode-note" id="modeNote" hidden></div>
         </div>
         <div class="card">
           <div class="lbl" data-i18n="labels.accidentals">Accidentals</div>
@@ -184,7 +189,6 @@
           </div>
           <div class="builder-actions">
             <button class="builder-btn play" id="playProgBtn" onclick="toggleProgPlay()" data-i18n="builder.play">▶ Play</button>
-            <button class="builder-btn opt" id="seventhsBtn" onclick="togglePlayOpt('sevenths',this)" title="Play seventh chords">7ths</button>
             <button class="builder-btn opt" id="countInBtn" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play">⏱</button>
             <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
             <button class="builder-btn" onclick="BuilderEngine.duplicateLast()" data-i18n="builder.duplicate">Duplicate</button>

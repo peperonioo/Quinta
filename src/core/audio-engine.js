@@ -4,6 +4,7 @@
 
 const AudioEngine = {
   ctx: null, master: null, wet: null, _playToken: 0, _iosEl: null,
+  voiceBus: null, _active: null,
 
   _ensure() {
     if (this.ctx) return true;
@@ -41,6 +42,11 @@ const AudioEngine = {
     // click stays tight and mechanical instead of washy.
     this.dry = ctx.createGain(); this.dry.gain.value = 0.9;
     this.dry.connect(out);
+    // Voice bus — all musical chord/note voices route through here so playback
+    // can be hard-stopped (the old duck-and-restore let scheduled chords resume).
+    this.voiceBus = ctx.createGain(); this.voiceBus.gain.value = 1;
+    this.voiceBus.connect(this.master);
+    this._active = new Set();
     return true;
   },
 
@@ -64,17 +70,19 @@ const AudioEngine = {
 
   ready() { return !!this.ctx; },
 
-  // A short percussive blip — used as the wheel "tick" on each key crossing.
-  tick(freq = 1150, vol = 0.16) {
+  // A soft, low "tock" — the wheel ratchet on each key crossing. Triangle wave
+  // through a lowpass keeps it warm and woody instead of a sharp high beep.
+  tick(freq = 320, vol = 0.1) {
     if (!this.resume()) return;
     const ctx = this.ctx, t0 = ctx.currentTime;
-    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+    const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = freq;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = freq * 4; lp.Q.value = 0.5;
     const g = ctx.createGain();
-    o.connect(g); g.connect(this.master);
+    o.connect(lp); lp.connect(g); g.connect(this.dry || this.master);
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.002);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06);
-    o.start(t0); o.stop(t0 + 0.08);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.075);
+    o.start(t0); o.stop(t0 + 0.09);
   },
 
   // Classic analog-metronome click, schedulable at an exact time. Beat 1 is
@@ -139,7 +147,7 @@ const AudioEngine = {
     const tineIdx = ctx.createGain();  tine.connect(tineIdx); tineIdx.connect(carrier.frequency);
     const amp = ctx.createGain();
     const lp  = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3800; lp.Q.value = 0.4;
-    carrier.connect(amp); amp.connect(lp); lp.connect(this.master);
+    carrier.connect(amp); amp.connect(lp); lp.connect(this.voiceBus || this.master);
 
     const peak = 0.40 * gainScale;
     modIdx.gain.setValueAtTime(freq * 1.4, t0);
@@ -151,7 +159,26 @@ const AudioEngine = {
     amp.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + 0.7);    // bell-like release
 
     const end = t0 + dur + 0.75;
-    [carrier, mod, tine].forEach(o => { o.start(t0); o.stop(end); });
+    const oscs = [carrier, mod, tine];
+    oscs.forEach(o => { o.start(t0); o.stop(end); });
+    // Register so Stop can hard-cut every scheduled voice.
+    if (this._active) {
+      const entry = { oscs, amp };
+      this._active.add(entry);
+      carrier.onended = () => { if (this._active) this._active.delete(entry); };
+    }
+  },
+
+  // Immediately silence and stop every musical voice (used by progression Stop).
+  killVoices() {
+    this._playToken++;
+    if (!this.ctx || !this._active) return;
+    const now = this.ctx.currentTime;
+    this._active.forEach(e => {
+      try { e.amp.gain.cancelScheduledValues(now); e.amp.gain.setTargetAtTime(0.0001, now, 0.012); } catch (_) {}
+      try { e.oscs.forEach(o => o.stop(now + 0.05)); } catch (_) {}
+    });
+    this._active.clear();
   },
 
   // pitches: array of relative semitones (0 = middle C). Tiny strum for life.
@@ -251,9 +278,13 @@ function chordPitchesForDegree(idx) {
   return chordIntervalsFor(c.quality, c.degree).map(iv => root + iv);
 }
 
-// Pitches for a built progression item ({ degreeIndex, quality, note, degree }).
+// Pitches for a built progression item ({ degreeIndex, quality, note, degree,
+// variant }). A per-chord variant ('7','maj7','sus4'…) overrides the default.
 function chordPitchesForItem(item) {
   if (!item) return [];
   const root = ni(item.note != null ? item.note : item.chord.replace(/m|°/g, ''));
-  return chordIntervalsFor(item.quality, item.degree).map(iv => root + iv);
+  const iv = (item.variant && item.variant !== 'triad' && typeof variantDef === 'function')
+    ? variantDef(item.quality, item.variant).iv
+    : chordIntervalsFor(item.quality, item.degree);
+  return iv.map(x => root + x);
 }

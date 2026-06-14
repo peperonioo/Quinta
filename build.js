@@ -63,6 +63,7 @@ const JS_FILES = [
   'src/ui/theory-renderer.js',
   'src/ui/builder-renderer.js',
   'src/ui/suggestions-renderer.js',
+  'src/ui/chord-variants.js',
   'src/ui/instruments-renderer.js',
   'src/ui/metronome.js',
   'src/ui/tabs.js',

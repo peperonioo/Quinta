@@ -24,9 +24,10 @@ function friendlyStoryFor(item, slot, i, h) {
 function progressionNarrative() {
   const h = Array.isArray(st.history) ? st.history : [];
   if (!h.length) return t('builder.empty');
-  const unique = new Set(h.map(x => `${x.key}|${x.mode}|${x.degreeIndex}`));
-  if (h.length > 2 && unique.size === 1) return `Loop / Pedal — ${h[0].chord} × ${h.length}`;
-  return h.map(x => x.chord).join(' → ');
+  const lbl = x => (typeof chordDisplay === 'function') ? chordDisplay(x) : x.chord;
+  const unique = new Set(h.map(x => `${x.key}|${x.mode}|${x.degreeIndex}|${x.variant || ''}`));
+  if (h.length > 2 && unique.size === 1) return `Loop / Pedal — ${lbl(h[0])} × ${h.length}`;
+  return h.map(lbl).join(' → ');
 }
 
 const HistoryEngine = {
@@ -43,6 +44,7 @@ const HistoryEngine = {
       key:         st.key,
       mode:        st.mode,
       beats:       2,        // duration in beats — resizable on the timeline
+      variant:     opts.variant || null,   // chord extension: '7','maj7','sus4'…
       uid:         Date.now() + '-' + Math.random().toString(36).slice(2),
       __justAdded: true,
     };
@@ -122,17 +124,13 @@ const HistoryEngine = {
       <div data-uid="${it.uid || i}" data-i="${i}" class="builder-step" style="--beats:${it.beats}"
         onclick="BuilderEngine.focusBar(${i})">
         <span class="step-num">${i + 1}</span>
-        <span class="step-chord">${it.chord}</span>
+        <span class="step-chord">${chordLabel(it)}</span>
         <span class="step-sub"><span class="step-degree">${it.degree}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
-        <span class="step-tools">
-          <span class="step-tool" title="Move left"  onclick="event.stopPropagation();BuilderEngine.move(${i},-1)">‹</span>
-          <span class="step-tool" title="Hear"       onclick="event.stopPropagation();BuilderEngine.hear(${i})">♪</span>
-          <span class="step-tool" title="Duplicate"  onclick="event.stopPropagation();BuilderEngine.duplicate(${i})">+</span>
-          <span class="step-tool" title="Delete"     onclick="event.stopPropagation();HistoryEngine.remove(${i})">×</span>
-          <span class="step-tool" title="Move right" onclick="event.stopPropagation();BuilderEngine.move(${i},1)">›</span>
-        </span>
         <span class="step-resize" title="Drag to set duration" onpointerdown="DurationDrag.start(event,${i})"></span>
       </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead"></div>`;
+
+    // The per-bar toolbar is portaled to <body>, so re-rendering hides it.
+    BarToolbar.hide();
 
     // Animate only the last added bar
     const lastEl = root.querySelector('.builder-step:last-of-type');
@@ -141,6 +139,11 @@ const HistoryEngine = {
     BuilderEngine.meta();
   },
 };
+
+// The chord name shown on a bar, including its variant suffix (Cmaj7, G7, Dsus4…).
+function chordLabel(it) {
+  return (typeof chordDisplay === 'function') ? chordDisplay(it) : it.chord;
+}
 
 // "2♩", "1.5♩" — beats shown with a quarter-note glyph so the bar reads as a duration.
 function fmtBeats(b) { return (Number.isInteger(b) ? b : b.toFixed(1)) + '♩'; }
@@ -163,7 +166,7 @@ const DurationDrag = {
       item.beats = nb;
       bar.style.setProperty('--beats', nb);
       const lab = bar.querySelector('.step-len'); if (lab) lab.textContent = fmtBeats(nb);
-      if (nb !== lastBeats) { lastBeats = nb; if (typeof AudioEngine === 'object') AudioEngine.tick(820, 0.08); }
+      if (nb !== lastBeats) { lastBeats = nb; if (typeof AudioEngine === 'object') AudioEngine.tick(360, 0.07); }
     };
     const up = () => {
       bar.classList.remove('resizing');
@@ -191,16 +194,13 @@ const BuilderEngine = {
     AppActions.selectDegree(curDeg, { force: true });
   },
 
-  // Tap a bar → reveal its inline toolbar (works on touch where there's no
-  // hover). Tapping the same bar again hides it; tapping another moves focus.
-  // We deliberately don't re-render here, so the revealed toolbar survives.
+  // Tap a bar → reveal its toolbar (portaled to <body> so it never clips behind
+  // the scrolling timeline). Tapping the same bar again hides it.
   focusBar(index) {
-    const bars = document.querySelectorAll('#flowRow .builder-step');
-    bars.forEach(b => {
-      const me = +b.dataset.i === index;
-      b.classList.toggle('show-tools', me && !b.classList.contains('show-tools'));
-      if (!me) b.classList.remove('show-tools');
-    });
+    const bar = document.querySelector(`#flowRow .builder-step[data-i="${index}"]`);
+    if (!bar) return;
+    if (BarToolbar.index === index && BarToolbar.visible) { BarToolbar.hide(); return; }
+    BarToolbar.show(index, bar);
   },
 
   // Hear a single bar's chord and select it on the wheel.
@@ -248,6 +248,63 @@ const BuilderEngine = {
   },
 };
 
+// ── Per-bar toolbar (portaled to <body>) ──────────────
+// Move / hear / variants / duplicate / delete for one timeline bar. Lives on
+// <body> so the timeline's overflow can't clip it; flips above or below the bar
+// depending on available room.
+const BarToolbar = {
+  el: null, index: -1, visible: false,
+  _ensure() {
+    if (this.el) return this.el;
+    const d = document.createElement('div');
+    d.className = 'bar-tools';
+    document.body.appendChild(d);
+    this.el = d;
+    return d;
+  },
+  show(index, barEl) {
+    const el = this._ensure();
+    this.index = index;
+    el.innerHTML = `
+      <button class="step-tool" title="Move left"  onclick="BuilderEngine.move(${index},-1)">‹</button>
+      <button class="step-tool" title="Hear"       onclick="BuilderEngine.hear(${index})">♪</button>
+      <button class="step-tool wide" title="Chord variants" onclick="ChordVariants.openForBar(${index})">7 · sus · add</button>
+      <button class="step-tool" title="Duplicate"  onclick="BuilderEngine.duplicate(${index})">+</button>
+      <button class="step-tool danger" title="Delete" onclick="HistoryEngine.remove(${index})">×</button>
+      <button class="step-tool" title="Move right" onclick="BuilderEngine.move(${index},1)">›</button>`;
+    el.style.display = 'flex';
+    el.classList.add('show');
+    this.visible = true;
+    this._place(barEl);
+  },
+  _place(barEl) {
+    const el = this.el; if (!el || !barEl) return;
+    const r = barEl.getBoundingClientRect();
+    const tw = el.offsetWidth, th = el.offsetHeight;
+    let left = r.left + r.width / 2 - tw / 2;
+    left = Math.max(8, Math.min(left, innerWidth - tw - 8));
+    let top = r.top - th - 8;
+    if (top < 8) top = r.bottom + 8;        // flip below when there's no room above
+    el.style.left = left + 'px';
+    el.style.top  = top + 'px';
+  },
+  hide() {
+    if (!this.el) return;
+    this.el.classList.remove('show');
+    this.el.style.display = 'none';
+    this.visible = false;
+    this.index = -1;
+  },
+};
+
+// Dismiss the bar toolbar on outside tap or scroll.
+document.addEventListener('click', e => {
+  if (!BarToolbar.visible) return;
+  if (e.target.closest('.bar-tools') || e.target.closest('.builder-step')) return;
+  BarToolbar.hide();
+}, true);
+window.addEventListener('scroll', () => { if (BarToolbar.visible) BarToolbar.hide(); }, true);
+
 // ── Progression playback (V4.2) ───────────────────────
 // DAW-style: each chord rings for its own duration, a playhead sweeps the
 // timeline in tempo, and the bar under the playhead lights up.
@@ -259,7 +316,7 @@ function setProgBtn(playing) {
 }
 function stopProgression() {
   cancelAnimationFrame(_progRAF); _progRAF = 0;
-  if (typeof AudioEngine === 'object') AudioEngine.stop();
+  if (typeof AudioEngine === 'object') AudioEngine.killVoices();   // hard-stop scheduled chords
   document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
   const ph = document.getElementById('builderPlayhead'); if (ph) ph.classList.remove('on');
   setProgBtn(false);
@@ -281,8 +338,7 @@ function togglePlayOpt(key, el) {
 
 // Reflect persisted option state on the toggle buttons at boot.
 function initPlayOpts() {
-  const s = document.getElementById('seventhsBtn'); if (s) s.classList.toggle('active', !!st.sevenths);
-  const c = document.getElementById('countInBtn');  if (c) c.classList.toggle('active', !!st.countIn);
+  const c = document.getElementById('countInBtn'); if (c) c.classList.toggle('active', !!st.countIn);
 }
 
 function playProgression() {

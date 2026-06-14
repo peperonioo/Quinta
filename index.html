@@ -1100,9 +1100,81 @@ body.light .metro-pill, body.light .metro-panel { background:rgba(255,255,255,.9
 .metro-step  { width:42px; height:42px; border-radius:50%; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:inherit; font-size:22px; cursor:pointer; line-height:1 }
 body.light .metro-step { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04) }
 .metro-play  { width:56px; height:56px; border-radius:50%; border:0; background:var(--accent); color:#fff; font-size:20px; cursor:pointer; box-shadow:0 6px 18px rgba(232,68,26,.32) }
+/* Didactic note shown under the Mode card for advanced modes */
+.mode-note {
+  margin-top:9px; padding:8px 10px; border-radius:10px;
+  background:rgba(232,68,26,.1); border:1px solid rgba(232,68,26,.22);
+  font-size:10.5px; line-height:1.4; color:var(--muted);
+}
+.mode-note b { color:var(--accent2); font-style:normal }
+/* Wheel tonic marker — slow dash rotation to draw the eye */
+.tonic-marker { animation:tonicSpin 8s linear infinite }
+@keyframes tonicSpin { to { stroke-dashoffset:-28 } }
+@media (prefers-reduced-motion: reduce){ .tonic-marker{ animation:none } }
+
+.metro-tap {
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  width:100%; margin-top:12px; padding:9px 10px; cursor:pointer;
+  border:1px solid rgba(255,255,255,.14); border-radius:14px;
+  background:rgba(255,255,255,.05); color:inherit;
+  transition:transform .08s var(--ui-ease), background .12s;
+}
+body.light .metro-tap { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04) }
+.metro-tap:active { transform:scale(.97); background:rgba(232,68,26,.18) }
+.metro-tap-label { font-family:'DM Mono',monospace; font-size:12px; letter-spacing:.22em; font-weight:600 }
+.metro-tap-hint  { font-size:8.5px; opacity:.5; letter-spacing:.06em }
 #metronome.beat .metro-led, #metronome.beat .metro-play { animation:metroBeat .13s ease }
 @keyframes metroBeat { 0%{transform:scale(1)} 45%{transform:scale(1.16)} 100%{transform:scale(1)} }
 @media (prefers-reduced-motion: reduce) { #metronome.beat .metro-led, #metronome.beat .metro-play { animation:none } }
+
+/* ── Per-bar toolbar (portaled to <body>) ─────────────── */
+.bar-tools {
+  position:fixed; display:none; align-items:center; gap:3px;
+  z-index:var(--z-dropdown, 9000); padding:5px 6px; border-radius:999px;
+  background:var(--card); border:1px solid var(--card-bd);
+  box-shadow:0 10px 30px rgba(0,0,0,.34); backdrop-filter:blur(14px);
+  opacity:0; transform:translateY(4px) scale(.96);
+  transition:opacity .14s var(--ui-ease), transform .16s var(--ui-ease);
+}
+.bar-tools.show { opacity:1; transform:none }
+.bar-tools .step-tool {
+  width:26px; height:26px; border-radius:50%; border:0; cursor:pointer;
+  background:rgba(255,255,255,.08); color:var(--muted); font-size:13px;
+  line-height:1; display:grid; place-items:center;
+}
+body.light .bar-tools .step-tool { background:rgba(0,0,0,.06) }
+.bar-tools .step-tool:hover { background:rgba(232,68,26,.18); color:var(--accent2) }
+.bar-tools .step-tool.wide {
+  width:auto; padding:0 11px; border-radius:13px;
+  font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.04em;
+}
+.bar-tools .step-tool.danger:hover { background:rgba(232,68,26,.24); color:#fff }
+
+/* ── Chord-variant chooser — Dynamic-Island vertical expand ── */
+.chord-variants {
+  position:fixed; display:none; z-index:var(--z-modal, 9500);
+  width:min(300px, calc(100vw - 24px)); padding:13px 14px 12px; border-radius:22px;
+  background:rgba(14,14,18,.95); border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 30px 80px rgba(0,0,0,.5); backdrop-filter:blur(26px); color:#f0ede8;
+  opacity:0; transform:scaleY(.32) scaleX(.86); transform-origin:center;
+  transition:opacity .2s var(--ease), transform .34s cubic-bezier(.34,1.45,.4,1);
+}
+body.light .chord-variants { background:rgba(255,255,255,.96); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
+.chord-variants.open { opacity:1; transform:none }
+.cv-head { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:baseline; gap:8px }
+.cv-head b { font-size:13px; color:var(--accent2) }
+.cv-hint { margin-left:auto; font-size:8.5px; opacity:.5; text-transform:uppercase; letter-spacing:.1em }
+.cv-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:7px }
+.cv-chip {
+  padding:11px 4px; border-radius:12px; cursor:pointer; color:inherit;
+  border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05);
+  font-family:'DM Serif Display',Georgia,serif; font-size:15px; line-height:1;
+  transition:transform .12s var(--ui-ease), background .12s, border-color .12s;
+}
+body.light .cv-chip { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
+.cv-chip:hover  { transform:translateY(-2px); border-color:rgba(232,68,26,.5) }
+.cv-chip.active { background:var(--accent); border-color:transparent; color:#fff }
+@media (prefers-reduced-motion: reduce){ .chord-variants{ transition:opacity .15s } .chord-variants.open{ transform:none } }
 
 /* == instruments.css == */
 /* ── INSTRUMENTS ─────────────────────────────────────*/
@@ -1363,6 +1435,10 @@ body.light .metro-step { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04
         <button class="metro-play" id="metroPlay" onclick="Metronome.toggle()" aria-label="Start/stop">▶</button>
         <button class="metro-step" onclick="Metronome.setBpm((st.bpm||100)+1)" aria-label="Faster">+</button>
       </div>
+      <button class="metro-tap" id="metroTap" onclick="Metronome.tap()">
+        <span class="metro-tap-label">TAP</span>
+        <span class="metro-tap-hint" id="metroTapHint">tap 4× to set tempo</span>
+      </button>
     </div>
   </div>
 
@@ -1392,6 +1468,7 @@ body.light .metro-step { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04
             <div class="mode-menu" id="modeMenu"></div>
             <select id="modeSelect" aria-hidden="true" tabindex="-1"></select>
           </div>
+          <div class="mode-note" id="modeNote" hidden></div>
         </div>
         <div class="card">
           <div class="lbl" data-i18n="labels.accidentals">Accidentals</div>
@@ -1484,7 +1561,6 @@ body.light .metro-step { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04
           </div>
           <div class="builder-actions">
             <button class="builder-btn play" id="playProgBtn" onclick="toggleProgPlay()" data-i18n="builder.play">▶ Play</button>
-            <button class="builder-btn opt" id="seventhsBtn" onclick="togglePlayOpt('sevenths',this)" title="Play seventh chords">7ths</button>
             <button class="builder-btn opt" id="countInBtn" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play">⏱</button>
             <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
             <button class="builder-btn" onclick="BuilderEngine.duplicateLast()" data-i18n="builder.duplicate">Duplicate</button>
@@ -1580,7 +1656,7 @@ body.light .metro-step { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V4.3';
+const APP_VERSION = 'V4.4';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -1671,6 +1747,7 @@ const I18N_EN = {
   'builder.subtitle':  'Tap a degree or bubble to add it to your progression.',
   'builder.play':      '▶ Play',
   'metro.title':       'Metronome',
+  'mode.advanced':     'Advanced mode — the tonic moves to a degree of this key signature. The <b>◎</b> on the wheel marks where your home note lands.',
   'builder.add':       'Add selected',
   'builder.duplicate': 'Duplicate',
   'builder.copy':      'Copy',
@@ -1733,6 +1810,7 @@ const I18N_ES = {
   'builder.subtitle':  'Toca un grado o burbuja para añadirlo a tu progresión.',
   'builder.play':      '▶ Reproducir',
   'metro.title':       'Metrónomo',
+  'mode.advanced':     'Modo avanzado — la tónica se mueve a un grado de esta armadura. El <b>◎</b> en la rueda marca dónde queda tu nota «casa».',
   'builder.add':       'Añadir seleccionado',
   'builder.duplicate': 'Duplicar',
   'builder.copy':      'Copiar',
@@ -2046,6 +2124,7 @@ function polar(r, deg) {
 
 const AudioEngine = {
   ctx: null, master: null, wet: null, _playToken: 0, _iosEl: null,
+  voiceBus: null, _active: null,
 
   _ensure() {
     if (this.ctx) return true;
@@ -2083,6 +2162,11 @@ const AudioEngine = {
     // click stays tight and mechanical instead of washy.
     this.dry = ctx.createGain(); this.dry.gain.value = 0.9;
     this.dry.connect(out);
+    // Voice bus — all musical chord/note voices route through here so playback
+    // can be hard-stopped (the old duck-and-restore let scheduled chords resume).
+    this.voiceBus = ctx.createGain(); this.voiceBus.gain.value = 1;
+    this.voiceBus.connect(this.master);
+    this._active = new Set();
     return true;
   },
 
@@ -2106,17 +2190,19 @@ const AudioEngine = {
 
   ready() { return !!this.ctx; },
 
-  // A short percussive blip — used as the wheel "tick" on each key crossing.
-  tick(freq = 1150, vol = 0.16) {
+  // A soft, low "tock" — the wheel ratchet on each key crossing. Triangle wave
+  // through a lowpass keeps it warm and woody instead of a sharp high beep.
+  tick(freq = 320, vol = 0.1) {
     if (!this.resume()) return;
     const ctx = this.ctx, t0 = ctx.currentTime;
-    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+    const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = freq;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = freq * 4; lp.Q.value = 0.5;
     const g = ctx.createGain();
-    o.connect(g); g.connect(this.master);
+    o.connect(lp); lp.connect(g); g.connect(this.dry || this.master);
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.002);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06);
-    o.start(t0); o.stop(t0 + 0.08);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.075);
+    o.start(t0); o.stop(t0 + 0.09);
   },
 
   // Classic analog-metronome click, schedulable at an exact time. Beat 1 is
@@ -2181,7 +2267,7 @@ const AudioEngine = {
     const tineIdx = ctx.createGain();  tine.connect(tineIdx); tineIdx.connect(carrier.frequency);
     const amp = ctx.createGain();
     const lp  = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3800; lp.Q.value = 0.4;
-    carrier.connect(amp); amp.connect(lp); lp.connect(this.master);
+    carrier.connect(amp); amp.connect(lp); lp.connect(this.voiceBus || this.master);
 
     const peak = 0.40 * gainScale;
     modIdx.gain.setValueAtTime(freq * 1.4, t0);
@@ -2193,7 +2279,26 @@ const AudioEngine = {
     amp.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + 0.7);    // bell-like release
 
     const end = t0 + dur + 0.75;
-    [carrier, mod, tine].forEach(o => { o.start(t0); o.stop(end); });
+    const oscs = [carrier, mod, tine];
+    oscs.forEach(o => { o.start(t0); o.stop(end); });
+    // Register so Stop can hard-cut every scheduled voice.
+    if (this._active) {
+      const entry = { oscs, amp };
+      this._active.add(entry);
+      carrier.onended = () => { if (this._active) this._active.delete(entry); };
+    }
+  },
+
+  // Immediately silence and stop every musical voice (used by progression Stop).
+  killVoices() {
+    this._playToken++;
+    if (!this.ctx || !this._active) return;
+    const now = this.ctx.currentTime;
+    this._active.forEach(e => {
+      try { e.amp.gain.cancelScheduledValues(now); e.amp.gain.setTargetAtTime(0.0001, now, 0.012); } catch (_) {}
+      try { e.oscs.forEach(o => o.stop(now + 0.05)); } catch (_) {}
+    });
+    this._active.clear();
   },
 
   // pitches: array of relative semitones (0 = middle C). Tiny strum for life.
@@ -2293,11 +2398,15 @@ function chordPitchesForDegree(idx) {
   return chordIntervalsFor(c.quality, c.degree).map(iv => root + iv);
 }
 
-// Pitches for a built progression item ({ degreeIndex, quality, note, degree }).
+// Pitches for a built progression item ({ degreeIndex, quality, note, degree,
+// variant }). A per-chord variant ('7','maj7','sus4'…) overrides the default.
 function chordPitchesForItem(item) {
   if (!item) return [];
   const root = ni(item.note != null ? item.note : item.chord.replace(/m|°/g, ''));
-  return chordIntervalsFor(item.quality, item.degree).map(iv => root + iv);
+  const iv = (item.variant && item.variant !== 'triad' && typeof variantDef === 'function')
+    ? variantDef(item.quality, item.variant).iv
+    : chordIntervalsFor(item.quality, item.degree);
+  return iv.map(x => root + x);
 }
 
 
@@ -3280,6 +3389,22 @@ function renderWheel() {
     grp.appendChild(ig);
   });
 
+  // Tonic marker — for advanced modes the home note isn't the sector root, so
+  // ring the actual tonic's position on the wheel to show where "home" landed.
+  // In minor/modal view the labels swap, so the tonic's name sits on the INNER
+  // ring (r≈172); in major view it's on the OUTER ring (r≈242).
+  if (st.mode !== 'ionian' && st.mode !== 'aeolian') {
+    const tIdx = ((fifthsIndexOf(st.key) % 12) + 12) % 12;
+    const mr = st.wheelView === 'minor' ? 172 : 242;
+    const [mx, my] = polar(mr, tIdx * 30);
+    const ring = se('circle', {
+      cx: mx, cy: my, r: st.wheelView === 'minor' ? 19 : 23, fill: 'none',
+      stroke: isLight ? 'rgba(232,68,26,.95)' : 'rgba(255,155,95,.98)',
+      'stroke-width': '2.4', 'stroke-dasharray': '3 4', class: 'tonic-marker',
+    });
+    grp.appendChild(ring);
+  }
+
   // Animate rotation
   syncWheelLabels(wRot);
   if (wAnim) cancelAnimationFrame(wAnim);
@@ -3701,6 +3826,15 @@ function renderTheory() {
 
   // Re-render mode menu label
   renderModeMenu();
+
+  // Didactic note for advanced modes (anything other than plain Major/Minor):
+  // explain that the tonic moves inside the key signature, marked on the wheel.
+  const noteEl = document.getElementById('modeNote');
+  if (noteEl) {
+    const advanced = st.mode !== 'ionian' && st.mode !== 'aeolian';
+    noteEl.hidden = !advanced;
+    if (advanced) noteEl.innerHTML = t('mode.advanced');
+  }
 }
 
 function setWheelView(view) { AppActions.setWheelView(view); }
@@ -3733,9 +3867,10 @@ function friendlyStoryFor(item, slot, i, h) {
 function progressionNarrative() {
   const h = Array.isArray(st.history) ? st.history : [];
   if (!h.length) return t('builder.empty');
-  const unique = new Set(h.map(x => `${x.key}|${x.mode}|${x.degreeIndex}`));
-  if (h.length > 2 && unique.size === 1) return `Loop / Pedal — ${h[0].chord} × ${h.length}`;
-  return h.map(x => x.chord).join(' → ');
+  const lbl = x => (typeof chordDisplay === 'function') ? chordDisplay(x) : x.chord;
+  const unique = new Set(h.map(x => `${x.key}|${x.mode}|${x.degreeIndex}|${x.variant || ''}`));
+  if (h.length > 2 && unique.size === 1) return `Loop / Pedal — ${lbl(h[0])} × ${h.length}`;
+  return h.map(lbl).join(' → ');
 }
 
 const HistoryEngine = {
@@ -3752,6 +3887,7 @@ const HistoryEngine = {
       key:         st.key,
       mode:        st.mode,
       beats:       2,        // duration in beats — resizable on the timeline
+      variant:     opts.variant || null,   // chord extension: '7','maj7','sus4'…
       uid:         Date.now() + '-' + Math.random().toString(36).slice(2),
       __justAdded: true,
     };
@@ -3831,17 +3967,13 @@ const HistoryEngine = {
       <div data-uid="${it.uid || i}" data-i="${i}" class="builder-step" style="--beats:${it.beats}"
         onclick="BuilderEngine.focusBar(${i})">
         <span class="step-num">${i + 1}</span>
-        <span class="step-chord">${it.chord}</span>
+        <span class="step-chord">${chordLabel(it)}</span>
         <span class="step-sub"><span class="step-degree">${it.degree}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
-        <span class="step-tools">
-          <span class="step-tool" title="Move left"  onclick="event.stopPropagation();BuilderEngine.move(${i},-1)">‹</span>
-          <span class="step-tool" title="Hear"       onclick="event.stopPropagation();BuilderEngine.hear(${i})">♪</span>
-          <span class="step-tool" title="Duplicate"  onclick="event.stopPropagation();BuilderEngine.duplicate(${i})">+</span>
-          <span class="step-tool" title="Delete"     onclick="event.stopPropagation();HistoryEngine.remove(${i})">×</span>
-          <span class="step-tool" title="Move right" onclick="event.stopPropagation();BuilderEngine.move(${i},1)">›</span>
-        </span>
         <span class="step-resize" title="Drag to set duration" onpointerdown="DurationDrag.start(event,${i})"></span>
       </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead"></div>`;
+
+    // The per-bar toolbar is portaled to <body>, so re-rendering hides it.
+    BarToolbar.hide();
 
     // Animate only the last added bar
     const lastEl = root.querySelector('.builder-step:last-of-type');
@@ -3850,6 +3982,11 @@ const HistoryEngine = {
     BuilderEngine.meta();
   },
 };
+
+// The chord name shown on a bar, including its variant suffix (Cmaj7, G7, Dsus4…).
+function chordLabel(it) {
+  return (typeof chordDisplay === 'function') ? chordDisplay(it) : it.chord;
+}
 
 // "2♩", "1.5♩" — beats shown with a quarter-note glyph so the bar reads as a duration.
 function fmtBeats(b) { return (Number.isInteger(b) ? b : b.toFixed(1)) + '♩'; }
@@ -3872,7 +4009,7 @@ const DurationDrag = {
       item.beats = nb;
       bar.style.setProperty('--beats', nb);
       const lab = bar.querySelector('.step-len'); if (lab) lab.textContent = fmtBeats(nb);
-      if (nb !== lastBeats) { lastBeats = nb; if (typeof AudioEngine === 'object') AudioEngine.tick(820, 0.08); }
+      if (nb !== lastBeats) { lastBeats = nb; if (typeof AudioEngine === 'object') AudioEngine.tick(360, 0.07); }
     };
     const up = () => {
       bar.classList.remove('resizing');
@@ -3900,16 +4037,13 @@ const BuilderEngine = {
     AppActions.selectDegree(curDeg, { force: true });
   },
 
-  // Tap a bar → reveal its inline toolbar (works on touch where there's no
-  // hover). Tapping the same bar again hides it; tapping another moves focus.
-  // We deliberately don't re-render here, so the revealed toolbar survives.
+  // Tap a bar → reveal its toolbar (portaled to <body> so it never clips behind
+  // the scrolling timeline). Tapping the same bar again hides it.
   focusBar(index) {
-    const bars = document.querySelectorAll('#flowRow .builder-step');
-    bars.forEach(b => {
-      const me = +b.dataset.i === index;
-      b.classList.toggle('show-tools', me && !b.classList.contains('show-tools'));
-      if (!me) b.classList.remove('show-tools');
-    });
+    const bar = document.querySelector(`#flowRow .builder-step[data-i="${index}"]`);
+    if (!bar) return;
+    if (BarToolbar.index === index && BarToolbar.visible) { BarToolbar.hide(); return; }
+    BarToolbar.show(index, bar);
   },
 
   // Hear a single bar's chord and select it on the wheel.
@@ -3957,6 +4091,63 @@ const BuilderEngine = {
   },
 };
 
+// ── Per-bar toolbar (portaled to <body>) ──────────────
+// Move / hear / variants / duplicate / delete for one timeline bar. Lives on
+// <body> so the timeline's overflow can't clip it; flips above or below the bar
+// depending on available room.
+const BarToolbar = {
+  el: null, index: -1, visible: false,
+  _ensure() {
+    if (this.el) return this.el;
+    const d = document.createElement('div');
+    d.className = 'bar-tools';
+    document.body.appendChild(d);
+    this.el = d;
+    return d;
+  },
+  show(index, barEl) {
+    const el = this._ensure();
+    this.index = index;
+    el.innerHTML = `
+      <button class="step-tool" title="Move left"  onclick="BuilderEngine.move(${index},-1)">‹</button>
+      <button class="step-tool" title="Hear"       onclick="BuilderEngine.hear(${index})">♪</button>
+      <button class="step-tool wide" title="Chord variants" onclick="ChordVariants.openForBar(${index})">7 · sus · add</button>
+      <button class="step-tool" title="Duplicate"  onclick="BuilderEngine.duplicate(${index})">+</button>
+      <button class="step-tool danger" title="Delete" onclick="HistoryEngine.remove(${index})">×</button>
+      <button class="step-tool" title="Move right" onclick="BuilderEngine.move(${index},1)">›</button>`;
+    el.style.display = 'flex';
+    el.classList.add('show');
+    this.visible = true;
+    this._place(barEl);
+  },
+  _place(barEl) {
+    const el = this.el; if (!el || !barEl) return;
+    const r = barEl.getBoundingClientRect();
+    const tw = el.offsetWidth, th = el.offsetHeight;
+    let left = r.left + r.width / 2 - tw / 2;
+    left = Math.max(8, Math.min(left, innerWidth - tw - 8));
+    let top = r.top - th - 8;
+    if (top < 8) top = r.bottom + 8;        // flip below when there's no room above
+    el.style.left = left + 'px';
+    el.style.top  = top + 'px';
+  },
+  hide() {
+    if (!this.el) return;
+    this.el.classList.remove('show');
+    this.el.style.display = 'none';
+    this.visible = false;
+    this.index = -1;
+  },
+};
+
+// Dismiss the bar toolbar on outside tap or scroll.
+document.addEventListener('click', e => {
+  if (!BarToolbar.visible) return;
+  if (e.target.closest('.bar-tools') || e.target.closest('.builder-step')) return;
+  BarToolbar.hide();
+}, true);
+window.addEventListener('scroll', () => { if (BarToolbar.visible) BarToolbar.hide(); }, true);
+
 // ── Progression playback (V4.2) ───────────────────────
 // DAW-style: each chord rings for its own duration, a playhead sweeps the
 // timeline in tempo, and the bar under the playhead lights up.
@@ -3968,7 +4159,7 @@ function setProgBtn(playing) {
 }
 function stopProgression() {
   cancelAnimationFrame(_progRAF); _progRAF = 0;
-  if (typeof AudioEngine === 'object') AudioEngine.stop();
+  if (typeof AudioEngine === 'object') AudioEngine.killVoices();   // hard-stop scheduled chords
   document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
   const ph = document.getElementById('builderPlayhead'); if (ph) ph.classList.remove('on');
   setProgBtn(false);
@@ -3990,8 +4181,7 @@ function togglePlayOpt(key, el) {
 
 // Reflect persisted option state on the toggle buttons at boot.
 function initPlayOpts() {
-  const s = document.getElementById('seventhsBtn'); if (s) s.classList.toggle('active', !!st.sevenths);
-  const c = document.getElementById('countInBtn');  if (c) c.classList.toggle('active', !!st.countIn);
+  const c = document.getElementById('countInBtn'); if (c) c.classList.toggle('active', !!st.countIn);
 }
 
 function playProgression() {
@@ -4113,7 +4303,7 @@ function _buildBubblesHTML() {
     return `<button class="next-bubble ${it.to === bestTo ? 'best' : ''}"
         style="--fit:${it.fit};--d:${d}px;--tier:${t}"
         onclick="addSuggestion(${it.to},event)"
-        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit">
+        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap for variants">
       <span class="nb-deg">${it.chord.degree}</span>
       <span class="nb-chord">${it.chord.chord}</span>
     </button>`;
@@ -4133,13 +4323,16 @@ function _buildBubblesHTML() {
   <div class="next-orbit">${bubbles}</div>`;
 }
 
-// ── Fly-to-pill (V4.0 batch 3) ────────────────────────
-// Clicking a suggestion adds it AND flies a ghost of the bubble into its new
-// pill in the builder, so the chord visibly travels into the progression.
+// ── Tap a suggestion → choose a variant (V4.4) ────────
+// Tapping a suggestion bubble opens the chord-variant chooser (Dynamic-Island
+// style). Picking a variant adds it to the progression and flies it into its
+// new pill. (The plain triad is the first chip for a one-extra-tap quick add.)
 function addSuggestion(to, ev) {
   const bubble = ev?.currentTarget;
-  const from   = bubble?.getBoundingClientRect();
-  const chord  = bubble?.querySelector('.nb-chord')?.textContent || '';
+  if (typeof ChordVariants === 'object') { ChordVariants.openForSuggestion(to, bubble); return; }
+  // Fallback (variants module missing): old direct quick-add.
+  const from  = bubble?.getBoundingClientRect();
+  const chord = bubble?.querySelector('.nb-chord')?.textContent || '';
   if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(to));
   AppActions.selectDegree(to, { force: true });
   if (!from || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -4186,6 +4379,151 @@ function applyProgression(indices) {
   const last = indices[indices.length - 1];
   if (Number.isInteger(last)) AppActions.selectDegree(last, { fromHistory: true });
 }
+
+
+// == chord-variants.js ==
+// ── CHORD VARIANTS (V4.4) ─────────────────────────────
+// Tap a suggested chord (or a timeline bar's "variants" button) to open a
+// Dynamic-Island-style chooser that expands up/down with the chord's variants
+// (7, maj7, sus, add9…). Replaces the global "7ths" toggle with per-chord choice.
+
+// Intervals (semitones from root) per base quality. `suf` is the name suffix.
+const CHORD_VARIANTS = {
+  Maj: [
+    { id:'triad', suf:'',       iv:[0,4,7] },
+    { id:'maj7',  suf:'maj7',   iv:[0,4,7,11] },
+    { id:'7',     suf:'7',      iv:[0,4,7,10] },
+    { id:'6',     suf:'6',      iv:[0,4,7,9] },
+    { id:'add9',  suf:'add9',   iv:[0,4,7,14] },
+    { id:'sus2',  suf:'sus2',   iv:[0,2,7] },
+    { id:'sus4',  suf:'sus4',   iv:[0,5,7] },
+    { id:'9',     suf:'9',      iv:[0,4,7,10,14] },
+  ],
+  Min: [
+    { id:'triad', suf:'m',      iv:[0,3,7] },
+    { id:'m7',    suf:'m7',     iv:[0,3,7,10] },
+    { id:'m9',    suf:'m9',     iv:[0,3,7,10,14] },
+    { id:'m6',    suf:'m6',     iv:[0,3,7,9] },
+    { id:'madd9', suf:'m(add9)',iv:[0,3,7,14] },
+    { id:'sus2',  suf:'sus2',   iv:[0,2,7] },
+    { id:'sus4',  suf:'sus4',   iv:[0,5,7] },
+  ],
+  Dim: [
+    { id:'triad', suf:'°',      iv:[0,3,6] },
+    { id:'m7b5',  suf:'m7♭5',   iv:[0,3,6,10] },
+    { id:'dim7',  suf:'°7',     iv:[0,3,6,9] },
+  ],
+};
+
+function variantsFor(quality) { return CHORD_VARIANTS[quality] || CHORD_VARIANTS.Maj; }
+function variantDef(quality, id) {
+  const list = variantsFor(quality);
+  return list.find(v => v.id === id) || list[0];
+}
+
+// Root note of a chord item (base chord string with the m/° suffix stripped).
+function chordRootOf(it) {
+  if (it && it.note != null) return it.note;
+  return String(it && it.chord || 'C').replace(/°/g, '').replace(/m$/, '');
+}
+
+// Display name including the chosen variant: Cmaj7, G7, Dsus4, B°7…
+function chordDisplay(it) {
+  if (!it) return '';
+  if (!it.variant || it.variant === 'triad') return it.chord;
+  const root = chordRootOf(it);
+  return root + (variantDef(it.quality, it.variant).suf || '');
+}
+
+const ChordVariants = {
+  el: null, ctx: null, _anchorRect: null, _outside: null,
+
+  _ensure() {
+    if (this.el) return this.el;
+    const d = document.createElement('div');
+    d.id = 'chordVariants';
+    d.className = 'chord-variants';
+    document.body.appendChild(d);
+    this.el = d;
+    return d;
+  },
+
+  openForSuggestion(degIdx, anchorEl) {
+    const c = gc()[degIdx]; if (!c) return;
+    this._open({ kind:'suggest', degIdx, quality:c.quality, root:c.note, baseChord:c.chord, degree:c.degree, current:'triad' }, anchorEl);
+  },
+
+  openForBar(barIdx) {
+    const it = (st.history || [])[barIdx]; if (!it) return;
+    const bar = document.querySelector(`#flowRow .builder-step[data-i="${barIdx}"]`);
+    this._open({ kind:'bar', barIdx, quality:it.quality, root:chordRootOf(it), baseChord:it.chord, degree:it.degree, current:it.variant || 'triad' }, bar);
+  },
+
+  _open(ctx, anchorEl) {
+    if (typeof BarToolbar === 'object') BarToolbar.hide();
+    this.ctx = ctx;
+    this._anchorRect = anchorEl ? anchorEl.getBoundingClientRect() : null;
+    const el = this._ensure();
+    const root = ctx.root;
+    el.innerHTML = `
+      <div class="cv-head"><b>${ctx.degree}</b> · ${ctx.baseChord}<span class="cv-hint">tap a variant</span></div>
+      <div class="cv-grid">
+        ${variantsFor(ctx.quality).map(v => `
+          <button class="cv-chip${ctx.current === v.id ? ' active' : ''}" onclick="ChordVariants.pick('${v.id}')">
+            ${root}${v.suf || ''}
+          </button>`).join('')}
+      </div>`;
+    el.style.display = 'block';
+    this._place();
+    requestAnimationFrame(() => el.classList.add('open'));
+    this._outside = e => { if (!e.target.closest('#chordVariants')) this.close(); };
+    setTimeout(() => document.addEventListener('click', this._outside, true), 0);
+  },
+
+  _place() {
+    const el = this.el, r = this._anchorRect; if (!el) return;
+    const pad = 10, w = el.offsetWidth, h = el.offsetHeight;
+    let left = r ? r.left + r.width / 2 - w / 2 : innerWidth / 2 - w / 2;
+    let top  = r ? r.top  + r.height / 2 - h / 2 : innerHeight / 2 - h / 2;   // centred → expands up & down
+    left = Math.max(pad, Math.min(left, innerWidth  - w - pad));
+    top  = Math.max(pad, Math.min(top,  innerHeight - h - pad));
+    el.style.left = left + 'px';
+    el.style.top  = top + 'px';
+  },
+
+  pick(id) {
+    const ctx = this.ctx; if (!ctx) return;
+    const rootPitch = ni(ctx.root);
+    if (typeof AudioEngine === 'object') AudioEngine.playChord(variantDef(ctx.quality, id).iv.map(x => rootPitch + x));
+
+    if (ctx.kind === 'suggest') {
+      HistoryEngine.addDegree(ctx.degIdx, { variant: id });
+      // Fly the picked chip into the new pill, like the old quick-add.
+      if (this._anchorRect && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const from = this._anchorRect;
+        requestAnimationFrame(() => {
+          const pill = document.querySelector('.builder-step:last-of-type');
+          const to = pill && pill.getBoundingClientRect();
+          if (to && typeof _flyGhost === 'function') _flyGhost(from, to, ctx.root + (variantDef(ctx.quality, id).suf || ''));
+        });
+      }
+    } else {
+      const it = (st.history || [])[ctx.barIdx];
+      if (it) { it.variant = id; HistoryEngine.render(); renderProgressionStory(); saveState(); }
+    }
+    this.close();
+  },
+
+  close() {
+    if (this.el) {
+      this.el.classList.remove('open');
+      const el = this.el;
+      setTimeout(() => { if (el && !el.classList.contains('open')) el.style.display = 'none'; }, 220);
+    }
+    if (this._outside) document.removeEventListener('click', this._outside, true);
+    this._outside = null; this.ctx = null;
+  },
+};
 
 
 // == instruments-renderer.js ==
@@ -4340,6 +4678,34 @@ const Metronome = {
   _playBtn() {
     const b = document.getElementById('metroPlay');
     if (b) b.textContent = this.playing ? '■' : '▶';
+  },
+
+  // ── Tap tempo ─────────────────────────────────────────
+  // Average the intervals over the last few taps for an accurate, stable BPM
+  // (using the rolling average means the number doesn't jump around on each tap).
+  _taps: [],
+  tap() {
+    const now = performance.now();
+    if (this._taps.length && now - this._taps[this._taps.length - 1] > 2000) this._taps = []; // new burst
+    this._taps.push(now);
+    if (this._taps.length > 5) this._taps.shift();   // keep last 5 taps → up to 4 intervals
+
+    const el = document.getElementById('metronome');
+    if (el) { el.classList.remove('beat'); void el.offsetWidth; el.classList.add('beat'); }
+    if (typeof AudioEngine === 'object') AudioEngine.tick(300, 0.08);
+
+    const hint = document.getElementById('metroTapHint');
+    if (this._taps.length < 4) { if (hint) hint.textContent = `keep tapping… ${this._taps.length}/4`; }
+    if (this._taps.length < 2) return;
+
+    const ivs = [];
+    for (let i = 1; i < this._taps.length; i++) ivs.push(this._taps[i] - this._taps[i - 1]);
+    const avg = ivs.reduce((a, b) => a + b, 0) / ivs.length;
+    const bpm = 60000 / avg;
+    if (bpm >= this.MIN - 6 && bpm <= this.MAX + 6) {
+      this.setBpm(bpm);
+      if (hint && this._taps.length >= 4) hint.textContent = 'tempo set · keep tapping';
+    }
   },
 
   // ── Dial geometry (from-top, clockwise) ──────────────

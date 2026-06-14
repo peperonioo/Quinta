@@ -70,6 +70,15 @@ function renderTheory() {
 
   // Re-render mode menu label
   renderModeMenu();
+
+  // Didactic note for advanced modes (anything other than plain Major/Minor):
+  // explain that the tonic moves inside the key signature, marked on the wheel.
+  const noteEl = document.getElementById('modeNote');
+  if (noteEl) {
+    const advanced = st.mode !== 'ionian' && st.mode !== 'aeolian';
+    noteEl.hidden = !advanced;
+    if (advanced) noteEl.innerHTML = t('mode.advanced');
+  }
 }
 
 function setWheelView(view) { AppActions.setWheelView(view); }
