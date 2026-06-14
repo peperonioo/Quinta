@@ -31,10 +31,10 @@ function renderTheory() {
   // PARENT major key (mode-aware, so e.g. C natural minor = 3 flats). Computed
   // from the tonic pitch + the mode's offset in fifths, which avoids the
   // flat-biased note spelling that made earlier attempts read sharp keys wrong.
-  const MODE_FIFTHS_OFF = { ionian:0, lydian:1, mixolydian:-1, dorian:-2, aeolian:-3, phrygian:-4, locrian:-5 };
-  const tonicPitch = ni(st.key);                       // same root gs() uses
+  // Accidentals follow the Major/Minor base (the circle), not the chosen mode.
+  const tonicPitch = ni(st.key);
   const fifthsIdx  = ((tonicPitch * 7) % 12 + 12) % 12;
-  const off        = MODE_FIFTHS_OFF[st.mode] ?? 0;
+  const off        = MODE_FIFTHS_OFF[wheelMode()] ?? 0;
   const accStr     = ACC[((fifthsIdx + off) % 12 + 12) % 12];
   const accEl = document.getElementById('accidentals');
   const accType = document.getElementById('accidentalType');
@@ -46,13 +46,7 @@ function renderTheory() {
   document.querySelectorAll('.wheel-toggle [data-view]').forEach(b =>
     b.classList.toggle('active', b.getAttribute('data-view') === view));
 
-  // Degrees row — the Roman numeral is cased by chord quality (major =
-  // UPPERCASE, minor/dim = lowercase, dim keeps its °).
-  const casedRoman = (roman, q) => {
-    let r = q === 'Maj' ? roman.toUpperCase() : roman.toLowerCase();
-    if (q === 'Dim' && !r.includes('°')) r += '°';
-    return r;
-  };
+  // Degrees row — Roman numeral cased by quality (shared casedRoman helper).
   const dRow = document.getElementById('degrees'); if (!dRow) return;
   const chords = gc();
   dRow.innerHTML = chords.map((c, i) => `
@@ -71,8 +65,8 @@ function renderTheory() {
   // Re-render mode menu label
   renderModeMenu();
 
-  // Didactic note for advanced modes (anything other than plain Major/Minor):
-  // explain that the tonic moves inside the key signature, marked on the wheel.
+  // Didactic note for advanced modes: clarify that the mode only recolours the
+  // chords below — the circle stays on your Major/Minor key.
   const noteEl = document.getElementById('modeNote');
   if (noteEl) {
     const advanced = st.mode !== 'ionian' && st.mode !== 'aeolian';

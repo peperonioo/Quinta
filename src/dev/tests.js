@@ -97,20 +97,21 @@
     assert('Relative minor C → Am',         safe(() => relativeMinor('C') === 'Am', false));
     assert('Relative major A minor → C',    safe(() => relativeMajorFromMinor('Am') === 'C', false));
 
-    withState({ key:'C', mode:'ionian', wheelView:'major' }, () => {
+    withState({ key:'C', mode:'ionian', tonality:'major' }, () => {
       assert('C major scale',           safe(() => gs().join(' ') === 'C D E F G A B', false), safe(() => gs(), []));
       assert('C major chord count = 7', safe(() => gc().length === 7, false));
       assert('C major I is C',          safe(() => gc()[0].chord === 'C', false), safe(() => gc()[0], null));
     });
 
-    // Use wheelView:'major' so normalizeKeyState leaves the key unchanged
-    withState({ key:'A', mode:'aeolian', wheelView:'major' }, () => {
+    withState({ key:'A', mode:'aeolian', tonality:'minor' }, () => {
       assert('A minor scale',           safe(() => gs().join(' ') === 'A B C D E F G', false), safe(() => gs(), []));
       assert('A minor i is Am',         safe(() => gc()[0].chord === 'Am', false), safe(() => gc()[0], null));
     });
 
-    withState({ key:'D', mode:'dorian',  wheelView:'major' }, () => {
-      assert('D Dorian has natural 6',  safe(() => gs().includes('B'), false), safe(() => gs(), []));
+    // The mode scale (gr) reflects the mode; gs (scale card) stays Major/Minor.
+    withState({ key:'D', mode:'dorian', tonality:'major' }, () => {
+      assert('D Dorian (mode scale) has natural 6', safe(() => gr().includes('B'), false), safe(() => gr(), []));
+      assert('Mode does not move the wheel (D stays C-major sector view)', safe(() => wheelKey() === 'D', false), { wheelKey: safe(() => wheelKey(), '') });
     });
 
     withState({ key:'C', mode:'lydian',  wheelView:'major' }, () => {
@@ -230,19 +231,21 @@
 
     // Key signature (accidentals) is mode-aware and correct for sharps & flats
     (function () {
-      const sv = { key: st.key, mode: st.mode, view: st.wheelView };
-      const accFor = (key, mode, view) => {
-        st.key = key; st.mode = mode; st.wheelView = view;
+      const sv = { key: st.key, mode: st.mode, view: st.wheelView, tonality: st.tonality };
+      const accFor = (key, tonality, mode) => {
+        st.key = key; st.tonality = tonality; st.mode = mode || (tonality === 'minor' ? 'aeolian' : 'ionian'); st.wheelView = tonality;
         safe(() => normalizeKeyState()); safe(() => renderTheory());
         return document.getElementById('accidentals')?.textContent;
       };
       try {
-        assert('G major key signature is 1 sharp', accFor('G', 'ionian', 'major') === '1♯');
-        assert('F major key signature is 1 flat',  accFor('F', 'ionian', 'major') === '1♭');
-        assert('C natural minor is 3 flats',       accFor('C', 'aeolian', 'minor') === '3♭');
-        assert('C dorian is 2 flats',              accFor('C', 'dorian', 'major') === '2♭');
+        assert('G major key signature is 1 sharp', accFor('G', 'major') === '1♯');
+        assert('F major key signature is 1 flat',  accFor('F', 'major') === '1♭');
+        assert('C natural minor is 3 flats',       accFor('C', 'minor') === '3♭');
+        // Modes do NOT change the circle's accidentals (V4.5) — C dorian on a
+        // Major base keeps the C-major signature.
+        assert('Mode keeps the Major signature',   accFor('C', 'major', 'dorian') === '♮ None');
       } finally {
-        st.key = sv.key; st.mode = sv.mode; st.wheelView = sv.view;
+        st.key = sv.key; st.mode = sv.mode; st.wheelView = sv.view; st.tonality = sv.tonality;
         safe(() => normalizeKeyState()); safe(() => renderTheory());
       }
     })();
@@ -264,10 +267,10 @@
     })();
 
     // Wheel anchor follows the clicked SECTOR in minor view (no jump)
-    withState({ key:'D', mode:'aeolian', wheelView:'minor' }, () => {
+    withState({ key:'D', mode:'aeolian', tonality:'minor' }, () => {
       assert('Minor view: wheel anchors on the relative-major sector', wheelKey() === 'F', { st_key: st.key, wheelKey: wheelKey() });
     });
-    withState({ key:'C', mode:'ionian', wheelView:'major' }, () => {
+    withState({ key:'C', mode:'ionian', tonality:'major' }, () => {
       assert('Major view: wheel anchors on the key itself', wheelKey() === 'C');
     });
 

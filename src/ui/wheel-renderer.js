@@ -110,22 +110,6 @@ function renderWheel() {
     grp.appendChild(ig);
   });
 
-  // Tonic marker — for advanced modes the home note isn't the sector root, so
-  // ring the actual tonic's position on the wheel to show where "home" landed.
-  // In minor/modal view the labels swap, so the tonic's name sits on the INNER
-  // ring (r≈172); in major view it's on the OUTER ring (r≈242).
-  if (st.mode !== 'ionian' && st.mode !== 'aeolian') {
-    const tIdx = ((fifthsIndexOf(st.key) % 12) + 12) % 12;
-    const mr = st.wheelView === 'minor' ? 172 : 242;
-    const [mx, my] = polar(mr, tIdx * 30);
-    const ring = se('circle', {
-      cx: mx, cy: my, r: st.wheelView === 'minor' ? 19 : 23, fill: 'none',
-      stroke: isLight ? 'rgba(232,68,26,.95)' : 'rgba(255,155,95,.98)',
-      'stroke-width': '2.4', 'stroke-dasharray': '3 4', class: 'tonic-marker',
-    });
-    grp.appendChild(ring);
-  }
-
   // Animate rotation
   syncWheelLabels(wRot);
   if (wAnim) cancelAnimationFrame(wAnim);

@@ -1153,28 +1153,41 @@ body.light .bar-tools .step-tool { background:rgba(0,0,0,.06) }
 /* ── Chord-variant chooser — Dynamic-Island vertical expand ── */
 .chord-variants {
   position:fixed; display:none; z-index:var(--z-modal, 9500);
-  width:min(300px, calc(100vw - 24px)); padding:13px 14px 12px; border-radius:22px;
-  background:rgba(14,14,18,.95); border:1px solid rgba(255,255,255,.14);
-  box-shadow:0 30px 80px rgba(0,0,0,.5); backdrop-filter:blur(26px); color:#f0ede8;
-  opacity:0; transform:scaleY(.32) scaleX(.86); transform-origin:center;
-  transition:opacity .2s var(--ease), transform .34s cubic-bezier(.34,1.45,.4,1);
+  width:min(252px, calc(100vw - 24px)); padding:10px 11px 9px; border-radius:18px;
+  background:rgba(14,14,18,.96); border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 26px 70px rgba(0,0,0,.5); backdrop-filter:blur(26px); color:#f0ede8;
+  opacity:0; transform:scaleY(.3) scaleX(.88); transform-origin:center;
+  transition:opacity .18s var(--ease), transform .3s cubic-bezier(.34,1.45,.4,1);
 }
 body.light .chord-variants { background:rgba(255,255,255,.96); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
 .chord-variants.open { opacity:1; transform:none }
-.cv-head { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:baseline; gap:8px }
-.cv-head b { font-size:13px; color:var(--accent2) }
-.cv-hint { margin-left:auto; font-size:8.5px; opacity:.5; text-transform:uppercase; letter-spacing:.1em }
-.cv-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:7px }
+.cv-head { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.06em; margin-bottom:8px; display:flex; align-items:baseline; gap:7px }
+.cv-head b { font-size:12px; color:var(--accent2) }
+.cv-hint { margin-left:auto; font-size:8px; opacity:.5; text-transform:uppercase; letter-spacing:.1em }
+.cv-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:5px }
 .cv-chip {
-  padding:11px 4px; border-radius:12px; cursor:pointer; color:inherit;
+  padding:8px 3px; border-radius:9px; cursor:pointer; color:inherit;
   border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05);
-  font-family:'DM Serif Display',Georgia,serif; font-size:15px; line-height:1;
+  font-family:'DM Serif Display',Georgia,serif; font-size:13px; line-height:1;
   transition:transform .12s var(--ui-ease), background .12s, border-color .12s;
 }
 body.light .cv-chip { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
 .cv-chip:hover  { transform:translateY(-2px); border-color:rgba(232,68,26,.5) }
 .cv-chip.active { background:var(--accent); border-color:transparent; color:#fff }
+.cv-foot { display:flex; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid rgba(128,128,128,.18) }
+.cv-act {
+  flex:1; padding:7px 6px; border-radius:9px; cursor:pointer;
+  border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:inherit;
+  font-family:'DM Sans',sans-serif; font-size:10.5px; font-weight:600;
+}
+body.light .cv-act { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
+.cv-act:hover { border-color:rgba(232,68,26,.45) }
+.cv-act.danger:hover { background:rgba(232,68,26,.2); color:#fff; border-color:transparent }
 @media (prefers-reduced-motion: reduce){ .chord-variants{ transition:opacity .15s } .chord-variants.open{ transform:none } }
+
+/* Bar being dragged to reorder */
+.builder-step.dragging { box-shadow:0 14px 36px rgba(0,0,0,.4); cursor:grabbing; transition:none; opacity:.95 }
+.builder-row.is-timeline .builder-step { cursor:grab; touch-action:pan-y }
 
 /* == instruments.css == */
 /* ── INSTRUMENTS ─────────────────────────────────────*/
@@ -1563,8 +1576,6 @@ body.light .cv-chip { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
             <button class="builder-btn play" id="playProgBtn" onclick="toggleProgPlay()" data-i18n="builder.play">▶ Play</button>
             <button class="builder-btn opt" id="countInBtn" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play">⏱</button>
             <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
-            <button class="builder-btn" onclick="BuilderEngine.duplicateLast()" data-i18n="builder.duplicate">Duplicate</button>
-            <button class="builder-btn" onclick="BuilderEngine.copy()" data-i18n="builder.copy">Copy</button>
             <button class="builder-btn" onclick="shareProgression()" data-i18n="builder.share" title="Copy a shareable link">🔗 Share</button>
             <button class="builder-btn" onclick="exportMIDI()" data-i18n="builder.midi" title="Download as a MIDI file">↓ MIDI</button>
             <button class="builder-btn danger" onclick="HistoryEngine.clear()" data-i18n="builder.clear">Clear</button>
@@ -1656,7 +1667,7 @@ body.light .cv-chip { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V4.4';
+const APP_VERSION = 'V4.5';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -1721,7 +1732,7 @@ const PALETTES = [
 ];
 
 const defaultState = {
-  key:'C', mode:'ionian', theme:'dark', genre:'house',
+  key:'C', mode:'ionian', tonality:'major', theme:'dark', genre:'house',
   palette:0, intensity:1, wheelView:'major', lang:'en',
   history:[], mood:'balanced', bpm:100,
   sevenths:false, countIn:false,
@@ -1747,7 +1758,7 @@ const I18N_EN = {
   'builder.subtitle':  'Tap a degree or bubble to add it to your progression.',
   'builder.play':      '▶ Play',
   'metro.title':       'Metronome',
-  'mode.advanced':     'Advanced mode — the tonic moves to a degree of this key signature. The <b>◎</b> on the wheel marks where your home note lands.',
+  'mode.advanced':     'Advanced mode — it recolours the <b>chords below</b> only. The circle stays on your Major/Minor key.',
   'builder.add':       'Add selected',
   'builder.duplicate': 'Duplicate',
   'builder.copy':      'Copy',
@@ -1810,7 +1821,7 @@ const I18N_ES = {
   'builder.subtitle':  'Toca un grado o burbuja para añadirlo a tu progresión.',
   'builder.play':      '▶ Reproducir',
   'metro.title':       'Metrónomo',
-  'mode.advanced':     'Modo avanzado — la tónica se mueve a un grado de esta armadura. El <b>◎</b> en la rueda marca dónde queda tu nota «casa».',
+  'mode.advanced':     'Modo avanzado — solo recolorea los <b>acordes de abajo</b>. El círculo se queda en tu tonalidad Mayor/Menor.',
   'builder.add':       'Añadir seleccionado',
   'builder.duplicate': 'Duplicar',
   'builder.copy':      'Copiar',
@@ -2018,17 +2029,36 @@ const na = i => NOTES[(i + 120) % 12];
 const dn = n => (['Ab','Bb','Db','Eb','Gb'].includes(n) ? n : (FM[n] || n));
 
 const gm  = ()  => MODES.find(m => m.id === st.mode);
-const gs  = ()  => { const r = ni(st.key); return gm().intervals.map(i => dn(na(r + i))); };
+
+// V4.5 — the wheel + its info cards follow ONLY Major/Minor (st.tonality); the
+// selected mode recolours the degrees / suggestions / progression but never
+// moves the circle. wheelMode() is the ionian/aeolian base for the wheel.
+const wheelMode = () => (st.tonality === 'minor' ? 'aeolian' : 'ionian');
+const wmObj     = () => MODES.find(m => m.id === wheelMode());
+
+// Wheel + scale-notes card scale (Major or Minor only).
+const gs  = ()  => { const r = ni(st.key); return wmObj().intervals.map(i => dn(na(r + i))); };
+// Mode scale — drives the degree row, suggestions and built chords.
+const modeScale = () => { const r = ni(st.key); return gm().intervals.map(i => dn(na(r + i))); };
 const gr  = ()  => { const r = ni(st.key); return gm().intervals.map(i => na(r + i)); };
-const gc  = ()  => { const s = gs(), m = gm(); return s.map((n, i) => ({ degree: m.degrees[i], note: n, quality: m.qualities[i], chord: n + (m.qualities[i] === 'Min' ? 'm' : m.qualities[i] === 'Dim' ? '°' : '') })); };
-// The relative key shown on the side card: relative MAJOR when we're in a minor
-// mode, relative MINOR when we're in a major mode — derived from the sector.
+const gc  = ()  => { const s = modeScale(), m = gm(); return s.map((n, i) => ({ degree: m.degrees[i], note: n, quality: m.qualities[i], chord: n + (m.qualities[i] === 'Min' ? 'm' : m.qualities[i] === 'Dim' ? '°' : '') })); };
+
+// The relative key shown on the side card: relative MAJOR when minor, relative
+// MINOR when major — derived from the sector (always Major/Minor, not the mode).
 const grel = () => {
-  const sector = parentMajor(st.key, st.mode);
-  if (modeIsMinor(st.mode)) return sector + ' ' + t('common.major');
+  const sector = parentMajor(st.key, wheelMode());
+  if (st.tonality === 'minor') return sector + ' ' + t('common.major');
   const relRoot = stripMinorSuffix(relativeMinor(sector) || '');
   return (relRoot ? spellForSector(ni(relRoot), sector) : '') + ' ' + t('common.minor');
 };
+
+// Roman numeral cased by chord quality: major = UPPERCASE, minor/dim = lowercase
+// (dim keeps its °). Shared by the degree row, suggestion bubbles and builder.
+function casedRoman(roman, q) {
+  let r = q === 'Maj' ? String(roman).toUpperCase() : String(roman).toLowerCase();
+  if (q === 'Dim' && !r.includes('°')) r += '°';
+  return r;
+}
 
 function clamp(v, min = 0, max = 100) { return Math.max(min, Math.min(max, Math.round(v))); }
 
@@ -2064,34 +2094,39 @@ function tonicForSectorMode(sectorMajor, mode) {
   return spellForSector(ni(sectorMajor) + IONIAN_STEPS[deg], sectorMajor);
 }
 
-// The ONE place key/mode are mutated together, keeping wheelView in sync.
+// Set the Major/Minor base + mode together (used for test setup / quick jumps).
 function applyKeyMode(tonic, mode) {
   st.key = tonic;
   st.mode = mode;
-  st.wheelView = modeIsMinor(mode) ? 'minor' : 'major';
+  st.tonality = modeIsMinor(mode) ? 'minor' : 'major';
+  st.wheelView = st.tonality;
 }
 
 function normalizeKeyState() {
   if (!st.key) st.key = 'C';
   // Legacy state migration: a minor-suffixed key ('Am') becomes its plain tonic
-  // ('A') paired with a minor mode.
+  // ('A') with a minor tonality.
   if (typeof st.key === 'string' && /m$/.test(st.key) && MINOR_ROOTS.has(st.key)) {
     st.key = stripMinorSuffix(st.key);
+    st.tonality = 'minor';
     if (!modeIsMinor(st.mode)) st.mode = 'aeolian';
   }
   if (!(NOTES.includes(st.key) || (st.key in ENH))) st.key = 'C';
   if (!gm()) st.mode = 'ionian';
-  st.wheelView = modeIsMinor(st.mode) ? 'minor' : 'major';
+  // tonality (Major/Minor base) is independent of the chosen mode; seed it from
+  // the mode only when missing.
+  if (st.tonality !== 'major' && st.tonality !== 'minor') st.tonality = modeIsMinor(st.mode) ? 'minor' : 'major';
+  st.wheelView = st.tonality;
 }
 
-// The FIFTHS (major) key whose SECTOR the current selection occupies — what the
-// wheel rotates/highlights by. Stable when toggling major↔relative-minor.
-function wheelKey()  { return parentMajor(st.key, st.mode); }
-function anchorKey() { return parentMajor(st.key, st.mode); }
+// The FIFTHS (major) key whose SECTOR the wheel highlights — driven by the
+// Major/Minor base, NOT the mode (modes never move the circle).
+function wheelKey()  { return parentMajor(st.key, wheelMode()); }
+function anchorKey() { return parentMajor(st.key, wheelMode()); }
 
 // The tonic, spelled for its sector — the big centre label.
 function displayKeyLabel() {
-  return spellForSector(ni(st.key), parentMajor(st.key, st.mode));
+  return spellForSector(ni(st.key), parentMajor(st.key, wheelMode()));
 }
 
 function metricClass(value) {
@@ -3389,22 +3424,6 @@ function renderWheel() {
     grp.appendChild(ig);
   });
 
-  // Tonic marker — for advanced modes the home note isn't the sector root, so
-  // ring the actual tonic's position on the wheel to show where "home" landed.
-  // In minor/modal view the labels swap, so the tonic's name sits on the INNER
-  // ring (r≈172); in major view it's on the OUTER ring (r≈242).
-  if (st.mode !== 'ionian' && st.mode !== 'aeolian') {
-    const tIdx = ((fifthsIndexOf(st.key) % 12) + 12) % 12;
-    const mr = st.wheelView === 'minor' ? 172 : 242;
-    const [mx, my] = polar(mr, tIdx * 30);
-    const ring = se('circle', {
-      cx: mx, cy: my, r: st.wheelView === 'minor' ? 19 : 23, fill: 'none',
-      stroke: isLight ? 'rgba(232,68,26,.95)' : 'rgba(255,155,95,.98)',
-      'stroke-width': '2.4', 'stroke-dasharray': '3 4', class: 'tonic-marker',
-    });
-    grp.appendChild(ring);
-  }
-
   // Animate rotation
   syncWheelLabels(wRot);
   if (wAnim) cancelAnimationFrame(wAnim);
@@ -3787,10 +3806,10 @@ function renderTheory() {
   // PARENT major key (mode-aware, so e.g. C natural minor = 3 flats). Computed
   // from the tonic pitch + the mode's offset in fifths, which avoids the
   // flat-biased note spelling that made earlier attempts read sharp keys wrong.
-  const MODE_FIFTHS_OFF = { ionian:0, lydian:1, mixolydian:-1, dorian:-2, aeolian:-3, phrygian:-4, locrian:-5 };
-  const tonicPitch = ni(st.key);                       // same root gs() uses
+  // Accidentals follow the Major/Minor base (the circle), not the chosen mode.
+  const tonicPitch = ni(st.key);
   const fifthsIdx  = ((tonicPitch * 7) % 12 + 12) % 12;
-  const off        = MODE_FIFTHS_OFF[st.mode] ?? 0;
+  const off        = MODE_FIFTHS_OFF[wheelMode()] ?? 0;
   const accStr     = ACC[((fifthsIdx + off) % 12 + 12) % 12];
   const accEl = document.getElementById('accidentals');
   const accType = document.getElementById('accidentalType');
@@ -3802,13 +3821,7 @@ function renderTheory() {
   document.querySelectorAll('.wheel-toggle [data-view]').forEach(b =>
     b.classList.toggle('active', b.getAttribute('data-view') === view));
 
-  // Degrees row — the Roman numeral is cased by chord quality (major =
-  // UPPERCASE, minor/dim = lowercase, dim keeps its °).
-  const casedRoman = (roman, q) => {
-    let r = q === 'Maj' ? roman.toUpperCase() : roman.toLowerCase();
-    if (q === 'Dim' && !r.includes('°')) r += '°';
-    return r;
-  };
+  // Degrees row — Roman numeral cased by quality (shared casedRoman helper).
   const dRow = document.getElementById('degrees'); if (!dRow) return;
   const chords = gc();
   dRow.innerHTML = chords.map((c, i) => `
@@ -3827,8 +3840,8 @@ function renderTheory() {
   // Re-render mode menu label
   renderModeMenu();
 
-  // Didactic note for advanced modes (anything other than plain Major/Minor):
-  // explain that the tonic moves inside the key signature, marked on the wheel.
+  // Didactic note for advanced modes: clarify that the mode only recolours the
+  // chords below — the circle stays on your Major/Minor key.
   const noteEl = document.getElementById('modeNote');
   if (noteEl) {
     const advanced = st.mode !== 'ionian' && st.mode !== 'aeolian';
@@ -3965,15 +3978,15 @@ const HistoryEngine = {
     root.classList.add('is-timeline');
     root.innerHTML = h.map((it, i) => `
       <div data-uid="${it.uid || i}" data-i="${i}" class="builder-step" style="--beats:${it.beats}"
-        onclick="BuilderEngine.focusBar(${i})">
+        onpointerdown="BarDrag.start(event,${i})">
         <span class="step-num">${i + 1}</span>
         <span class="step-chord">${chordLabel(it)}</span>
-        <span class="step-sub"><span class="step-degree">${it.degree}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
+        <span class="step-sub"><span class="step-degree">${casedRoman(it.degree, it.quality)}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
         <span class="step-resize" title="Drag to set duration" onpointerdown="DurationDrag.start(event,${i})"></span>
       </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead"></div>`;
 
-    // The per-bar toolbar is portaled to <body>, so re-rendering hides it.
-    BarToolbar.hide();
+    // Re-rendering closes any open per-chord chooser.
+    if (typeof ChordVariants === 'object') ChordVariants.close();
 
     // Animate only the last added bar
     const lastEl = root.querySelector('.builder-step:last-of-type');
@@ -4037,20 +4050,10 @@ const BuilderEngine = {
     AppActions.selectDegree(curDeg, { force: true });
   },
 
-  // Tap a bar → reveal its toolbar (portaled to <body> so it never clips behind
-  // the scrolling timeline). Tapping the same bar again hides it.
-  focusBar(index) {
-    const bar = document.querySelector(`#flowRow .builder-step[data-i="${index}"]`);
-    if (!bar) return;
-    if (BarToolbar.index === index && BarToolbar.visible) { BarToolbar.hide(); return; }
-    BarToolbar.show(index, bar);
-  },
-
-  // Hear a single bar's chord and select it on the wheel.
+  // Hear a single bar's chord (no wheel side-effect).
   hear(index) {
     const it = (st.history || [])[index];
     if (it && typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(it));
-    HistoryEngine.recall(index);
   },
 
   duplicateLast() {
@@ -4091,62 +4094,53 @@ const BuilderEngine = {
   },
 };
 
-// ── Per-bar toolbar (portaled to <body>) ──────────────
-// Move / hear / variants / duplicate / delete for one timeline bar. Lives on
-// <body> so the timeline's overflow can't clip it; flips above or below the bar
-// depending on available room.
-const BarToolbar = {
-  el: null, index: -1, visible: false,
-  _ensure() {
-    if (this.el) return this.el;
-    const d = document.createElement('div');
-    d.className = 'bar-tools';
-    document.body.appendChild(d);
-    this.el = d;
-    return d;
-  },
-  show(index, barEl) {
-    const el = this._ensure();
-    this.index = index;
-    el.innerHTML = `
-      <button class="step-tool" title="Move left"  onclick="BuilderEngine.move(${index},-1)">‹</button>
-      <button class="step-tool" title="Hear"       onclick="BuilderEngine.hear(${index})">♪</button>
-      <button class="step-tool wide" title="Chord variants" onclick="ChordVariants.openForBar(${index})">7 · sus · add</button>
-      <button class="step-tool" title="Duplicate"  onclick="BuilderEngine.duplicate(${index})">+</button>
-      <button class="step-tool danger" title="Delete" onclick="HistoryEngine.remove(${index})">×</button>
-      <button class="step-tool" title="Move right" onclick="BuilderEngine.move(${index},1)">›</button>`;
-    el.style.display = 'flex';
-    el.classList.add('show');
-    this.visible = true;
-    this._place(barEl);
-  },
-  _place(barEl) {
-    const el = this.el; if (!el || !barEl) return;
-    const r = barEl.getBoundingClientRect();
-    const tw = el.offsetWidth, th = el.offsetHeight;
-    let left = r.left + r.width / 2 - tw / 2;
-    left = Math.max(8, Math.min(left, innerWidth - tw - 8));
-    let top = r.top - th - 8;
-    if (top < 8) top = r.bottom + 8;        // flip below when there's no room above
-    el.style.left = left + 'px';
-    el.style.top  = top + 'px';
-  },
-  hide() {
-    if (!this.el) return;
-    this.el.classList.remove('show');
-    this.el.style.display = 'none';
-    this.visible = false;
-    this.index = -1;
+// ── Bar drag-to-reorder + tap (V4.5) ──────────────────
+// Drag a timeline bar sideways to reorder it freely; a tap (no drag) plays the
+// chord and opens its variant/settings chooser.
+const BarDrag = {
+  start(e, i) {
+    if (e.target.closest('.step-resize')) return;          // resize is its own gesture
+    const bar = e.currentTarget;
+    const row = document.getElementById('flowRow');
+    const startX = e.clientX;
+    let dragging = false, targetIndex = i;
+    try { bar.setPointerCapture(e.pointerId); } catch (_) {}
+
+    const move = ev => {
+      const dx = ev.clientX - startX;
+      if (!dragging && Math.abs(dx) > 6) { dragging = true; bar.classList.add('dragging'); }
+      if (!dragging) return;
+      ev.preventDefault();
+      bar.style.transform = `translateX(${dx}px) translateY(-3px) scale(1.04)`;
+      bar.style.zIndex = '5';
+      // Which slot is the bar's centre over?
+      const cx = bar.getBoundingClientRect().left + bar.offsetWidth / 2;
+      const others = [...row.querySelectorAll('.builder-step')].filter(b => b !== bar);
+      targetIndex = 0;
+      others.forEach(b => { const r = b.getBoundingClientRect(); if (cx > r.left + r.width / 2) targetIndex++; });
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      bar.classList.remove('dragging'); bar.style.transform = ''; bar.style.zIndex = '';
+      if (dragging) {
+        const h = st.history;
+        if (Array.isArray(h) && targetIndex !== i && targetIndex >= 0 && targetIndex < h.length) {
+          const [moved] = h.splice(i, 1);
+          h.splice(targetIndex, 0, moved);
+          HistoryEngine.render(); renderProgressionStory(); saveState();
+        }
+      } else {
+        // Tap → sound the chord + open its chooser.
+        const it = (st.history || [])[i];
+        if (it && typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(it));
+        if (typeof ChordVariants === 'object') ChordVariants.openForBar(i);
+      }
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
   },
 };
-
-// Dismiss the bar toolbar on outside tap or scroll.
-document.addEventListener('click', e => {
-  if (!BarToolbar.visible) return;
-  if (e.target.closest('.bar-tools') || e.target.closest('.builder-step')) return;
-  BarToolbar.hide();
-}, true);
-window.addEventListener('scroll', () => { if (BarToolbar.visible) BarToolbar.hide(); }, true);
 
 // ── Progression playback (V4.2) ───────────────────────
 // DAW-style: each chord rings for its own duration, a playhead sweeps the
@@ -4304,7 +4298,7 @@ function _buildBubblesHTML() {
         style="--fit:${it.fit};--d:${d}px;--tier:${t}"
         onclick="addSuggestion(${it.to},event)"
         title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap for variants">
-      <span class="nb-deg">${it.chord.degree}</span>
+      <span class="nb-deg">${casedRoman(it.chord.degree, it.chord.quality)}</span>
       <span class="nb-chord">${it.chord.chord}</span>
     </button>`;
   }).join('');
@@ -4460,23 +4454,32 @@ const ChordVariants = {
   },
 
   _open(ctx, anchorEl) {
-    if (typeof BarToolbar === 'object') BarToolbar.hide();
+    if (this._outside) document.removeEventListener('click', this._outside, true);
     this.ctx = ctx;
     this._anchorRect = anchorEl ? anchorEl.getBoundingClientRect() : null;
     const el = this._ensure();
     const root = ctx.root;
+    const footer = ctx.kind === 'bar' ? `
+      <div class="cv-foot">
+        <button class="cv-act" onclick="ChordVariants._dup()">＋ Duplicate</button>
+        <button class="cv-act danger" onclick="ChordVariants._del()">× Delete</button>
+      </div>` : '';
     el.innerHTML = `
-      <div class="cv-head"><b>${ctx.degree}</b> · ${ctx.baseChord}<span class="cv-hint">tap a variant</span></div>
+      <div class="cv-head"><b>${casedRoman(ctx.degree, ctx.quality)}</b> · ${ctx.baseChord}<span class="cv-hint">${ctx.kind === 'bar' ? 'chord settings' : 'tap a variant'}</span></div>
       <div class="cv-grid">
         ${variantsFor(ctx.quality).map(v => `
           <button class="cv-chip${ctx.current === v.id ? ' active' : ''}" onclick="ChordVariants.pick('${v.id}')">
             ${root}${v.suf || ''}
           </button>`).join('')}
-      </div>`;
+      </div>${footer}`;
     el.style.display = 'block';
     this._place();
     requestAnimationFrame(() => el.classList.add('open'));
-    this._outside = e => { if (!e.target.closest('#chordVariants')) this.close(); };
+    // Ignore the originating tap (bars/bubbles handle their own opening).
+    this._outside = e => {
+      if (e.target.closest('#chordVariants') || e.target.closest('.builder-step') || e.target.closest('.next-bubble')) return;
+      this.close();
+    };
     setTimeout(() => document.addEventListener('click', this._outside, true), 0);
   },
 
@@ -4511,6 +4514,17 @@ const ChordVariants = {
       const it = (st.history || [])[ctx.barIdx];
       if (it) { it.variant = id; HistoryEngine.render(); renderProgressionStory(); saveState(); }
     }
+    this.close();
+  },
+
+  _dup() {
+    const ctx = this.ctx; if (!ctx || ctx.kind !== 'bar') return;
+    if (typeof BuilderEngine === 'object') BuilderEngine.duplicate(ctx.barIdx);
+    this.close();
+  },
+  _del() {
+    const ctx = this.ctx; if (!ctx || ctx.kind !== 'bar') return;
+    if (typeof HistoryEngine === 'object') HistoryEngine.remove(ctx.barIdx);
     this.close();
   },
 
@@ -5063,11 +5077,12 @@ const ActionDispatcher = {
     try {
       switch (type) {
         case 'SET_KEY': {
-          // payload.key is the clicked SECTOR (a parent-major key). Keep the
-          // current mode and move the tonic to that sector.
+          // payload.key is the clicked SECTOR (a parent-major key). Re-root the
+          // tonic per the current Major/Minor base; the mode flavour is kept.
           let sector = payload.key;
           if (!MAJOR_ROOTS.has(sector)) sector = MINOR_ROOT_TO_MAJOR[sector] || wheelKey();
-          applyKeyMode(tonicForSectorMode(sector, st.mode), st.mode);
+          st.key = tonicForSectorMode(sector, wheelMode());
+          st.wheelView = st.tonality;
           curDeg = -1;
           closePopup(false);
           RenderEngine.full();
@@ -5075,21 +5090,23 @@ const ActionDispatcher = {
           break;
         }
         case 'SET_MODE': {
-          // Dropdown overrides the mode while keeping the current sector /
-          // signature; the tonic re-roots to the chosen mode.
-          const sector = parentMajor(st.key, st.mode);
-          applyKeyMode(tonicForSectorMode(sector, payload.mode), payload.mode);
+          // Mode only recolours the degrees / progression — the circle is left
+          // exactly where it is (Major/Minor base + tonic unchanged).
+          st.mode = payload.mode;
           curDeg = -1;
           closePopup(false);
           RenderEngine.full();
           break;
         }
         case 'SET_WHEEL_VIEW': {
-          // The Major/Minor toggle is the relative switch: Major = ionian,
-          // Minor = aeolian, same sector (so the wheel never jumps).
-          const targetMode = payload.view === 'minor' ? 'aeolian' : 'ionian';
-          const sector = parentMajor(st.key, st.mode);
-          applyKeyMode(tonicForSectorMode(sector, targetMode), targetMode);
+          // The Major/Minor toggle is the fundamental tonality. It sets the base,
+          // moves the tonic to the sector's major / relative-minor, and resets the
+          // mode to the matching ionian/aeolian (same sector, so no wheel jump).
+          const view = payload.view === 'minor' ? 'minor' : 'major';
+          const targetMode = view === 'minor' ? 'aeolian' : 'ionian';
+          const sector = parentMajor(st.key, wheelMode());
+          st.key = tonicForSectorMode(sector, targetMode);
+          st.tonality = view; st.mode = targetMode; st.wheelView = view;
           curDeg = -1;
           closePopup(false);
           RenderEngine.full();
@@ -5477,20 +5494,21 @@ function toggleTheme() {
     assert('Relative minor C → Am',         safe(() => relativeMinor('C') === 'Am', false));
     assert('Relative major A minor → C',    safe(() => relativeMajorFromMinor('Am') === 'C', false));
 
-    withState({ key:'C', mode:'ionian', wheelView:'major' }, () => {
+    withState({ key:'C', mode:'ionian', tonality:'major' }, () => {
       assert('C major scale',           safe(() => gs().join(' ') === 'C D E F G A B', false), safe(() => gs(), []));
       assert('C major chord count = 7', safe(() => gc().length === 7, false));
       assert('C major I is C',          safe(() => gc()[0].chord === 'C', false), safe(() => gc()[0], null));
     });
 
-    // Use wheelView:'major' so normalizeKeyState leaves the key unchanged
-    withState({ key:'A', mode:'aeolian', wheelView:'major' }, () => {
+    withState({ key:'A', mode:'aeolian', tonality:'minor' }, () => {
       assert('A minor scale',           safe(() => gs().join(' ') === 'A B C D E F G', false), safe(() => gs(), []));
       assert('A minor i is Am',         safe(() => gc()[0].chord === 'Am', false), safe(() => gc()[0], null));
     });
 
-    withState({ key:'D', mode:'dorian',  wheelView:'major' }, () => {
-      assert('D Dorian has natural 6',  safe(() => gs().includes('B'), false), safe(() => gs(), []));
+    // The mode scale (gr) reflects the mode; gs (scale card) stays Major/Minor.
+    withState({ key:'D', mode:'dorian', tonality:'major' }, () => {
+      assert('D Dorian (mode scale) has natural 6', safe(() => gr().includes('B'), false), safe(() => gr(), []));
+      assert('Mode does not move the wheel (D stays C-major sector view)', safe(() => wheelKey() === 'D', false), { wheelKey: safe(() => wheelKey(), '') });
     });
 
     withState({ key:'C', mode:'lydian',  wheelView:'major' }, () => {
@@ -5610,19 +5628,21 @@ function toggleTheme() {
 
     // Key signature (accidentals) is mode-aware and correct for sharps & flats
     (function () {
-      const sv = { key: st.key, mode: st.mode, view: st.wheelView };
-      const accFor = (key, mode, view) => {
-        st.key = key; st.mode = mode; st.wheelView = view;
+      const sv = { key: st.key, mode: st.mode, view: st.wheelView, tonality: st.tonality };
+      const accFor = (key, tonality, mode) => {
+        st.key = key; st.tonality = tonality; st.mode = mode || (tonality === 'minor' ? 'aeolian' : 'ionian'); st.wheelView = tonality;
         safe(() => normalizeKeyState()); safe(() => renderTheory());
         return document.getElementById('accidentals')?.textContent;
       };
       try {
-        assert('G major key signature is 1 sharp', accFor('G', 'ionian', 'major') === '1♯');
-        assert('F major key signature is 1 flat',  accFor('F', 'ionian', 'major') === '1♭');
-        assert('C natural minor is 3 flats',       accFor('C', 'aeolian', 'minor') === '3♭');
-        assert('C dorian is 2 flats',              accFor('C', 'dorian', 'major') === '2♭');
+        assert('G major key signature is 1 sharp', accFor('G', 'major') === '1♯');
+        assert('F major key signature is 1 flat',  accFor('F', 'major') === '1♭');
+        assert('C natural minor is 3 flats',       accFor('C', 'minor') === '3♭');
+        // Modes do NOT change the circle's accidentals (V4.5) — C dorian on a
+        // Major base keeps the C-major signature.
+        assert('Mode keeps the Major signature',   accFor('C', 'major', 'dorian') === '♮ None');
       } finally {
-        st.key = sv.key; st.mode = sv.mode; st.wheelView = sv.view;
+        st.key = sv.key; st.mode = sv.mode; st.wheelView = sv.view; st.tonality = sv.tonality;
         safe(() => normalizeKeyState()); safe(() => renderTheory());
       }
     })();
@@ -5644,10 +5664,10 @@ function toggleTheme() {
     })();
 
     // Wheel anchor follows the clicked SECTOR in minor view (no jump)
-    withState({ key:'D', mode:'aeolian', wheelView:'minor' }, () => {
+    withState({ key:'D', mode:'aeolian', tonality:'minor' }, () => {
       assert('Minor view: wheel anchors on the relative-major sector', wheelKey() === 'F', { st_key: st.key, wheelKey: wheelKey() });
     });
-    withState({ key:'C', mode:'ionian', wheelView:'major' }, () => {
+    withState({ key:'C', mode:'ionian', tonality:'major' }, () => {
       assert('Major view: wheel anchors on the key itself', wheelKey() === 'C');
     });
 

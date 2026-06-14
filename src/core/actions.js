@@ -7,11 +7,12 @@ const ActionDispatcher = {
     try {
       switch (type) {
         case 'SET_KEY': {
-          // payload.key is the clicked SECTOR (a parent-major key). Keep the
-          // current mode and move the tonic to that sector.
+          // payload.key is the clicked SECTOR (a parent-major key). Re-root the
+          // tonic per the current Major/Minor base; the mode flavour is kept.
           let sector = payload.key;
           if (!MAJOR_ROOTS.has(sector)) sector = MINOR_ROOT_TO_MAJOR[sector] || wheelKey();
-          applyKeyMode(tonicForSectorMode(sector, st.mode), st.mode);
+          st.key = tonicForSectorMode(sector, wheelMode());
+          st.wheelView = st.tonality;
           curDeg = -1;
           closePopup(false);
           RenderEngine.full();
@@ -19,21 +20,23 @@ const ActionDispatcher = {
           break;
         }
         case 'SET_MODE': {
-          // Dropdown overrides the mode while keeping the current sector /
-          // signature; the tonic re-roots to the chosen mode.
-          const sector = parentMajor(st.key, st.mode);
-          applyKeyMode(tonicForSectorMode(sector, payload.mode), payload.mode);
+          // Mode only recolours the degrees / progression — the circle is left
+          // exactly where it is (Major/Minor base + tonic unchanged).
+          st.mode = payload.mode;
           curDeg = -1;
           closePopup(false);
           RenderEngine.full();
           break;
         }
         case 'SET_WHEEL_VIEW': {
-          // The Major/Minor toggle is the relative switch: Major = ionian,
-          // Minor = aeolian, same sector (so the wheel never jumps).
-          const targetMode = payload.view === 'minor' ? 'aeolian' : 'ionian';
-          const sector = parentMajor(st.key, st.mode);
-          applyKeyMode(tonicForSectorMode(sector, targetMode), targetMode);
+          // The Major/Minor toggle is the fundamental tonality. It sets the base,
+          // moves the tonic to the sector's major / relative-minor, and resets the
+          // mode to the matching ionian/aeolian (same sector, so no wheel jump).
+          const view = payload.view === 'minor' ? 'minor' : 'major';
+          const targetMode = view === 'minor' ? 'aeolian' : 'ionian';
+          const sector = parentMajor(st.key, wheelMode());
+          st.key = tonicForSectorMode(sector, targetMode);
+          st.tonality = view; st.mode = targetMode; st.wheelView = view;
           curDeg = -1;
           closePopup(false);
           RenderEngine.full();

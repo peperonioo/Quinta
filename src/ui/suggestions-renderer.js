@@ -77,7 +77,7 @@ function _buildBubblesHTML() {
         style="--fit:${it.fit};--d:${d}px;--tier:${t}"
         onclick="addSuggestion(${it.to},event)"
         title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap for variants">
-      <span class="nb-deg">${it.chord.degree}</span>
+      <span class="nb-deg">${casedRoman(it.chord.degree, it.chord.quality)}</span>
       <span class="nb-chord">${it.chord.chord}</span>
     </button>`;
   }).join('');

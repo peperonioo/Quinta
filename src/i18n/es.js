@@ -16,7 +16,7 @@ const I18N_ES = {
   'builder.subtitle':  'Toca un grado o burbuja para añadirlo a tu progresión.',
   'builder.play':      '▶ Reproducir',
   'metro.title':       'Metrónomo',
-  'mode.advanced':     'Modo avanzado — la tónica se mueve a un grado de esta armadura. El <b>◎</b> en la rueda marca dónde queda tu nota «casa».',
+  'mode.advanced':     'Modo avanzado — solo recolorea los <b>acordes de abajo</b>. El círculo se queda en tu tonalidad Mayor/Menor.',
   'builder.add':       'Añadir seleccionado',
   'builder.duplicate': 'Duplicar',
   'builder.copy':      'Copiar',

@@ -122,15 +122,15 @@ const HistoryEngine = {
     root.classList.add('is-timeline');
     root.innerHTML = h.map((it, i) => `
       <div data-uid="${it.uid || i}" data-i="${i}" class="builder-step" style="--beats:${it.beats}"
-        onclick="BuilderEngine.focusBar(${i})">
+        onpointerdown="BarDrag.start(event,${i})">
         <span class="step-num">${i + 1}</span>
         <span class="step-chord">${chordLabel(it)}</span>
-        <span class="step-sub"><span class="step-degree">${it.degree}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
+        <span class="step-sub"><span class="step-degree">${casedRoman(it.degree, it.quality)}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
         <span class="step-resize" title="Drag to set duration" onpointerdown="DurationDrag.start(event,${i})"></span>
       </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead"></div>`;
 
-    // The per-bar toolbar is portaled to <body>, so re-rendering hides it.
-    BarToolbar.hide();
+    // Re-rendering closes any open per-chord chooser.
+    if (typeof ChordVariants === 'object') ChordVariants.close();
 
     // Animate only the last added bar
     const lastEl = root.querySelector('.builder-step:last-of-type');
@@ -194,20 +194,10 @@ const BuilderEngine = {
     AppActions.selectDegree(curDeg, { force: true });
   },
 
-  // Tap a bar → reveal its toolbar (portaled to <body> so it never clips behind
-  // the scrolling timeline). Tapping the same bar again hides it.
-  focusBar(index) {
-    const bar = document.querySelector(`#flowRow .builder-step[data-i="${index}"]`);
-    if (!bar) return;
-    if (BarToolbar.index === index && BarToolbar.visible) { BarToolbar.hide(); return; }
-    BarToolbar.show(index, bar);
-  },
-
-  // Hear a single bar's chord and select it on the wheel.
+  // Hear a single bar's chord (no wheel side-effect).
   hear(index) {
     const it = (st.history || [])[index];
     if (it && typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(it));
-    HistoryEngine.recall(index);
   },
 
   duplicateLast() {
@@ -248,62 +238,53 @@ const BuilderEngine = {
   },
 };
 
-// ── Per-bar toolbar (portaled to <body>) ──────────────
-// Move / hear / variants / duplicate / delete for one timeline bar. Lives on
-// <body> so the timeline's overflow can't clip it; flips above or below the bar
-// depending on available room.
-const BarToolbar = {
-  el: null, index: -1, visible: false,
-  _ensure() {
-    if (this.el) return this.el;
-    const d = document.createElement('div');
-    d.className = 'bar-tools';
-    document.body.appendChild(d);
-    this.el = d;
-    return d;
-  },
-  show(index, barEl) {
-    const el = this._ensure();
-    this.index = index;
-    el.innerHTML = `
-      <button class="step-tool" title="Move left"  onclick="BuilderEngine.move(${index},-1)">‹</button>
-      <button class="step-tool" title="Hear"       onclick="BuilderEngine.hear(${index})">♪</button>
-      <button class="step-tool wide" title="Chord variants" onclick="ChordVariants.openForBar(${index})">7 · sus · add</button>
-      <button class="step-tool" title="Duplicate"  onclick="BuilderEngine.duplicate(${index})">+</button>
-      <button class="step-tool danger" title="Delete" onclick="HistoryEngine.remove(${index})">×</button>
-      <button class="step-tool" title="Move right" onclick="BuilderEngine.move(${index},1)">›</button>`;
-    el.style.display = 'flex';
-    el.classList.add('show');
-    this.visible = true;
-    this._place(barEl);
-  },
-  _place(barEl) {
-    const el = this.el; if (!el || !barEl) return;
-    const r = barEl.getBoundingClientRect();
-    const tw = el.offsetWidth, th = el.offsetHeight;
-    let left = r.left + r.width / 2 - tw / 2;
-    left = Math.max(8, Math.min(left, innerWidth - tw - 8));
-    let top = r.top - th - 8;
-    if (top < 8) top = r.bottom + 8;        // flip below when there's no room above
-    el.style.left = left + 'px';
-    el.style.top  = top + 'px';
-  },
-  hide() {
-    if (!this.el) return;
-    this.el.classList.remove('show');
-    this.el.style.display = 'none';
-    this.visible = false;
-    this.index = -1;
+// ── Bar drag-to-reorder + tap (V4.5) ──────────────────
+// Drag a timeline bar sideways to reorder it freely; a tap (no drag) plays the
+// chord and opens its variant/settings chooser.
+const BarDrag = {
+  start(e, i) {
+    if (e.target.closest('.step-resize')) return;          // resize is its own gesture
+    const bar = e.currentTarget;
+    const row = document.getElementById('flowRow');
+    const startX = e.clientX;
+    let dragging = false, targetIndex = i;
+    try { bar.setPointerCapture(e.pointerId); } catch (_) {}
+
+    const move = ev => {
+      const dx = ev.clientX - startX;
+      if (!dragging && Math.abs(dx) > 6) { dragging = true; bar.classList.add('dragging'); }
+      if (!dragging) return;
+      ev.preventDefault();
+      bar.style.transform = `translateX(${dx}px) translateY(-3px) scale(1.04)`;
+      bar.style.zIndex = '5';
+      // Which slot is the bar's centre over?
+      const cx = bar.getBoundingClientRect().left + bar.offsetWidth / 2;
+      const others = [...row.querySelectorAll('.builder-step')].filter(b => b !== bar);
+      targetIndex = 0;
+      others.forEach(b => { const r = b.getBoundingClientRect(); if (cx > r.left + r.width / 2) targetIndex++; });
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      bar.classList.remove('dragging'); bar.style.transform = ''; bar.style.zIndex = '';
+      if (dragging) {
+        const h = st.history;
+        if (Array.isArray(h) && targetIndex !== i && targetIndex >= 0 && targetIndex < h.length) {
+          const [moved] = h.splice(i, 1);
+          h.splice(targetIndex, 0, moved);
+          HistoryEngine.render(); renderProgressionStory(); saveState();
+        }
+      } else {
+        // Tap → sound the chord + open its chooser.
+        const it = (st.history || [])[i];
+        if (it && typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(it));
+        if (typeof ChordVariants === 'object') ChordVariants.openForBar(i);
+      }
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
   },
 };
-
-// Dismiss the bar toolbar on outside tap or scroll.
-document.addEventListener('click', e => {
-  if (!BarToolbar.visible) return;
-  if (e.target.closest('.bar-tools') || e.target.closest('.builder-step')) return;
-  BarToolbar.hide();
-}, true);
-window.addEventListener('scroll', () => { if (BarToolbar.visible) BarToolbar.hide(); }, true);
 
 // ── Progression playback (V4.2) ───────────────────────
 // DAW-style: each chord rings for its own duration, a playhead sweeps the

@@ -76,23 +76,32 @@ const ChordVariants = {
   },
 
   _open(ctx, anchorEl) {
-    if (typeof BarToolbar === 'object') BarToolbar.hide();
+    if (this._outside) document.removeEventListener('click', this._outside, true);
     this.ctx = ctx;
     this._anchorRect = anchorEl ? anchorEl.getBoundingClientRect() : null;
     const el = this._ensure();
     const root = ctx.root;
+    const footer = ctx.kind === 'bar' ? `
+      <div class="cv-foot">
+        <button class="cv-act" onclick="ChordVariants._dup()">＋ Duplicate</button>
+        <button class="cv-act danger" onclick="ChordVariants._del()">× Delete</button>
+      </div>` : '';
     el.innerHTML = `
-      <div class="cv-head"><b>${ctx.degree}</b> · ${ctx.baseChord}<span class="cv-hint">tap a variant</span></div>
+      <div class="cv-head"><b>${casedRoman(ctx.degree, ctx.quality)}</b> · ${ctx.baseChord}<span class="cv-hint">${ctx.kind === 'bar' ? 'chord settings' : 'tap a variant'}</span></div>
       <div class="cv-grid">
         ${variantsFor(ctx.quality).map(v => `
           <button class="cv-chip${ctx.current === v.id ? ' active' : ''}" onclick="ChordVariants.pick('${v.id}')">
             ${root}${v.suf || ''}
           </button>`).join('')}
-      </div>`;
+      </div>${footer}`;
     el.style.display = 'block';
     this._place();
     requestAnimationFrame(() => el.classList.add('open'));
-    this._outside = e => { if (!e.target.closest('#chordVariants')) this.close(); };
+    // Ignore the originating tap (bars/bubbles handle their own opening).
+    this._outside = e => {
+      if (e.target.closest('#chordVariants') || e.target.closest('.builder-step') || e.target.closest('.next-bubble')) return;
+      this.close();
+    };
     setTimeout(() => document.addEventListener('click', this._outside, true), 0);
   },
 
@@ -127,6 +136,17 @@ const ChordVariants = {
       const it = (st.history || [])[ctx.barIdx];
       if (it) { it.variant = id; HistoryEngine.render(); renderProgressionStory(); saveState(); }
     }
+    this.close();
+  },
+
+  _dup() {
+    const ctx = this.ctx; if (!ctx || ctx.kind !== 'bar') return;
+    if (typeof BuilderEngine === 'object') BuilderEngine.duplicate(ctx.barIdx);
+    this.close();
+  },
+  _del() {
+    const ctx = this.ctx; if (!ctx || ctx.kind !== 'bar') return;
+    if (typeof HistoryEngine === 'object') HistoryEngine.remove(ctx.barIdx);
     this.close();
   },
 

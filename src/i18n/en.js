@@ -16,7 +16,7 @@ const I18N_EN = {
   'builder.subtitle':  'Tap a degree or bubble to add it to your progression.',
   'builder.play':      '▶ Play',
   'metro.title':       'Metronome',
-  'mode.advanced':     'Advanced mode — the tonic moves to a degree of this key signature. The <b>◎</b> on the wheel marks where your home note lands.',
+  'mode.advanced':     'Advanced mode — it recolours the <b>chords below</b> only. The circle stays on your Major/Minor key.',
   'builder.add':       'Add selected',
   'builder.duplicate': 'Duplicate',
   'builder.copy':      'Copy',
