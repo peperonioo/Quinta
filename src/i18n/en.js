@@ -19,6 +19,8 @@ const I18N_EN = {
   'builder.add':       'Add selected',
   'builder.duplicate': 'Duplicate',
   'builder.copy':      'Copy',
+  'builder.share':     '🔗 Share',
+  'builder.midi':      '↓ MIDI',
   'builder.clear':     'Clear',
   'builder.empty':     'No chords yet — tap a degree or a suggestion bubble.',
   'suggestions.title': 'Quick harmonic ideas',

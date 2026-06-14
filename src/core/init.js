@@ -158,6 +158,8 @@ function toggleTheme() {
 // App boot
 (function init() {
   MobileOptimizer.init();
+  // Restore a shared progression from the URL hash before the first render.
+  if (typeof applyShareFromURL === 'function') applyShareFromURL();
   // Single source of truth for the version (badge + title derive from APP_VERSION).
   const verEl = document.querySelector('.version');
   if (verEl) verEl.textContent = APP_VERSION;

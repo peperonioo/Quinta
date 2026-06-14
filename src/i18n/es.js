@@ -19,6 +19,8 @@ const I18N_ES = {
   'builder.add':       'Añadir seleccionado',
   'builder.duplicate': 'Duplicar',
   'builder.copy':      'Copiar',
+  'builder.share':     '🔗 Compartir',
+  'builder.midi':      '↓ MIDI',
   'builder.clear':     'Limpiar',
   'builder.empty':     'Sin acordes — toca un grado o una burbuja.',
   'suggestions.title': 'Ideas harmónicas',

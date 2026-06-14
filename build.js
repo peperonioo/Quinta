@@ -45,6 +45,8 @@ const JS_FILES = [
   'src/core/utils.js',
   // Audio engine (Web Audio synth) — uses utils at runtime
   'src/core/audio-engine.js',
+  // MIDI export + shareable-link state — uses audio-engine helpers at runtime
+  'src/core/export-share.js',
   // Harmony logic — pure, uses state/utils at runtime
   'src/theory/harmony-engine.js',
   'src/theory/suggestion-engine.js',

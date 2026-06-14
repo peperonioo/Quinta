@@ -258,10 +258,22 @@
 
     // ── Audio engine (V4.1) ──
     assert('AudioEngine exists', typeof AudioEngine === 'object' && typeof AudioEngine.playChord === 'function');
-    withState({ key:'C', mode:'ionian', wheelView:'major' }, () => {
+    withState({ key:'C', mode:'ionian', wheelView:'major', sevenths:false }, () => {
       assert('C major triad pitches are C–E–G', safe(() => chordPitchesForDegree(0).join(',') === '0,4,7', false), safe(() => chordPitchesForDegree(0), []));
       assert('ii is a minor triad (3rd = 3 semitones)', safe(() => { const p = chordPitchesForDegree(1); return p[1] - p[0] === 3; }, false));
       assert('vii° is a diminished triad (5th = 6 semitones)', safe(() => { const p = chordPitchesForDegree(6); return p[2] - p[0] === 6; }, false));
+    });
+
+    // ── Export & share (V4.2) ──
+    withState({ key:'C', mode:'ionian', wheelView:'major', bpm:100, sevenths:false,
+                history:[{ chord:'C', degree:'I', quality:'Maj', degreeIndex:0, key:'C', mode:'ionian', beats:2 }] }, () => {
+      assert('MIDI export has a valid MThd header',
+        safe(() => { const b = buildMIDI(); return !!b && String.fromCharCode(b[0], b[1], b[2], b[3]) === 'MThd'; }, false));
+      assert('Share link round-trips key + chords', safe(() => {
+        const m = buildShareURL().match(/#p=(.+)/); if (!m) return false;
+        const d = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/')))));
+        return d.k === 'C' && d.h.length === 1 && d.h[0][0] === 'C';
+      }, false));
     });
 
     // ── Overlay manager (Audit §8.2 / V3.21) ──
