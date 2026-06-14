@@ -43,15 +43,21 @@ function renderTheory() {
 
   // Major/minor toggle buttons (desktop + mobile share the data-view attr)
   const view = st.wheelView === 'minor' ? 'minor' : 'major';
-  document.querySelectorAll('.wheel-toggle [data-view]').forEach(b =>
-    b.classList.toggle('active', b.getAttribute('data-view') === view));
+  document.querySelectorAll('.wheel-toggle [data-view]').forEach(b => {
+    const on = b.getAttribute('data-view') === view;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
 
   // Degrees row — Roman numeral cased by quality (shared casedRoman helper).
   const dRow = document.getElementById('degrees'); if (!dRow) return;
   const chords = gc();
   dRow.innerHTML = chords.map((c, i) => `
     <div class="degree q-${(c.quality || '').toLowerCase()} ${i === 0 ? 'tonic' : ''} ${i === curDeg ? 'active-deg' : ''}"
+      role="button" tabindex="0"
+      aria-label="${casedRoman(c.degree, c.quality)}, ${c.chord} ${c.quality}"
       onclick="showDegreePopup(${i})"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showDegreePopup(${i})}"
       data-degree-index="${i}">
       <div class="roman">${casedRoman(c.degree, c.quality)}</div>
       <div class="dn">${c.chord}</div>

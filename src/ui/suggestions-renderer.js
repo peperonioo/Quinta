@@ -75,8 +75,10 @@ function _buildBubblesHTML() {
     const cat = friendlyCategory(it.transition?.category);
     return `<button class="next-bubble ${it.to === bestTo ? 'best' : ''}"
         style="--fit:${it.fit};--d:${d}px;--tier:${t}"
+        onpointerdown="SuggestionDrag.start(event,${it.to})"
         onclick="addSuggestion(${it.to},event)"
-        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap for variants">
+        aria-label="Add ${it.chord.chord} (${it.chord.degree}), ${it.fit}% fit. Drag onto the timeline to place it."
+        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap to add, drag to place">
       <span class="nb-deg">${casedRoman(it.chord.degree, it.chord.quality)}</span>
       <span class="nb-chord">${it.chord.chord}</span>
     </button>`;
@@ -96,16 +98,15 @@ function _buildBubblesHTML() {
   <div class="next-orbit">${bubbles}</div>`;
 }
 
-// ── Tap a suggestion → choose a variant (V4.4) ────────
-// Tapping a suggestion bubble opens the chord-variant chooser (Dynamic-Island
-// style). Picking a variant adds it to the progression and flies it into its
-// new pill. (The plain triad is the first chip for a one-extra-tap quick add.)
+// ── Tap a suggestion → quick add; drag → place (V4.6) ─
+// Tapping a bubble adds the chord at the end (with the fly-to-pill animation).
+// Variant choices live only in the progression builder, to keep the suggestion
+// flow fast. Dragging a bubble drops it at a position in the timeline (Klimper).
 function addSuggestion(to, ev) {
+  if (SuggestionDrag.suppressClick) return;        // a drag just handled this
   const bubble = ev?.currentTarget;
-  if (typeof ChordVariants === 'object') { ChordVariants.openForSuggestion(to, bubble); return; }
-  // Fallback (variants module missing): old direct quick-add.
-  const from  = bubble?.getBoundingClientRect();
-  const chord = bubble?.querySelector('.nb-chord')?.textContent || '';
+  const from   = bubble?.getBoundingClientRect();
+  const chord  = bubble?.querySelector('.nb-chord')?.textContent || '';
   if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(to));
   AppActions.selectDegree(to, { force: true });
   if (!from || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -115,6 +116,75 @@ function addSuggestion(to, ev) {
     if (target) _flyGhost(from, target, chord);
   });
 }
+
+// Drag a suggestion bubble onto the timeline to insert it at a position.
+const SuggestionDrag = {
+  suppressClick: false, _ghost: null, _target: -1,
+  start(e, to) {
+    const startX = e.clientX, startY = e.clientY;
+    const row = document.getElementById('flowRow');
+    let dragging = false;
+    const chord = gc()[to]?.chord || '';
+    const move = ev => {
+      if (!dragging && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 8) {
+        dragging = true;
+        this._ghost = document.createElement('div');
+        this._ghost.className = 'drag-ghost'; this._ghost.textContent = chord;
+        document.body.appendChild(this._ghost);
+      }
+      if (!dragging) return;
+      ev.preventDefault();
+      this._ghost.style.left = ev.clientX + 'px';
+      this._ghost.style.top  = ev.clientY + 'px';
+      this._target = this._insertIndex(row, ev.clientX, ev.clientY);
+      this._marker(row, this._target);
+    };
+    const up = ev => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      if (this._ghost) { this._ghost.remove(); this._ghost = null; }
+      this._clearMarker();
+      if (dragging) {
+        if (this._target >= 0) {
+          if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(to));
+          HistoryEngine.addDegree(to, { at: this._target });
+        }
+        this.suppressClick = true;
+        setTimeout(() => { this.suppressClick = false; }, 60);
+      }
+      this._target = -1;
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  },
+  // Where would a drop at (x,y) insert? Returns an index, or -1 if not over the row.
+  _insertIndex(row, x, y) {
+    if (!row) return -1;
+    const r = row.getBoundingClientRect();
+    if (y < r.top - 40 || y > r.bottom + 40 || x < r.left - 30 || x > r.right + 30) return -1;
+    const bars = [...row.querySelectorAll('.builder-step')];
+    let idx = bars.length;
+    for (let i = 0; i < bars.length; i++) {
+      const b = bars[i].getBoundingClientRect();
+      if (x < b.left + b.width / 2) { idx = i; break; }
+    }
+    return idx;
+  },
+  _marker(row, idx) {
+    if (!row) return;
+    let m = document.getElementById('dropMarker');
+    if (idx < 0) { if (m) m.style.display = 'none'; return; }
+    if (!m) { m = document.createElement('div'); m.id = 'dropMarker'; m.className = 'drop-marker'; row.appendChild(m); }
+    const bars = [...row.querySelectorAll('.builder-step')];
+    let left;
+    if (!bars.length) left = 4;
+    else if (idx >= bars.length) { const b = bars[bars.length - 1]; left = b.offsetLeft + b.offsetWidth + 2; }
+    else left = bars[idx].offsetLeft - 3;
+    m.style.display = 'block';
+    m.style.transform = `translateX(${left}px)`;
+  },
+  _clearMarker() { const m = document.getElementById('dropMarker'); if (m) m.style.display = 'none'; },
+};
 
 function _flyGhost(from, to, chord) {
   const g = document.createElement('div');

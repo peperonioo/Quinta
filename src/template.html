@@ -37,12 +37,12 @@
 
   <!-- METRONOME — Dynamic-Island-style bubble -->
   <div id="metronome">
-    <button class="metro-pill" onclick="Metronome.toggleOpen()" aria-label="Metronome">
-      <span class="metro-led"></span>
+    <button class="metro-pill" onclick="Metronome.toggleOpen()" aria-label="Metronome, open tempo controls" aria-expanded="false">
+      <span class="metro-led" aria-hidden="true"></span>
       <span class="metro-bpm">100</span>
       <span class="metro-unit">BPM</span>
     </button>
-    <div class="metro-panel">
+    <div class="metro-panel" role="dialog" aria-label="Metronome">
       <div class="metro-head">
         <span class="metro-title" data-i18n="metro.title">Metronome</span>
         <button class="metro-x" onclick="Metronome.toggleOpen()" aria-label="Close">✕</button>
@@ -80,7 +80,7 @@
           <div class="lbl" data-i18n="labels.keyRoot">Key / Root</div>
           <div id="sideKey" class="big">C</div>
           <div id="sideMode" class="sub">Major</div>
-          <div class="wheel-toggle" aria-label="Wheel label mode">
+          <div class="wheel-toggle" role="group" aria-label="Key tonality: major or minor">
             <button id="viewMajorBtn" class="active" data-view="major" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
             <button id="viewMinorBtn" data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
           </div>
@@ -153,7 +153,7 @@
     </div>
 
     <!-- Mobile-only Major/Minor toggle (the side cards are hidden on phones) -->
-    <div class="wheel-toggle wheel-toggle-mobile" aria-label="Wheel label mode">
+    <div class="wheel-toggle wheel-toggle-mobile" role="group" aria-label="Key tonality: major or minor">
       <button data-view="major" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
       <button data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
     </div>
@@ -189,8 +189,7 @@
           </div>
           <div class="builder-actions">
             <button class="builder-btn play" id="playProgBtn" onclick="toggleProgPlay()" data-i18n="builder.play">▶ Play</button>
-            <button class="builder-btn opt" id="countInBtn" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play">⏱</button>
-            <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
+            <button class="builder-btn opt" id="countInBtn" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false">⏱</button>
             <button class="builder-btn" onclick="shareProgression()" data-i18n="builder.share" title="Copy a shareable link">🔗 Share</button>
             <button class="builder-btn" onclick="exportMIDI()" data-i18n="builder.midi" title="Download as a MIDI file">↓ MIDI</button>
             <button class="builder-btn danger" onclick="HistoryEngine.clear()" data-i18n="builder.clear">Clear</button>
@@ -275,7 +274,7 @@
   </div>
 </div>
 
-<div id="copyToast" class="copy-toast"></div>
+<div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
 <!-- %%JS%% -->
 </body>
 </html>

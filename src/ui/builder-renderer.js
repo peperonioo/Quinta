@@ -49,7 +49,11 @@ const HistoryEngine = {
       __justAdded: true,
     };
     if (!Array.isArray(st.history)) st.history = [];
-    st.history.push(item);
+    if (Number.isInteger(opts.at) && opts.at >= 0 && opts.at <= st.history.length) {
+      st.history.splice(opts.at, 0, item);          // drop at a position (Klimper)
+    } else {
+      st.history.push(item);
+    }
     if (st.history.length > this.max) st.history = st.history.slice(-this.max);
     this.render();
     renderProgressionStory();
@@ -122,8 +126,10 @@ const HistoryEngine = {
     root.classList.add('is-timeline');
     root.innerHTML = h.map((it, i) => `
       <div data-uid="${it.uid || i}" data-i="${i}" class="builder-step" style="--beats:${it.beats}"
-        onpointerdown="BarDrag.start(event,${i})">
-        <span class="step-num">${i + 1}</span>
+        role="button" tabindex="0"
+        aria-label="${chordLabel(it)}, ${casedRoman(it.degree, it.quality)}, ${it.beats} beats. Enter for chord settings, Delete to remove."
+        onpointerdown="BarDrag.start(event,${i})" onkeydown="BarDrag.key(event,${i})">
+        <span class="step-num" aria-hidden="true">${i + 1}</span>
         <span class="step-chord">${chordLabel(it)}</span>
         <span class="step-sub"><span class="step-degree">${casedRoman(it.degree, it.quality)}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
         <span class="step-resize" title="Drag to set duration" onpointerdown="DurationDrag.start(event,${i})"></span>
@@ -283,6 +289,19 @@ const BarDrag = {
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
+  },
+
+  // Keyboard access for a bar: Enter/Space opens the chooser, Delete removes.
+  key(e, i) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const it = (st.history || [])[i];
+      if (it && typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(it));
+      if (typeof ChordVariants === 'object') ChordVariants.openForBar(i);
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      HistoryEngine.remove(i);
+    }
   },
 };
 

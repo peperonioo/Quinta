@@ -141,6 +141,15 @@ body.light #plasma { opacity:.3 }
 
 /* Smooth focus ring */
 :focus-visible { outline:2px solid var(--accent2); outline-offset:2px; border-radius:4px; }
+.degree:focus-visible, .builder-step:focus-visible, .next-bubble:focus-visible,
+.cv-chip:focus-visible, .tab-btn:focus-visible, [data-view]:focus-visible {
+  outline:2px solid var(--accent2); outline-offset:2px;
+}
+/* Screen-reader-only text */
+.sr-only {
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
 
 /* == layout.css == */
 /* ── LAYOUT ───────────────────────────────────────────*/
@@ -1150,44 +1159,58 @@ body.light .bar-tools .step-tool { background:rgba(0,0,0,.06) }
 }
 .bar-tools .step-tool.danger:hover { background:rgba(232,68,26,.24); color:#fff }
 
-/* ── Chord-variant chooser — Dynamic-Island vertical expand ── */
+/* ── Chord chooser — vertical: chips fan above & below the bar ── */
 .chord-variants {
   position:fixed; display:none; z-index:var(--z-modal, 9500);
-  width:min(252px, calc(100vw - 24px)); padding:10px 11px 9px; border-radius:18px;
-  background:rgba(14,14,18,.96); border:1px solid rgba(255,255,255,.14);
-  box-shadow:0 26px 70px rgba(0,0,0,.5); backdrop-filter:blur(26px); color:#f0ede8;
-  opacity:0; transform:scaleY(.3) scaleX(.88); transform-origin:center;
-  transition:opacity .18s var(--ease), transform .3s cubic-bezier(.34,1.45,.4,1);
+  width:78px; pointer-events:none; opacity:0;
+  transition:opacity .16s var(--ease);
 }
-body.light .chord-variants { background:rgba(255,255,255,.96); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
-.chord-variants.open { opacity:1; transform:none }
-.cv-head { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.06em; margin-bottom:8px; display:flex; align-items:baseline; gap:7px }
-.cv-head b { font-size:12px; color:var(--accent2) }
-.cv-hint { margin-left:auto; font-size:8px; opacity:.5; text-transform:uppercase; letter-spacing:.1em }
-.cv-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:5px }
+.chord-variants.open { opacity:1 }
+.cv-above, .cv-below { display:flex; flex-direction:column; align-items:stretch; gap:5px; pointer-events:none }
+.cv-above { opacity:0; transform:translateY(12px); transition:transform .26s cubic-bezier(.34,1.45,.4,1), opacity .2s }
+.cv-below { opacity:0; transform:translateY(-12px); transition:transform .26s cubic-bezier(.34,1.45,.4,1), opacity .2s }
+.chord-variants.open .cv-above, .chord-variants.open .cv-below { opacity:1; transform:none }
+.cv-mid { width:100%; pointer-events:none }            /* transparent gap over the bar */
 .cv-chip {
-  padding:8px 3px; border-radius:9px; cursor:pointer; color:inherit;
-  border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05);
+  pointer-events:auto; cursor:pointer; color:#f0ede8;
+  padding:7px 4px; border-radius:9px; text-align:center;
+  border:1px solid rgba(255,255,255,.14); background:rgba(16,16,20,.94);
+  backdrop-filter:blur(16px); box-shadow:0 6px 18px rgba(0,0,0,.34);
   font-family:'DM Serif Display',Georgia,serif; font-size:13px; line-height:1;
   transition:transform .12s var(--ui-ease), background .12s, border-color .12s;
 }
-body.light .cv-chip { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
-.cv-chip:hover  { transform:translateY(-2px); border-color:rgba(232,68,26,.5) }
+body.light .cv-chip { background:rgba(255,255,255,.95); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
+.cv-chip:hover  { transform:translateX(2px); border-color:rgba(232,68,26,.55) }
 .cv-chip.active { background:var(--accent); border-color:transparent; color:#fff }
-.cv-foot { display:flex; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid rgba(128,128,128,.18) }
+.cv-foot { display:flex; gap:5px; margin-top:2px }
 .cv-act {
-  flex:1; padding:7px 6px; border-radius:9px; cursor:pointer;
-  border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:inherit;
-  font-family:'DM Sans',sans-serif; font-size:10.5px; font-weight:600;
+  pointer-events:auto; flex:1; padding:6px 0; border-radius:9px; cursor:pointer;
+  border:1px solid rgba(255,255,255,.14); background:rgba(16,16,20,.94); color:#f0ede8;
+  box-shadow:0 6px 18px rgba(0,0,0,.34); font-size:13px; line-height:1;
 }
-body.light .cv-act { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
-.cv-act:hover { border-color:rgba(232,68,26,.45) }
-.cv-act.danger:hover { background:rgba(232,68,26,.2); color:#fff; border-color:transparent }
-@media (prefers-reduced-motion: reduce){ .chord-variants{ transition:opacity .15s } .chord-variants.open{ transform:none } }
+body.light .cv-act { background:rgba(255,255,255,.95); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
+.cv-act:hover { border-color:rgba(232,68,26,.5) }
+.cv-act.danger:hover { background:rgba(232,68,26,.85); color:#fff; border-color:transparent }
+@media (prefers-reduced-motion: reduce){
+  .cv-above, .cv-below { transition:opacity .15s; transform:none }
+}
 
 /* Bar being dragged to reorder */
 .builder-step.dragging { box-shadow:0 14px 36px rgba(0,0,0,.4); cursor:grabbing; transition:none; opacity:.95 }
 .builder-row.is-timeline .builder-step { cursor:grab; touch-action:pan-y }
+
+/* Drag-to-timeline (Klimper) — floating ghost + drop marker */
+.drag-ghost {
+  position:fixed; pointer-events:none; z-index:9999; transform:translate(-50%,-130%);
+  padding:6px 12px; border-radius:10px; background:var(--accent); color:#fff;
+  font-family:'DM Serif Display',Georgia,serif; font-size:17px; line-height:1;
+  box-shadow:0 12px 30px rgba(232,68,26,.5);
+}
+.drop-marker {
+  position:absolute; top:6px; bottom:8px; left:0; width:3px; border-radius:3px;
+  background:var(--accent); box-shadow:0 0 10px rgba(232,68,26,.85);
+  pointer-events:none; z-index:7;
+}
 
 /* == instruments.css == */
 /* ── INSTRUMENTS ─────────────────────────────────────*/
@@ -1422,12 +1445,12 @@ body.light .cv-act { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
 
   <!-- METRONOME — Dynamic-Island-style bubble -->
   <div id="metronome">
-    <button class="metro-pill" onclick="Metronome.toggleOpen()" aria-label="Metronome">
-      <span class="metro-led"></span>
+    <button class="metro-pill" onclick="Metronome.toggleOpen()" aria-label="Metronome, open tempo controls" aria-expanded="false">
+      <span class="metro-led" aria-hidden="true"></span>
       <span class="metro-bpm">100</span>
       <span class="metro-unit">BPM</span>
     </button>
-    <div class="metro-panel">
+    <div class="metro-panel" role="dialog" aria-label="Metronome">
       <div class="metro-head">
         <span class="metro-title" data-i18n="metro.title">Metronome</span>
         <button class="metro-x" onclick="Metronome.toggleOpen()" aria-label="Close">✕</button>
@@ -1465,7 +1488,7 @@ body.light .cv-act { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
           <div class="lbl" data-i18n="labels.keyRoot">Key / Root</div>
           <div id="sideKey" class="big">C</div>
           <div id="sideMode" class="sub">Major</div>
-          <div class="wheel-toggle" aria-label="Wheel label mode">
+          <div class="wheel-toggle" role="group" aria-label="Key tonality: major or minor">
             <button id="viewMajorBtn" class="active" data-view="major" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
             <button id="viewMinorBtn" data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
           </div>
@@ -1538,7 +1561,7 @@ body.light .cv-act { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
     </div>
 
     <!-- Mobile-only Major/Minor toggle (the side cards are hidden on phones) -->
-    <div class="wheel-toggle wheel-toggle-mobile" aria-label="Wheel label mode">
+    <div class="wheel-toggle wheel-toggle-mobile" role="group" aria-label="Key tonality: major or minor">
       <button data-view="major" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
       <button data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
     </div>
@@ -1574,8 +1597,7 @@ body.light .cv-act { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
           </div>
           <div class="builder-actions">
             <button class="builder-btn play" id="playProgBtn" onclick="toggleProgPlay()" data-i18n="builder.play">▶ Play</button>
-            <button class="builder-btn opt" id="countInBtn" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play">⏱</button>
-            <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
+            <button class="builder-btn opt" id="countInBtn" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false">⏱</button>
             <button class="builder-btn" onclick="shareProgression()" data-i18n="builder.share" title="Copy a shareable link">🔗 Share</button>
             <button class="builder-btn" onclick="exportMIDI()" data-i18n="builder.midi" title="Download as a MIDI file">↓ MIDI</button>
             <button class="builder-btn danger" onclick="HistoryEngine.clear()" data-i18n="builder.clear">Clear</button>
@@ -1660,14 +1682,14 @@ body.light .cv-act { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.1) }
   </div>
 </div>
 
-<div id="copyToast" class="copy-toast"></div>
+<div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
 // == constants.js ==
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V4.5';
+const APP_VERSION = 'V4.6';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -3818,15 +3840,21 @@ function renderTheory() {
 
   // Major/minor toggle buttons (desktop + mobile share the data-view attr)
   const view = st.wheelView === 'minor' ? 'minor' : 'major';
-  document.querySelectorAll('.wheel-toggle [data-view]').forEach(b =>
-    b.classList.toggle('active', b.getAttribute('data-view') === view));
+  document.querySelectorAll('.wheel-toggle [data-view]').forEach(b => {
+    const on = b.getAttribute('data-view') === view;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
 
   // Degrees row — Roman numeral cased by quality (shared casedRoman helper).
   const dRow = document.getElementById('degrees'); if (!dRow) return;
   const chords = gc();
   dRow.innerHTML = chords.map((c, i) => `
     <div class="degree q-${(c.quality || '').toLowerCase()} ${i === 0 ? 'tonic' : ''} ${i === curDeg ? 'active-deg' : ''}"
+      role="button" tabindex="0"
+      aria-label="${casedRoman(c.degree, c.quality)}, ${c.chord} ${c.quality}"
       onclick="showDegreePopup(${i})"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showDegreePopup(${i})}"
       data-degree-index="${i}">
       <div class="roman">${casedRoman(c.degree, c.quality)}</div>
       <div class="dn">${c.chord}</div>
@@ -3905,7 +3933,11 @@ const HistoryEngine = {
       __justAdded: true,
     };
     if (!Array.isArray(st.history)) st.history = [];
-    st.history.push(item);
+    if (Number.isInteger(opts.at) && opts.at >= 0 && opts.at <= st.history.length) {
+      st.history.splice(opts.at, 0, item);          // drop at a position (Klimper)
+    } else {
+      st.history.push(item);
+    }
     if (st.history.length > this.max) st.history = st.history.slice(-this.max);
     this.render();
     renderProgressionStory();
@@ -3978,8 +4010,10 @@ const HistoryEngine = {
     root.classList.add('is-timeline');
     root.innerHTML = h.map((it, i) => `
       <div data-uid="${it.uid || i}" data-i="${i}" class="builder-step" style="--beats:${it.beats}"
-        onpointerdown="BarDrag.start(event,${i})">
-        <span class="step-num">${i + 1}</span>
+        role="button" tabindex="0"
+        aria-label="${chordLabel(it)}, ${casedRoman(it.degree, it.quality)}, ${it.beats} beats. Enter for chord settings, Delete to remove."
+        onpointerdown="BarDrag.start(event,${i})" onkeydown="BarDrag.key(event,${i})">
+        <span class="step-num" aria-hidden="true">${i + 1}</span>
         <span class="step-chord">${chordLabel(it)}</span>
         <span class="step-sub"><span class="step-degree">${casedRoman(it.degree, it.quality)}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
         <span class="step-resize" title="Drag to set duration" onpointerdown="DurationDrag.start(event,${i})"></span>
@@ -4140,6 +4174,19 @@ const BarDrag = {
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
   },
+
+  // Keyboard access for a bar: Enter/Space opens the chooser, Delete removes.
+  key(e, i) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const it = (st.history || [])[i];
+      if (it && typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(it));
+      if (typeof ChordVariants === 'object') ChordVariants.openForBar(i);
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      HistoryEngine.remove(i);
+    }
+  },
 };
 
 // ── Progression playback (V4.2) ───────────────────────
@@ -4296,8 +4343,10 @@ function _buildBubblesHTML() {
     const cat = friendlyCategory(it.transition?.category);
     return `<button class="next-bubble ${it.to === bestTo ? 'best' : ''}"
         style="--fit:${it.fit};--d:${d}px;--tier:${t}"
+        onpointerdown="SuggestionDrag.start(event,${it.to})"
         onclick="addSuggestion(${it.to},event)"
-        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap for variants">
+        aria-label="Add ${it.chord.chord} (${it.chord.degree}), ${it.fit}% fit. Drag onto the timeline to place it."
+        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap to add, drag to place">
       <span class="nb-deg">${casedRoman(it.chord.degree, it.chord.quality)}</span>
       <span class="nb-chord">${it.chord.chord}</span>
     </button>`;
@@ -4317,16 +4366,15 @@ function _buildBubblesHTML() {
   <div class="next-orbit">${bubbles}</div>`;
 }
 
-// ── Tap a suggestion → choose a variant (V4.4) ────────
-// Tapping a suggestion bubble opens the chord-variant chooser (Dynamic-Island
-// style). Picking a variant adds it to the progression and flies it into its
-// new pill. (The plain triad is the first chip for a one-extra-tap quick add.)
+// ── Tap a suggestion → quick add; drag → place (V4.6) ─
+// Tapping a bubble adds the chord at the end (with the fly-to-pill animation).
+// Variant choices live only in the progression builder, to keep the suggestion
+// flow fast. Dragging a bubble drops it at a position in the timeline (Klimper).
 function addSuggestion(to, ev) {
+  if (SuggestionDrag.suppressClick) return;        // a drag just handled this
   const bubble = ev?.currentTarget;
-  if (typeof ChordVariants === 'object') { ChordVariants.openForSuggestion(to, bubble); return; }
-  // Fallback (variants module missing): old direct quick-add.
-  const from  = bubble?.getBoundingClientRect();
-  const chord = bubble?.querySelector('.nb-chord')?.textContent || '';
+  const from   = bubble?.getBoundingClientRect();
+  const chord  = bubble?.querySelector('.nb-chord')?.textContent || '';
   if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(to));
   AppActions.selectDegree(to, { force: true });
   if (!from || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -4336,6 +4384,75 @@ function addSuggestion(to, ev) {
     if (target) _flyGhost(from, target, chord);
   });
 }
+
+// Drag a suggestion bubble onto the timeline to insert it at a position.
+const SuggestionDrag = {
+  suppressClick: false, _ghost: null, _target: -1,
+  start(e, to) {
+    const startX = e.clientX, startY = e.clientY;
+    const row = document.getElementById('flowRow');
+    let dragging = false;
+    const chord = gc()[to]?.chord || '';
+    const move = ev => {
+      if (!dragging && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 8) {
+        dragging = true;
+        this._ghost = document.createElement('div');
+        this._ghost.className = 'drag-ghost'; this._ghost.textContent = chord;
+        document.body.appendChild(this._ghost);
+      }
+      if (!dragging) return;
+      ev.preventDefault();
+      this._ghost.style.left = ev.clientX + 'px';
+      this._ghost.style.top  = ev.clientY + 'px';
+      this._target = this._insertIndex(row, ev.clientX, ev.clientY);
+      this._marker(row, this._target);
+    };
+    const up = ev => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      if (this._ghost) { this._ghost.remove(); this._ghost = null; }
+      this._clearMarker();
+      if (dragging) {
+        if (this._target >= 0) {
+          if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(to));
+          HistoryEngine.addDegree(to, { at: this._target });
+        }
+        this.suppressClick = true;
+        setTimeout(() => { this.suppressClick = false; }, 60);
+      }
+      this._target = -1;
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  },
+  // Where would a drop at (x,y) insert? Returns an index, or -1 if not over the row.
+  _insertIndex(row, x, y) {
+    if (!row) return -1;
+    const r = row.getBoundingClientRect();
+    if (y < r.top - 40 || y > r.bottom + 40 || x < r.left - 30 || x > r.right + 30) return -1;
+    const bars = [...row.querySelectorAll('.builder-step')];
+    let idx = bars.length;
+    for (let i = 0; i < bars.length; i++) {
+      const b = bars[i].getBoundingClientRect();
+      if (x < b.left + b.width / 2) { idx = i; break; }
+    }
+    return idx;
+  },
+  _marker(row, idx) {
+    if (!row) return;
+    let m = document.getElementById('dropMarker');
+    if (idx < 0) { if (m) m.style.display = 'none'; return; }
+    if (!m) { m = document.createElement('div'); m.id = 'dropMarker'; m.className = 'drop-marker'; row.appendChild(m); }
+    const bars = [...row.querySelectorAll('.builder-step')];
+    let left;
+    if (!bars.length) left = 4;
+    else if (idx >= bars.length) { const b = bars[bars.length - 1]; left = b.offsetLeft + b.offsetWidth + 2; }
+    else left = bars[idx].offsetLeft - 3;
+    m.style.display = 'block';
+    m.style.transform = `translateX(${left}px)`;
+  },
+  _clearMarker() { const m = document.getElementById('dropMarker'); if (m) m.style.display = 'none'; },
+};
 
 function _flyGhost(from, to, chord) {
   const g = document.createElement('div');
@@ -4429,28 +4546,28 @@ function chordDisplay(it) {
   return root + (variantDef(it.quality, it.variant).suf || '');
 }
 
+// Chord chooser/settings for a builder bar. Compact vertical chooser: variant
+// chips fan ABOVE and BELOW the tapped bar (the bar itself stays visible and
+// tappable in the gap). Bars only — suggestions stay a fast tap-to-add.
 const ChordVariants = {
-  el: null, ctx: null, _anchorRect: null, _outside: null,
+  el: null, ctx: null, _anchorRect: null, _outside: null, _key: null,
 
   _ensure() {
     if (this.el) return this.el;
     const d = document.createElement('div');
     d.id = 'chordVariants';
     d.className = 'chord-variants';
+    d.setAttribute('role', 'menu');
+    d.setAttribute('aria-label', 'Chord variants and settings');
     document.body.appendChild(d);
     this.el = d;
     return d;
   },
 
-  openForSuggestion(degIdx, anchorEl) {
-    const c = gc()[degIdx]; if (!c) return;
-    this._open({ kind:'suggest', degIdx, quality:c.quality, root:c.note, baseChord:c.chord, degree:c.degree, current:'triad' }, anchorEl);
-  },
-
   openForBar(barIdx) {
     const it = (st.history || [])[barIdx]; if (!it) return;
     const bar = document.querySelector(`#flowRow .builder-step[data-i="${barIdx}"]`);
-    this._open({ kind:'bar', barIdx, quality:it.quality, root:chordRootOf(it), baseChord:it.chord, degree:it.degree, current:it.variant || 'triad' }, bar);
+    this._open({ barIdx, quality:it.quality, root:chordRootOf(it), baseChord:it.chord, degree:it.degree, current:it.variant || 'triad' }, bar);
   },
 
   _open(ctx, anchorEl) {
@@ -4459,37 +4576,47 @@ const ChordVariants = {
     this._anchorRect = anchorEl ? anchorEl.getBoundingClientRect() : null;
     const el = this._ensure();
     const root = ctx.root;
-    const footer = ctx.kind === 'bar' ? `
-      <div class="cv-foot">
-        <button class="cv-act" onclick="ChordVariants._dup()">＋ Duplicate</button>
-        <button class="cv-act danger" onclick="ChordVariants._del()">× Delete</button>
-      </div>` : '';
+    const list = variantsFor(ctx.quality);
+    const mid  = Math.ceil(list.length / 2);
+    const chip = v => `<button class="cv-chip${ctx.current === v.id ? ' active' : ''}" role="menuitemradio" aria-checked="${ctx.current === v.id}" onclick="ChordVariants.pick('${v.id}')">${root}${v.suf || ''}</button>`;
+    // top group sits above the bar (rendered so the nearest is closest to it)
+    const top = list.slice(0, mid).map(chip).join('');
+    const bot = list.slice(mid).map(chip).join('');
     el.innerHTML = `
-      <div class="cv-head"><b>${casedRoman(ctx.degree, ctx.quality)}</b> · ${ctx.baseChord}<span class="cv-hint">${ctx.kind === 'bar' ? 'chord settings' : 'tap a variant'}</span></div>
-      <div class="cv-grid">
-        ${variantsFor(ctx.quality).map(v => `
-          <button class="cv-chip${ctx.current === v.id ? ' active' : ''}" onclick="ChordVariants.pick('${v.id}')">
-            ${root}${v.suf || ''}
-          </button>`).join('')}
-      </div>${footer}`;
+      <div class="cv-above">${top}</div>
+      <div class="cv-mid" aria-hidden="true"></div>
+      <div class="cv-below">
+        ${bot}
+        <div class="cv-foot">
+          <button class="cv-act" onclick="ChordVariants._dup()" aria-label="Duplicate chord">＋</button>
+          <button class="cv-act danger" onclick="ChordVariants._del()" aria-label="Delete chord">×</button>
+        </div>
+      </div>`;
+    // size the gap to the bar so it shows through
+    const gap = el.querySelector('.cv-mid');
+    if (gap && this._anchorRect) gap.style.height = this._anchorRect.height + 'px';
     el.style.display = 'block';
     this._place();
     requestAnimationFrame(() => el.classList.add('open'));
-    // Ignore the originating tap (bars/bubbles handle their own opening).
     this._outside = e => {
-      if (e.target.closest('#chordVariants') || e.target.closest('.builder-step') || e.target.closest('.next-bubble')) return;
+      if (e.target.closest('#chordVariants') || e.target.closest('.builder-step')) return;
       this.close();
     };
     setTimeout(() => document.addEventListener('click', this._outside, true), 0);
+    this._key = e => { if (e.key === 'Escape') this.close(); };
+    document.addEventListener('keydown', this._key, true);
   },
 
   _place() {
     const el = this.el, r = this._anchorRect; if (!el) return;
-    const pad = 10, w = el.offsetWidth, h = el.offsetHeight;
+    const pad = 8, w = el.offsetWidth;
+    const above = el.querySelector('.cv-above');
+    const ah = above ? above.offsetHeight : 0;
     let left = r ? r.left + r.width / 2 - w / 2 : innerWidth / 2 - w / 2;
-    let top  = r ? r.top  + r.height / 2 - h / 2 : innerHeight / 2 - h / 2;   // centred → expands up & down
-    left = Math.max(pad, Math.min(left, innerWidth  - w - pad));
-    top  = Math.max(pad, Math.min(top,  innerHeight - h - pad));
+    // Align the transparent middle gap over the bar so it stays visible.
+    let top  = r ? r.top - ah : innerHeight / 2 - el.offsetHeight / 2;
+    left = Math.max(pad, Math.min(left, innerWidth - w - pad));
+    top  = Math.max(pad, Math.min(top, innerHeight - el.offsetHeight - pad));
     el.style.left = left + 'px';
     el.style.top  = top + 'px';
   },
@@ -4498,22 +4625,8 @@ const ChordVariants = {
     const ctx = this.ctx; if (!ctx) return;
     const rootPitch = ni(ctx.root);
     if (typeof AudioEngine === 'object') AudioEngine.playChord(variantDef(ctx.quality, id).iv.map(x => rootPitch + x));
-
-    if (ctx.kind === 'suggest') {
-      HistoryEngine.addDegree(ctx.degIdx, { variant: id });
-      // Fly the picked chip into the new pill, like the old quick-add.
-      if (this._anchorRect && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        const from = this._anchorRect;
-        requestAnimationFrame(() => {
-          const pill = document.querySelector('.builder-step:last-of-type');
-          const to = pill && pill.getBoundingClientRect();
-          if (to && typeof _flyGhost === 'function') _flyGhost(from, to, ctx.root + (variantDef(ctx.quality, id).suf || ''));
-        });
-      }
-    } else {
-      const it = (st.history || [])[ctx.barIdx];
-      if (it) { it.variant = id; HistoryEngine.render(); renderProgressionStory(); saveState(); }
-    }
+    const it = (st.history || [])[ctx.barIdx];
+    if (it) { it.variant = id; HistoryEngine.render(); renderProgressionStory(); saveState(); }
     this.close();
   },
 
@@ -4535,7 +4648,8 @@ const ChordVariants = {
       setTimeout(() => { if (el && !el.classList.contains('open')) el.style.display = 'none'; }, 220);
     }
     if (this._outside) document.removeEventListener('click', this._outside, true);
-    this._outside = null; this.ctx = null;
+    if (this._key) document.removeEventListener('keydown', this._key, true);
+    this._outside = null; this._key = null; this.ctx = null;
   },
 };
 
@@ -4654,6 +4768,13 @@ const Metronome = {
   toggleOpen() {
     this.open = !this.open;
     document.getElementById('metronome')?.classList.toggle('open', this.open);
+    document.querySelector('#metronome .metro-pill')?.setAttribute('aria-expanded', this.open ? 'true' : 'false');
+    if (this.open) {
+      this._esc = e => { if (e.key === 'Escape') this.toggleOpen(); };
+      document.addEventListener('keydown', this._esc, true);
+    } else if (this._esc) {
+      document.removeEventListener('keydown', this._esc, true); this._esc = null;
+    }
   },
   toggle() { this.playing ? this.stop() : this.start(); },
 

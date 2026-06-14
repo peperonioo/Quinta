@@ -51,28 +51,28 @@ function chordDisplay(it) {
   return root + (variantDef(it.quality, it.variant).suf || '');
 }
 
+// Chord chooser/settings for a builder bar. Compact vertical chooser: variant
+// chips fan ABOVE and BELOW the tapped bar (the bar itself stays visible and
+// tappable in the gap). Bars only — suggestions stay a fast tap-to-add.
 const ChordVariants = {
-  el: null, ctx: null, _anchorRect: null, _outside: null,
+  el: null, ctx: null, _anchorRect: null, _outside: null, _key: null,
 
   _ensure() {
     if (this.el) return this.el;
     const d = document.createElement('div');
     d.id = 'chordVariants';
     d.className = 'chord-variants';
+    d.setAttribute('role', 'menu');
+    d.setAttribute('aria-label', 'Chord variants and settings');
     document.body.appendChild(d);
     this.el = d;
     return d;
   },
 
-  openForSuggestion(degIdx, anchorEl) {
-    const c = gc()[degIdx]; if (!c) return;
-    this._open({ kind:'suggest', degIdx, quality:c.quality, root:c.note, baseChord:c.chord, degree:c.degree, current:'triad' }, anchorEl);
-  },
-
   openForBar(barIdx) {
     const it = (st.history || [])[barIdx]; if (!it) return;
     const bar = document.querySelector(`#flowRow .builder-step[data-i="${barIdx}"]`);
-    this._open({ kind:'bar', barIdx, quality:it.quality, root:chordRootOf(it), baseChord:it.chord, degree:it.degree, current:it.variant || 'triad' }, bar);
+    this._open({ barIdx, quality:it.quality, root:chordRootOf(it), baseChord:it.chord, degree:it.degree, current:it.variant || 'triad' }, bar);
   },
 
   _open(ctx, anchorEl) {
@@ -81,37 +81,47 @@ const ChordVariants = {
     this._anchorRect = anchorEl ? anchorEl.getBoundingClientRect() : null;
     const el = this._ensure();
     const root = ctx.root;
-    const footer = ctx.kind === 'bar' ? `
-      <div class="cv-foot">
-        <button class="cv-act" onclick="ChordVariants._dup()">＋ Duplicate</button>
-        <button class="cv-act danger" onclick="ChordVariants._del()">× Delete</button>
-      </div>` : '';
+    const list = variantsFor(ctx.quality);
+    const mid  = Math.ceil(list.length / 2);
+    const chip = v => `<button class="cv-chip${ctx.current === v.id ? ' active' : ''}" role="menuitemradio" aria-checked="${ctx.current === v.id}" onclick="ChordVariants.pick('${v.id}')">${root}${v.suf || ''}</button>`;
+    // top group sits above the bar (rendered so the nearest is closest to it)
+    const top = list.slice(0, mid).map(chip).join('');
+    const bot = list.slice(mid).map(chip).join('');
     el.innerHTML = `
-      <div class="cv-head"><b>${casedRoman(ctx.degree, ctx.quality)}</b> · ${ctx.baseChord}<span class="cv-hint">${ctx.kind === 'bar' ? 'chord settings' : 'tap a variant'}</span></div>
-      <div class="cv-grid">
-        ${variantsFor(ctx.quality).map(v => `
-          <button class="cv-chip${ctx.current === v.id ? ' active' : ''}" onclick="ChordVariants.pick('${v.id}')">
-            ${root}${v.suf || ''}
-          </button>`).join('')}
-      </div>${footer}`;
+      <div class="cv-above">${top}</div>
+      <div class="cv-mid" aria-hidden="true"></div>
+      <div class="cv-below">
+        ${bot}
+        <div class="cv-foot">
+          <button class="cv-act" onclick="ChordVariants._dup()" aria-label="Duplicate chord">＋</button>
+          <button class="cv-act danger" onclick="ChordVariants._del()" aria-label="Delete chord">×</button>
+        </div>
+      </div>`;
+    // size the gap to the bar so it shows through
+    const gap = el.querySelector('.cv-mid');
+    if (gap && this._anchorRect) gap.style.height = this._anchorRect.height + 'px';
     el.style.display = 'block';
     this._place();
     requestAnimationFrame(() => el.classList.add('open'));
-    // Ignore the originating tap (bars/bubbles handle their own opening).
     this._outside = e => {
-      if (e.target.closest('#chordVariants') || e.target.closest('.builder-step') || e.target.closest('.next-bubble')) return;
+      if (e.target.closest('#chordVariants') || e.target.closest('.builder-step')) return;
       this.close();
     };
     setTimeout(() => document.addEventListener('click', this._outside, true), 0);
+    this._key = e => { if (e.key === 'Escape') this.close(); };
+    document.addEventListener('keydown', this._key, true);
   },
 
   _place() {
     const el = this.el, r = this._anchorRect; if (!el) return;
-    const pad = 10, w = el.offsetWidth, h = el.offsetHeight;
+    const pad = 8, w = el.offsetWidth;
+    const above = el.querySelector('.cv-above');
+    const ah = above ? above.offsetHeight : 0;
     let left = r ? r.left + r.width / 2 - w / 2 : innerWidth / 2 - w / 2;
-    let top  = r ? r.top  + r.height / 2 - h / 2 : innerHeight / 2 - h / 2;   // centred → expands up & down
-    left = Math.max(pad, Math.min(left, innerWidth  - w - pad));
-    top  = Math.max(pad, Math.min(top,  innerHeight - h - pad));
+    // Align the transparent middle gap over the bar so it stays visible.
+    let top  = r ? r.top - ah : innerHeight / 2 - el.offsetHeight / 2;
+    left = Math.max(pad, Math.min(left, innerWidth - w - pad));
+    top  = Math.max(pad, Math.min(top, innerHeight - el.offsetHeight - pad));
     el.style.left = left + 'px';
     el.style.top  = top + 'px';
   },
@@ -120,22 +130,8 @@ const ChordVariants = {
     const ctx = this.ctx; if (!ctx) return;
     const rootPitch = ni(ctx.root);
     if (typeof AudioEngine === 'object') AudioEngine.playChord(variantDef(ctx.quality, id).iv.map(x => rootPitch + x));
-
-    if (ctx.kind === 'suggest') {
-      HistoryEngine.addDegree(ctx.degIdx, { variant: id });
-      // Fly the picked chip into the new pill, like the old quick-add.
-      if (this._anchorRect && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        const from = this._anchorRect;
-        requestAnimationFrame(() => {
-          const pill = document.querySelector('.builder-step:last-of-type');
-          const to = pill && pill.getBoundingClientRect();
-          if (to && typeof _flyGhost === 'function') _flyGhost(from, to, ctx.root + (variantDef(ctx.quality, id).suf || ''));
-        });
-      }
-    } else {
-      const it = (st.history || [])[ctx.barIdx];
-      if (it) { it.variant = id; HistoryEngine.render(); renderProgressionStory(); saveState(); }
-    }
+    const it = (st.history || [])[ctx.barIdx];
+    if (it) { it.variant = id; HistoryEngine.render(); renderProgressionStory(); saveState(); }
     this.close();
   },
 
@@ -157,6 +153,7 @@ const ChordVariants = {
       setTimeout(() => { if (el && !el.classList.contains('open')) el.style.display = 'none'; }, 220);
     }
     if (this._outside) document.removeEventListener('click', this._outside, true);
-    this._outside = null; this.ctx = null;
+    if (this._key) document.removeEventListener('keydown', this._key, true);
+    this._outside = null; this._key = null; this.ctx = null;
   },
 };
