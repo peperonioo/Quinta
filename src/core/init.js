@@ -204,6 +204,7 @@ function toggleTheme() {
   initWheelRoulette();
   WheelDirectionGuide.addInfoButton();
   if (typeof Metronome === 'object') Metronome.init();
+  if (typeof initPlayOpts === 'function') initPlayOpts();
 
   normalizeKeyState();
   RenderEngine.full();

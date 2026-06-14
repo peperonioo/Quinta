@@ -155,10 +155,12 @@ const AudioEngine = {
   },
 
   // pitches: array of relative semitones (0 = middle C). Tiny strum for life.
+  // An octave-down copy of the root is added for a fuller, rounder voicing.
   playChord(pitches, dur = 0.95, when = 0) {
     if (!this.resume() || !Array.isArray(pitches) || !pitches.length) return;
     const t0 = this.ctx.currentTime + when;
-    pitches.forEach((p, i) => this._voice(this._freq(p), t0 + i * 0.014, dur, 0.9));
+    const voiced = [pitches[0] - 12].concat(pitches);
+    voiced.forEach((p, i) => this._voice(this._freq(p), t0 + i * 0.014, dur, i === 0 ? 0.7 : 0.9));
   },
 
   playNote(pitch, dur = 0.7) {
@@ -181,7 +183,7 @@ const AudioEngine = {
   // at their cumulative beat offset and sustained for their own duration, so a
   // 4-beat chord rings four times as long as a 1-beat one. `secPerBeat` comes
   // from the metronome BPM. Returns { token, totalSec } for the playhead.
-  playTimeline(entries, secPerBeat = 0.5) {
+  playTimeline(entries, secPerBeat = 0.5, startOffset = 0) {
     if (!this.resume() || !Array.isArray(entries) || !entries.length) return { token: 0, totalSec: 0 };
     const token = ++this._playToken;
     let beatAcc = 0;
@@ -189,11 +191,20 @@ const AudioEngine = {
       const beats = Math.max(0.25, e.beats || 1);
       if (e.pitches && e.pitches.length) {
         const dur = Math.min(2.4, beats * secPerBeat * 0.96);
-        this.playChord(e.pitches, dur, beatAcc * secPerBeat);
+        this.playChord(e.pitches, dur, startOffset + beatAcc * secPerBeat);
       }
       beatAcc += beats;
     });
     return { token, totalSec: beatAcc * secPerBeat };
+  },
+
+  // Schedule a 1-bar (4-beat) metronome count-in starting now. Returns its
+  // length in seconds so the caller can delay the music + playhead.
+  countIn(secPerBeat = 0.5, beats = 4) {
+    if (!this.resume()) return 0;
+    const t = this.ctx.currentTime;
+    for (let i = 0; i < beats; i++) this.metroClick(i % 4 === 0, t + i * secPerBeat);
+    return beats * secPerBeat;
   },
 
   stop() {
@@ -220,17 +231,29 @@ function triadIntervals(quality) {
   return quality === 'Min' ? [0, 3, 7] : quality === 'Dim' ? [0, 3, 6] : [0, 4, 7];
 }
 
-// Pitches for the chord at degree `idx` of the current key/mode.
+// Triad, optionally extended to the diatonic seventh when st.sevenths is on.
+// The 7th is inferred from quality + Roman degree so V becomes a dominant 7
+// (Imaj7 iim7 iiim7 IVmaj7 V7 vim7 viiø7).
+function chordIntervalsFor(quality, degree) {
+  const tri = triadIntervals(quality);
+  if (typeof st !== 'object' || !st.sevenths) return tri;
+  const d = String(degree || '').replace(/[^IViv]/g, '').toUpperCase();
+  const sev = quality === 'Maj' ? (d === 'V' ? 10 : 11) : 10;   // dom7 vs maj7; min7/ø7 = 10
+  return tri.concat(sev);
+}
+
+// Pitches for the chord at degree `idx` of the current key/mode (core chord
+// tones, no doubling — the octave-down body is added at playback in playChord).
 function chordPitchesForDegree(idx) {
   const c = (typeof gc === 'function') && gc()[idx];
   if (!c) return [];
-  const root = ni(c.note);                       // 0–11
-  return triadIntervals(c.quality).map(iv => root + iv);
+  const root = ni(c.note);
+  return chordIntervalsFor(c.quality, c.degree).map(iv => root + iv);
 }
 
-// Pitches for a built progression item ({ degreeIndex, quality, note }).
+// Pitches for a built progression item ({ degreeIndex, quality, note, degree }).
 function chordPitchesForItem(item) {
   if (!item) return [];
   const root = ni(item.note != null ? item.note : item.chord.replace(/m|°/g, ''));
-  return triadIntervals(item.quality).map(iv => root + iv);
+  return chordIntervalsFor(item.quality, item.degree).map(iv => root + iv);
 }

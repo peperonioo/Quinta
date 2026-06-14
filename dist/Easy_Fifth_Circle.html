@@ -524,6 +524,9 @@ body.light #wheelDirectionGuide .dir-arrow { fill:rgba(20,20,20,.22) }
 .builder-btn:hover         { color:var(--ink); border-color:rgba(232,68,26,.34); transform:translateY(-1px) }
 .builder-btn.primary       { background:var(--degree-tonic); border-color:rgba(232,68,26,.28); color:var(--accent2) }
 .builder-btn.danger:hover  { background:rgba(232,68,26,.16); color:var(--accent2) }
+/* Playback-option toggles (7ths, count-in) */
+.builder-btn.opt           { min-width:34px; text-align:center }
+.builder-btn.opt.active    { background:var(--degree-tonic); border-color:rgba(232,68,26,.5); color:var(--accent2) }
 .builder-btn.icon          { width:26px; height:26px; padding:0; border-radius:50%; display:grid; place-items:center; font-size:12px }
 .builder-btn.play          { background:var(--accent); border-color:transparent; color:#fff; font-weight:600 }
 .builder-btn.play:hover    { color:#fff; border-color:transparent; box-shadow:0 4px 14px rgba(232,68,26,.32) }
@@ -1481,6 +1484,8 @@ body.light .metro-step { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04
           </div>
           <div class="builder-actions">
             <button class="builder-btn play" id="playProgBtn" onclick="toggleProgPlay()" data-i18n="builder.play">▶ Play</button>
+            <button class="builder-btn opt" id="seventhsBtn" onclick="togglePlayOpt('sevenths',this)" title="Play seventh chords">7ths</button>
+            <button class="builder-btn opt" id="countInBtn" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play">⏱</button>
             <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
             <button class="builder-btn" onclick="BuilderEngine.duplicateLast()" data-i18n="builder.duplicate">Duplicate</button>
             <button class="builder-btn" onclick="BuilderEngine.copy()" data-i18n="builder.copy">Copy</button>
@@ -1628,6 +1633,7 @@ const defaultState = {
   key:'C', mode:'ionian', theme:'dark', genre:'house',
   palette:0, intensity:1, wheelView:'major', lang:'en',
   history:[], mood:'balanced', bpm:100,
+  sevenths:false, countIn:false,
 };
 
 
@@ -2154,10 +2160,12 @@ const AudioEngine = {
   },
 
   // pitches: array of relative semitones (0 = middle C). Tiny strum for life.
+  // An octave-down copy of the root is added for a fuller, rounder voicing.
   playChord(pitches, dur = 0.95, when = 0) {
     if (!this.resume() || !Array.isArray(pitches) || !pitches.length) return;
     const t0 = this.ctx.currentTime + when;
-    pitches.forEach((p, i) => this._voice(this._freq(p), t0 + i * 0.014, dur, 0.9));
+    const voiced = [pitches[0] - 12].concat(pitches);
+    voiced.forEach((p, i) => this._voice(this._freq(p), t0 + i * 0.014, dur, i === 0 ? 0.7 : 0.9));
   },
 
   playNote(pitch, dur = 0.7) {
@@ -2180,7 +2188,7 @@ const AudioEngine = {
   // at their cumulative beat offset and sustained for their own duration, so a
   // 4-beat chord rings four times as long as a 1-beat one. `secPerBeat` comes
   // from the metronome BPM. Returns { token, totalSec } for the playhead.
-  playTimeline(entries, secPerBeat = 0.5) {
+  playTimeline(entries, secPerBeat = 0.5, startOffset = 0) {
     if (!this.resume() || !Array.isArray(entries) || !entries.length) return { token: 0, totalSec: 0 };
     const token = ++this._playToken;
     let beatAcc = 0;
@@ -2188,11 +2196,20 @@ const AudioEngine = {
       const beats = Math.max(0.25, e.beats || 1);
       if (e.pitches && e.pitches.length) {
         const dur = Math.min(2.4, beats * secPerBeat * 0.96);
-        this.playChord(e.pitches, dur, beatAcc * secPerBeat);
+        this.playChord(e.pitches, dur, startOffset + beatAcc * secPerBeat);
       }
       beatAcc += beats;
     });
     return { token, totalSec: beatAcc * secPerBeat };
+  },
+
+  // Schedule a 1-bar (4-beat) metronome count-in starting now. Returns its
+  // length in seconds so the caller can delay the music + playhead.
+  countIn(secPerBeat = 0.5, beats = 4) {
+    if (!this.resume()) return 0;
+    const t = this.ctx.currentTime;
+    for (let i = 0; i < beats; i++) this.metroClick(i % 4 === 0, t + i * secPerBeat);
+    return beats * secPerBeat;
   },
 
   stop() {
@@ -2219,19 +2236,31 @@ function triadIntervals(quality) {
   return quality === 'Min' ? [0, 3, 7] : quality === 'Dim' ? [0, 3, 6] : [0, 4, 7];
 }
 
-// Pitches for the chord at degree `idx` of the current key/mode.
+// Triad, optionally extended to the diatonic seventh when st.sevenths is on.
+// The 7th is inferred from quality + Roman degree so V becomes a dominant 7
+// (Imaj7 iim7 iiim7 IVmaj7 V7 vim7 viiø7).
+function chordIntervalsFor(quality, degree) {
+  const tri = triadIntervals(quality);
+  if (typeof st !== 'object' || !st.sevenths) return tri;
+  const d = String(degree || '').replace(/[^IViv]/g, '').toUpperCase();
+  const sev = quality === 'Maj' ? (d === 'V' ? 10 : 11) : 10;   // dom7 vs maj7; min7/ø7 = 10
+  return tri.concat(sev);
+}
+
+// Pitches for the chord at degree `idx` of the current key/mode (core chord
+// tones, no doubling — the octave-down body is added at playback in playChord).
 function chordPitchesForDegree(idx) {
   const c = (typeof gc === 'function') && gc()[idx];
   if (!c) return [];
-  const root = ni(c.note);                       // 0–11
-  return triadIntervals(c.quality).map(iv => root + iv);
+  const root = ni(c.note);
+  return chordIntervalsFor(c.quality, c.degree).map(iv => root + iv);
 }
 
-// Pitches for a built progression item ({ degreeIndex, quality, note }).
+// Pitches for a built progression item ({ degreeIndex, quality, note, degree }).
 function chordPitchesForItem(item) {
   if (!item) return [];
   const root = ni(item.note != null ? item.note : item.chord.replace(/m|°/g, ''));
-  return triadIntervals(item.quality).map(iv => root + iv);
+  return chordIntervalsFor(item.quality, item.degree).map(iv => root + iv);
 }
 
 
@@ -3717,6 +3746,21 @@ function toggleProgPlay() {
   else playProgression();
 }
 
+// Playback option toggles (7th chords, count-in). Persisted in state.
+function togglePlayOpt(key, el) {
+  st[key] = !st[key]; saveState();
+  if (el) el.classList.toggle('active', !!st[key]);
+  // Preview the 7ths change on the currently selected chord.
+  if (key === 'sevenths' && curDeg >= 0 && typeof AudioEngine === 'object')
+    AudioEngine.playChord(chordPitchesForDegree(curDeg));
+}
+
+// Reflect persisted option state on the toggle buttons at boot.
+function initPlayOpts() {
+  const s = document.getElementById('seventhsBtn'); if (s) s.classList.toggle('active', !!st.sevenths);
+  const c = document.getElementById('countInBtn');  if (c) c.classList.toggle('active', !!st.countIn);
+}
+
 function playProgression() {
   if (typeof AudioEngine !== 'object') return;
   const h = Array.isArray(st.history) ? st.history : [];
@@ -3728,7 +3772,8 @@ function playProgression() {
 
   const secPerBeat = 60 / (st.bpm || 100);                  // synced to the metronome BPM
   const entries = h.map(it => ({ pitches: chordPitchesForItem(it), beats: Math.max(1, it.beats || 2) }));
-  const { totalSec } = AudioEngine.playTimeline(entries, secPerBeat);
+  const leadSec = st.countIn ? AudioEngine.countIn(secPerBeat) : 0;   // optional 1-bar count-in
+  const { totalSec } = AudioEngine.playTimeline(entries, secPerBeat, leadSec);
   setProgBtn(true);
 
   const root  = document.getElementById('flowRow');
@@ -3737,9 +3782,10 @@ function playProgression() {
   let acc = 0; const starts = entries.map(e => { const s = acc; acc += e.beats; return s; });
 
   if (ph) ph.classList.add('on');
-  const t0 = performance.now();
+  const t0 = performance.now() + leadSec * 1000;       // wait out the count-in before sweeping
   const frame = () => {
     const elapsed = (performance.now() - t0) / 1000;
+    if (elapsed < 0) { _progRAF = requestAnimationFrame(frame); return; }   // count-in: hold at start
     const beatPos = elapsed / secPerBeat;
     let cur = 0; for (let k = 0; k < starts.length; k++) if (beatPos >= starts[k]) cur = k;
     const bar = bars[cur];
@@ -4710,6 +4756,7 @@ function toggleTheme() {
   initWheelRoulette();
   WheelDirectionGuide.addInfoButton();
   if (typeof Metronome === 'object') Metronome.init();
+  if (typeof initPlayOpts === 'function') initPlayOpts();
 
   normalizeKeyState();
   RenderEngine.full();

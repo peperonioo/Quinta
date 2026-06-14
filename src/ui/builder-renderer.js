@@ -270,6 +270,21 @@ function toggleProgPlay() {
   else playProgression();
 }
 
+// Playback option toggles (7th chords, count-in). Persisted in state.
+function togglePlayOpt(key, el) {
+  st[key] = !st[key]; saveState();
+  if (el) el.classList.toggle('active', !!st[key]);
+  // Preview the 7ths change on the currently selected chord.
+  if (key === 'sevenths' && curDeg >= 0 && typeof AudioEngine === 'object')
+    AudioEngine.playChord(chordPitchesForDegree(curDeg));
+}
+
+// Reflect persisted option state on the toggle buttons at boot.
+function initPlayOpts() {
+  const s = document.getElementById('seventhsBtn'); if (s) s.classList.toggle('active', !!st.sevenths);
+  const c = document.getElementById('countInBtn');  if (c) c.classList.toggle('active', !!st.countIn);
+}
+
 function playProgression() {
   if (typeof AudioEngine !== 'object') return;
   const h = Array.isArray(st.history) ? st.history : [];
@@ -281,7 +296,8 @@ function playProgression() {
 
   const secPerBeat = 60 / (st.bpm || 100);                  // synced to the metronome BPM
   const entries = h.map(it => ({ pitches: chordPitchesForItem(it), beats: Math.max(1, it.beats || 2) }));
-  const { totalSec } = AudioEngine.playTimeline(entries, secPerBeat);
+  const leadSec = st.countIn ? AudioEngine.countIn(secPerBeat) : 0;   // optional 1-bar count-in
+  const { totalSec } = AudioEngine.playTimeline(entries, secPerBeat, leadSec);
   setProgBtn(true);
 
   const root  = document.getElementById('flowRow');
@@ -290,9 +306,10 @@ function playProgression() {
   let acc = 0; const starts = entries.map(e => { const s = acc; acc += e.beats; return s; });
 
   if (ph) ph.classList.add('on');
-  const t0 = performance.now();
+  const t0 = performance.now() + leadSec * 1000;       // wait out the count-in before sweeping
   const frame = () => {
     const elapsed = (performance.now() - t0) / 1000;
+    if (elapsed < 0) { _progRAF = requestAnimationFrame(frame); return; }   // count-in: hold at start
     const beatPos = elapsed / secPerBeat;
     let cur = 0; for (let k = 0; k < starts.length; k++) if (beatPos >= starts[k]) cur = k;
     const bar = bars[cur];

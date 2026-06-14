@@ -56,4 +56,5 @@ const defaultState = {
   key:'C', mode:'ionian', theme:'dark', genre:'house',
   palette:0, intensity:1, wheelView:'major', lang:'en',
   history:[], mood:'balanced', bpm:100,
+  sevenths:false, countIn:false,
 };

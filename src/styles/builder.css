@@ -21,6 +21,9 @@
 .builder-btn:hover         { color:var(--ink); border-color:rgba(232,68,26,.34); transform:translateY(-1px) }
 .builder-btn.primary       { background:var(--degree-tonic); border-color:rgba(232,68,26,.28); color:var(--accent2) }
 .builder-btn.danger:hover  { background:rgba(232,68,26,.16); color:var(--accent2) }
+/* Playback-option toggles (7ths, count-in) */
+.builder-btn.opt           { min-width:34px; text-align:center }
+.builder-btn.opt.active    { background:var(--degree-tonic); border-color:rgba(232,68,26,.5); color:var(--accent2) }
 .builder-btn.icon          { width:26px; height:26px; padding:0; border-radius:50%; display:grid; place-items:center; font-size:12px }
 .builder-btn.play          { background:var(--accent); border-color:transparent; color:#fff; font-weight:600 }
 .builder-btn.play:hover    { color:#fff; border-color:transparent; box-shadow:0 4px 14px rgba(232,68,26,.32) }

@@ -184,6 +184,8 @@
           </div>
           <div class="builder-actions">
             <button class="builder-btn play" id="playProgBtn" onclick="toggleProgPlay()" data-i18n="builder.play">▶ Play</button>
+            <button class="builder-btn opt" id="seventhsBtn" onclick="togglePlayOpt('sevenths',this)" title="Play seventh chords">7ths</button>
+            <button class="builder-btn opt" id="countInBtn" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play">⏱</button>
             <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
             <button class="builder-btn" onclick="BuilderEngine.duplicateLast()" data-i18n="builder.duplicate">Duplicate</button>
             <button class="builder-btn" onclick="BuilderEngine.copy()" data-i18n="builder.copy">Copy</button>
