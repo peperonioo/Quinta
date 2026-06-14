@@ -5,18 +5,21 @@
     font-size:15px;
   }
   .app {
-    padding:calc(12px + var(--mobile-safe-top)) 14px calc(22px + var(--mobile-safe-bottom));
+    padding:calc(10px + var(--mobile-safe-top)) 8px calc(22px + var(--mobile-safe-bottom));
     max-width:100%;
-    padding-inline:14px !important;
+    padding-inline:8px !important;
   }
   .topbar         { gap:10px; margin-bottom:10px; align-items:flex-start }
   .brand h1       { font-size:10px; letter-spacing:.1em }
   .version        { font-size:9px; padding:2px 5px }
   .tabs           { border-radius:14px; padding:3px }
   .tab-btn        { padding:8px 12px; font-size:11px }
-  .main-row       { grid-template-columns:1fr; gap:8px; margin-bottom:10px }
+  .main-row       { grid-template-columns:1fr; gap:6px; margin-bottom:8px }
   .side           { display:none }
   .circle-wrap    { order:0 }
+  /* The wheel is the protagonist on mobile — make it big */
+  #wheelSvg       { width:min(97vw,560px) !important; height:min(97vw,560px) !important;
+                    filter:drop-shadow(0 8px 26px rgba(0,0,0,.32)) }
   /* Surface the Major/Minor toggle on mobile (the side cards are hidden) */
   .wheel-toggle-mobile { display:flex; width:min(260px,80vw); margin:12px auto 2px }
   .wheel-toggle-mobile button { font-size:12px; padding:9px 8px }

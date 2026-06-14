@@ -3,7 +3,7 @@
 // progression. Lazily creates the AudioContext on the first user gesture.
 
 const AudioEngine = {
-  ctx: null, master: null, wet: null, _playToken: 0,
+  ctx: null, master: null, wet: null, _playToken: 0, _iosEl: null,
 
   _ensure() {
     if (this.ctx) return true;
@@ -13,12 +13,30 @@ const AudioEngine = {
     const ctx = this.ctx;
     this.master = ctx.createGain();
     this.master.gain.value = 0.32;
-    // A soft reverb tail for a calmer, more "instrument" feel.
     const conv = ctx.createConvolver();
     conv.buffer = this._impulse(1.7, 2.6);
     this.wet = ctx.createGain(); this.wet.gain.value = 0.20;
-    this.master.connect(ctx.destination);
-    this.master.connect(conv); conv.connect(this.wet); this.wet.connect(ctx.destination);
+
+    // Output routing. On iOS, route the whole mix through an <audio> element
+    // (via a MediaStreamDestination). iOS plays HTMLMediaElements on the media
+    // channel, which lets audio sound even with the ringer/silent switch on —
+    // Web Audio straight to ctx.destination is muted by that switch.
+    const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    let out = ctx.destination;
+    if (isIOS && ctx.createMediaStreamDestination) {
+      try {
+        const msd = ctx.createMediaStreamDestination();
+        const el = document.createElement('audio');
+        el.srcObject = msd.stream;
+        el.setAttribute('playsinline', ''); el.loop = true; el.autoplay = true;
+        document.body.appendChild(el);
+        this._iosEl = el;
+        out = msd;
+      } catch (_) { out = ctx.destination; }
+    }
+    this.master.connect(out);
+    this.master.connect(conv); conv.connect(this.wet); this.wet.connect(out);
     return true;
   },
 
@@ -36,10 +54,42 @@ const AudioEngine = {
   resume() {
     if (!this._ensure()) return false;
     if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this._iosEl) { try { this._iosEl.play(); } catch (_) {} }
     return true;
   },
 
   ready() { return !!this.ctx; },
+
+  // A short percussive blip — used as the wheel "tick" on each key crossing.
+  tick(freq = 1150, vol = 0.16) {
+    if (!this.resume()) return;
+    const ctx = this.ctx, t0 = ctx.currentTime;
+    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+    const g = ctx.createGain();
+    o.connect(g); g.connect(this.master);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06);
+    o.start(t0); o.stop(t0 + 0.08);
+  },
+
+  // A soft pleasant shimmer when the wheel is flicked hard.
+  swoosh(intensity = 1) {
+    if (!this.resume()) return;
+    const ctx = this.ctx, t0 = ctx.currentTime, dur = 0.45;
+    [0, 7, 12].forEach((semi, i) => {
+      const o = ctx.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(this._freq(semi - 5), t0);
+      o.frequency.exponentialRampToValueAtTime(this._freq(semi + 7 + 3 * intensity), t0 + dur);
+      const g = ctx.createGain();
+      o.connect(g); g.connect(this.master);
+      const v = 0.05 * Math.min(1, intensity);
+      g.gain.setValueAtTime(0.0001, t0 + i * 0.02);
+      g.gain.exponentialRampToValueAtTime(v, t0 + 0.06 + i * 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.start(t0 + i * 0.02); o.stop(t0 + dur + 0.05);
+    });
+  },
 
   _freq(pitch) { return 261.63 * Math.pow(2, pitch / 12); }, // pitch 0 = middle C
 

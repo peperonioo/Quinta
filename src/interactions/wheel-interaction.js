@@ -4,6 +4,9 @@
 let spinAnim = null;
 let wheelDrag = null;
 let suppressWheelClick = false;
+let _lastTopIdx = -1, _lastTickT = 0;
+
+function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {} }
 
 function wheelPointerAngle(e) {
   const svg   = document.getElementById('wheelSvg');
@@ -20,6 +23,19 @@ function applyWheelRotation(rot) {
   const grp = document.getElementById('wg');
   if (grp) grp.setAttribute('transform', `rotate(${rot},300,300)`);
   syncWheelLabels(rot);
+  // Ratchet feel: a soft tick + haptic each time a new key passes the top,
+  // only while the user is driving the wheel (drag or momentum).
+  if (wheelDrag || spinAnim) {
+    const idx = nearestFifthIndex(rot);
+    if (idx !== _lastTopIdx) {
+      _lastTopIdx = idx;
+      haptic(4);
+      const now = performance.now();
+      if (typeof AudioEngine === 'object' && now - _lastTickT > 32) {
+        AudioEngine.tick(1150, 0.05); _lastTickT = now;
+      }
+    }
+  }
 }
 
 function updatePanelsAfterSpin() {
@@ -34,6 +50,10 @@ function settleWheelFrom(rot, velocity) {
   // residual motion carries before snapping to the nearest key. A small gain
   // on the release velocity makes a flick "throw" the wheel further.
   const DECEL = 0.984, SNAP_SPEED = 0.22, MAX_V = 54, GAIN = 1.3;
+  // A pleasant shimmer when the wheel is thrown hard.
+  if (typeof AudioEngine === 'object' && Math.abs(velocity) > 13) {
+    AudioEngine.swoosh(Math.min(2, Math.abs(velocity) / 20));
+  }
   let v = Math.max(-MAX_V, Math.min(MAX_V, velocity * GAIN));
   let r = rot;
   function step() {
@@ -47,7 +67,7 @@ function settleWheelFrom(rot, velocity) {
         const e = 1 - Math.pow(1 - p, 3);
         applyWheelRotation(r0 + delta * e);
         if (p < 1) spinAnim = requestAnimationFrame(snap);
-        else { applyWheelRotation(target); updatePanelsAfterSpin(); }
+        else { applyWheelRotation(target); haptic(12); updatePanelsAfterSpin(); }
       }
       spinAnim = requestAnimationFrame(snap);
       return;
