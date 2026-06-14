@@ -37,6 +37,10 @@ const AudioEngine = {
     }
     this.master.connect(out);
     this.master.connect(conv); conv.connect(this.wet); this.wet.connect(out);
+    // Dry bus — straight to the output, no reverb. Used by the metronome so the
+    // click stays tight and mechanical instead of washy.
+    this.dry = ctx.createGain(); this.dry.gain.value = 0.9;
+    this.dry.connect(out);
     return true;
   },
 
@@ -87,16 +91,17 @@ const AudioEngine = {
     const bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
     bp.frequency.value = accent ? 2700 : 1950; bp.Q.value = 1.1;
     const ng = ctx.createGain(); ng.gain.value = accent ? 0.5 : 0.34;
-    src.connect(bp); bp.connect(ng); ng.connect(this.master);
+    const bus = this.dry || this.master;          // dry → no reverb wash
+    src.connect(bp); bp.connect(ng); ng.connect(bus);
     src.start(t0);
-    // a pitched body so it reads as a "tock"
+    // a pitched body so it reads as a "tock" — short and dry
     const o = ctx.createOscillator(); o.type = 'sine';
     o.frequency.value = accent ? 2050 : 1550;
-    const og = ctx.createGain(); o.connect(og); og.connect(this.master);
+    const og = ctx.createGain(); o.connect(og); og.connect(bus);
     og.gain.setValueAtTime(0.0001, t0);
     og.gain.exponentialRampToValueAtTime(accent ? 0.32 : 0.2, t0 + 0.001);
-    og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.045);
-    o.start(t0); o.stop(t0 + 0.06);
+    og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.032);   // tighter decay = drier
+    o.start(t0); o.stop(t0 + 0.045);
   },
 
   now() { return this.ctx ? this.ctx.currentTime : 0; },

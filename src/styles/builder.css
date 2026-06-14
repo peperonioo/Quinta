@@ -24,6 +24,10 @@
 .builder-btn.icon          { width:26px; height:26px; padding:0; border-radius:50%; display:grid; place-items:center; font-size:12px }
 .builder-btn.play          { background:var(--accent); border-color:transparent; color:#fff; font-weight:600 }
 .builder-btn.play:hover    { color:#fff; border-color:transparent; box-shadow:0 4px 14px rgba(232,68,26,.32) }
+/* While playing, the same button becomes a Stop control */
+.builder-btn.play.is-stop      { background:#2a2a31; color:#fff }
+body.light .builder-btn.play.is-stop { background:#3a3a42; color:#fff }
+.builder-btn.play.is-stop:hover{ box-shadow:0 4px 14px rgba(0,0,0,.28) }
 /* Pill lit by the playback playhead */
 .builder-step.playing {
   border-color:rgba(232,68,26,.8) !important;

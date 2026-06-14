@@ -9,11 +9,17 @@
     max-width:100%;
     padding-inline:8px !important;
   }
-  .topbar         { gap:10px; margin-bottom:10px; align-items:flex-start }
-  .brand h1       { font-size:10px; letter-spacing:.1em }
+  .topbar         { gap:8px; margin-bottom:10px; align-items:center; flex-wrap:nowrap }
+  /* Logo + version stay; the wordmark is dropped so the Theory/Production tabs
+     never clip off the right edge on narrow phones. */
+  .brand h1       { display:none }
+  .brand          { gap:7px; flex:0 0 auto }
   .version        { font-size:9px; padding:2px 5px }
-  .tabs           { border-radius:14px; padding:3px }
-  .tab-btn        { padding:8px 12px; font-size:11px }
+  .topbar-right   { gap:7px; flex:1 1 auto; justify-content:flex-end; min-width:0 }
+  .settings-mini  { padding:4px 6px }
+  .settings-mini span { display:none }   /* the EN/ES value alone is clear enough */
+  .tabs           { border-radius:14px; padding:3px; flex:0 0 auto }
+  .tab-btn        { padding:8px 11px; font-size:11px }
   .main-row       { grid-template-columns:1fr; gap:6px; margin-bottom:8px }
   .side           { display:none }
   .circle-wrap    { order:0 }

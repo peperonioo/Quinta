@@ -527,6 +527,10 @@ body.light #wheelDirectionGuide .dir-arrow { fill:rgba(20,20,20,.22) }
 .builder-btn.icon          { width:26px; height:26px; padding:0; border-radius:50%; display:grid; place-items:center; font-size:12px }
 .builder-btn.play          { background:var(--accent); border-color:transparent; color:#fff; font-weight:600 }
 .builder-btn.play:hover    { color:#fff; border-color:transparent; box-shadow:0 4px 14px rgba(232,68,26,.32) }
+/* While playing, the same button becomes a Stop control */
+.builder-btn.play.is-stop      { background:#2a2a31; color:#fff }
+body.light .builder-btn.play.is-stop { background:#3a3a42; color:#fff }
+.builder-btn.play.is-stop:hover{ box-shadow:0 4px 14px rgba(0,0,0,.28) }
 /* Pill lit by the playback playhead */
 .builder-step.playing {
   border-color:rgba(232,68,26,.8) !important;
@@ -1235,11 +1239,17 @@ body.light .metro-step { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04
     max-width:100%;
     padding-inline:8px !important;
   }
-  .topbar         { gap:10px; margin-bottom:10px; align-items:flex-start }
-  .brand h1       { font-size:10px; letter-spacing:.1em }
+  .topbar         { gap:8px; margin-bottom:10px; align-items:center; flex-wrap:nowrap }
+  /* Logo + version stay; the wordmark is dropped so the Theory/Production tabs
+     never clip off the right edge on narrow phones. */
+  .brand h1       { display:none }
+  .brand          { gap:7px; flex:0 0 auto }
   .version        { font-size:9px; padding:2px 5px }
-  .tabs           { border-radius:14px; padding:3px }
-  .tab-btn        { padding:8px 12px; font-size:11px }
+  .topbar-right   { gap:7px; flex:1 1 auto; justify-content:flex-end; min-width:0 }
+  .settings-mini  { padding:4px 6px }
+  .settings-mini span { display:none }   /* the EN/ES value alone is clear enough */
+  .tabs           { border-radius:14px; padding:3px; flex:0 0 auto }
+  .tab-btn        { padding:8px 11px; font-size:11px }
   .main-row       { grid-template-columns:1fr; gap:6px; margin-bottom:8px }
   .side           { display:none }
   .circle-wrap    { order:0 }
@@ -1470,7 +1480,7 @@ body.light .metro-step { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04
             <div class="builder-sub" data-i18n="builder.subtitle">Tap a degree or bubble to add it to your progression.</div>
           </div>
           <div class="builder-actions">
-            <button class="builder-btn play" id="playProgBtn" onclick="playProgression()" data-i18n="builder.play">▶ Play</button>
+            <button class="builder-btn play" id="playProgBtn" onclick="toggleProgPlay()" data-i18n="builder.play">▶ Play</button>
             <button class="builder-btn primary" onclick="BuilderEngine.addCurrent()" data-i18n="builder.add">Add selected</button>
             <button class="builder-btn" onclick="BuilderEngine.duplicateLast()" data-i18n="builder.duplicate">Duplicate</button>
             <button class="builder-btn" onclick="BuilderEngine.copy()" data-i18n="builder.copy">Copy</button>
@@ -2026,6 +2036,10 @@ const AudioEngine = {
     }
     this.master.connect(out);
     this.master.connect(conv); conv.connect(this.wet); this.wet.connect(out);
+    // Dry bus — straight to the output, no reverb. Used by the metronome so the
+    // click stays tight and mechanical instead of washy.
+    this.dry = ctx.createGain(); this.dry.gain.value = 0.9;
+    this.dry.connect(out);
     return true;
   },
 
@@ -2076,16 +2090,17 @@ const AudioEngine = {
     const bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
     bp.frequency.value = accent ? 2700 : 1950; bp.Q.value = 1.1;
     const ng = ctx.createGain(); ng.gain.value = accent ? 0.5 : 0.34;
-    src.connect(bp); bp.connect(ng); ng.connect(this.master);
+    const bus = this.dry || this.master;          // dry → no reverb wash
+    src.connect(bp); bp.connect(ng); ng.connect(bus);
     src.start(t0);
-    // a pitched body so it reads as a "tock"
+    // a pitched body so it reads as a "tock" — short and dry
     const o = ctx.createOscillator(); o.type = 'sine';
     o.frequency.value = accent ? 2050 : 1550;
-    const og = ctx.createGain(); o.connect(og); og.connect(this.master);
+    const og = ctx.createGain(); o.connect(og); og.connect(bus);
     og.gain.setValueAtTime(0.0001, t0);
     og.gain.exponentialRampToValueAtTime(accent ? 0.32 : 0.2, t0 + 0.001);
-    og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.045);
-    o.start(t0); o.stop(t0 + 0.06);
+    og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.032);   // tighter decay = drier
+    o.start(t0); o.stop(t0 + 0.045);
   },
 
   now() { return this.ctx ? this.ctx.currentTime : 0; },
@@ -3684,11 +3699,22 @@ const BuilderEngine = {
 // DAW-style: each chord rings for its own duration, a playhead sweeps the
 // timeline in tempo, and the bar under the playhead lights up.
 let _progRAF = 0;
+function setProgBtn(playing) {
+  const b = document.getElementById('playProgBtn'); if (!b) return;
+  b.textContent = playing ? t('play.stop') : t('builder.play');
+  b.classList.toggle('is-stop', playing);
+}
 function stopProgression() {
   cancelAnimationFrame(_progRAF); _progRAF = 0;
   if (typeof AudioEngine === 'object') AudioEngine.stop();
   document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
   const ph = document.getElementById('builderPlayhead'); if (ph) ph.classList.remove('on');
+  setProgBtn(false);
+}
+// The ▶/■ button toggles between starting and stopping playback.
+function toggleProgPlay() {
+  if (_progRAF) stopProgression();
+  else playProgression();
 }
 
 function playProgression() {
@@ -3703,6 +3729,7 @@ function playProgression() {
   const secPerBeat = 60 / (st.bpm || 100);                  // synced to the metronome BPM
   const entries = h.map(it => ({ pitches: chordPitchesForItem(it), beats: Math.max(1, it.beats || 2) }));
   const { totalSec } = AudioEngine.playTimeline(entries, secPerBeat);
+  setProgBtn(true);
 
   const root  = document.getElementById('flowRow');
   const ph    = document.getElementById('builderPlayhead');
@@ -3722,7 +3749,7 @@ function playProgression() {
     }
     bars.forEach((b, k) => b.classList.toggle('playing', k === cur && elapsed < totalSec));
     if (elapsed < totalSec) { _progRAF = requestAnimationFrame(frame); }
-    else { bars.forEach(b => b.classList.remove('playing')); if (ph) ph.classList.remove('on'); _progRAF = 0; }
+    else { bars.forEach(b => b.classList.remove('playing')); if (ph) ph.classList.remove('on'); _progRAF = 0; setProgBtn(false); }
   };
   _progRAF = requestAnimationFrame(frame);
 }

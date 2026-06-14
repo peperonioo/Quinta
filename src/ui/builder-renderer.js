@@ -252,11 +252,22 @@ const BuilderEngine = {
 // DAW-style: each chord rings for its own duration, a playhead sweeps the
 // timeline in tempo, and the bar under the playhead lights up.
 let _progRAF = 0;
+function setProgBtn(playing) {
+  const b = document.getElementById('playProgBtn'); if (!b) return;
+  b.textContent = playing ? t('play.stop') : t('builder.play');
+  b.classList.toggle('is-stop', playing);
+}
 function stopProgression() {
   cancelAnimationFrame(_progRAF); _progRAF = 0;
   if (typeof AudioEngine === 'object') AudioEngine.stop();
   document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
   const ph = document.getElementById('builderPlayhead'); if (ph) ph.classList.remove('on');
+  setProgBtn(false);
+}
+// The ▶/■ button toggles between starting and stopping playback.
+function toggleProgPlay() {
+  if (_progRAF) stopProgression();
+  else playProgression();
 }
 
 function playProgression() {
@@ -271,6 +282,7 @@ function playProgression() {
   const secPerBeat = 60 / (st.bpm || 100);                  // synced to the metronome BPM
   const entries = h.map(it => ({ pitches: chordPitchesForItem(it), beats: Math.max(1, it.beats || 2) }));
   const { totalSec } = AudioEngine.playTimeline(entries, secPerBeat);
+  setProgBtn(true);
 
   const root  = document.getElementById('flowRow');
   const ph    = document.getElementById('builderPlayhead');
@@ -290,7 +302,7 @@ function playProgression() {
     }
     bars.forEach((b, k) => b.classList.toggle('playing', k === cur && elapsed < totalSec));
     if (elapsed < totalSec) { _progRAF = requestAnimationFrame(frame); }
-    else { bars.forEach(b => b.classList.remove('playing')); if (ph) ph.classList.remove('on'); _progRAF = 0; }
+    else { bars.forEach(b => b.classList.remove('playing')); if (ph) ph.classList.remove('on'); _progRAF = 0; setProgBtn(false); }
   };
   _progRAF = requestAnimationFrame(frame);
 }
