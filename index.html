@@ -562,13 +562,20 @@ body.light .builder-step  { background:rgba(0,0,0,.04) }
 .builder-step .step-num    { font-family:'DM Mono',monospace; font-size:8px; color:var(--muted); width:15px; height:15px; border-radius:50%; display:grid; place-items:center; background:var(--sel-bg); flex:0 0 auto }
 .builder-step .step-chord  { font-family:'DM Serif Display',serif; font-size:19px; line-height:1; color:var(--ink); flex:0 0 auto }
 .builder-step .step-degree { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); flex:0 0 auto; margin-right:1px }
-/* Tools now sit IN FLOW after a thin divider — they no longer overlap the chord/degree */
+/* Tools float ABOVE the bar so they never steal width from the duration —
+   revealed on hover (desktop) or tap-focus (touch, .show-tools). */
 .builder-step .step-tools  {
-  display:flex; gap:2px; flex:0 0 auto;
-  margin-left:3px; padding-left:6px; border-left:1px solid var(--line);
+  position:absolute; left:50%; top:-34px; transform:translateX(-50%) translateY(4px);
+  display:flex; gap:3px; padding:4px 5px; border-radius:999px;
+  background:var(--card); border:1px solid var(--card-bd);
+  box-shadow:0 6px 18px rgba(0,0,0,.28); backdrop-filter:blur(10px);
+  opacity:0; pointer-events:none; transition:opacity .14s var(--ui-ease), transform .14s var(--ui-ease);
+  z-index:5; white-space:nowrap;
 }
+.builder-step:hover .step-tools,
+.builder-step.show-tools .step-tools { opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0) }
 .step-tool {
-  width:18px; height:18px; border:0; border-radius:50%;
+  width:20px; height:20px; border:0; border-radius:50%;
   background:rgba(255,255,255,.08); color:var(--muted); font-size:10px;
   line-height:1; cursor:pointer; display:grid; place-items:center;
 }
@@ -589,6 +596,69 @@ body.light .step-tool  { background:rgba(0,0,0,.06) }
 .builder-arrow:nth-of-type(4){ animation-delay:600ms }
 .builder-arrow:nth-of-type(n+5){ animation-delay:800ms }
 @media (prefers-reduced-motion: reduce){ .builder-arrow{ animation:none; opacity:.42 } }
+
+/* ── DAW timeline mode ──────────────────────────────*/
+.builder-row.is-timeline {
+  position:relative;
+  --px-beat:48px;                 /* horizontal pixels per beat */
+  align-items:stretch; gap:5px;
+  padding:14px 0 8px;             /* top room for the floating toolbars */
+  scroll-padding-left:8px;
+}
+.builder-row.is-timeline .builder-step {
+  flex:0 0 auto;
+  width:calc(var(--beats,2) * var(--px-beat));
+  min-width:46px;
+  flex-direction:column; align-items:flex-start; justify-content:center; gap:3px;
+  padding:8px 13px 8px 11px;      /* right padding clears the resize grip */
+  border-radius:11px !important;
+  background:linear-gradient(180deg, rgba(232,68,26,.14), rgba(255,255,255,.04));
+  overflow:visible;               /* let the floating toolbar escape the bar */
+}
+.builder-row.is-timeline .builder-step .step-chord {
+  max-width:100%; overflow:hidden; text-overflow:clip;
+}
+body.light .builder-row.is-timeline .builder-step {
+  background:linear-gradient(180deg, rgba(232,68,26,.12), rgba(0,0,0,.04));
+}
+.builder-row.is-timeline .builder-step .step-num {
+  position:absolute; top:5px; left:6px;
+  width:14px; height:14px; font-size:7px;
+}
+.builder-row.is-timeline .builder-step .step-chord { font-size:18px; margin-top:6px }
+.builder-step .step-sub { display:flex; align-items:baseline; gap:6px }
+.builder-step .step-len {
+  font-family:'DM Mono',monospace; font-size:9px; color:var(--accent2);
+  opacity:.85; flex:0 0 auto;
+}
+/* Right-edge grip to drag the duration */
+.builder-step .step-resize {
+  position:absolute; top:0; right:0; bottom:0; width:14px;
+  cursor:ew-resize; touch-action:none; z-index:4;
+  display:flex; align-items:center; justify-content:center;
+}
+.builder-step .step-resize::before {
+  content:''; width:3px; height:46%; border-radius:3px;
+  background:rgba(255,255,255,.28); transition:background .14s var(--ui-ease);
+}
+.builder-step:hover .step-resize::before,
+.builder-step.resizing .step-resize::before { background:var(--accent) }
+.builder-step.resizing { box-shadow:0 0 0 1px rgba(232,68,26,.5); transition:none }
+
+/* Sweeping playhead */
+.builder-playhead {
+  position:absolute; top:8px; bottom:6px; left:0; width:2px;
+  background:linear-gradient(180deg, var(--accent), rgba(232,68,26,.3));
+  border-radius:2px; pointer-events:none; opacity:0;
+  box-shadow:0 0 10px rgba(232,68,26,.7);
+  z-index:6; transform:translateX(0);
+}
+.builder-playhead.on { opacity:1 }
+.builder-playhead::before {
+  content:''; position:absolute; top:-4px; left:-3px;
+  width:8px; height:8px; border-radius:50%; background:var(--accent);
+  box-shadow:0 0 8px rgba(232,68,26,.9);
+}
 
 /* Pill animations — only new/leaving pills animate */
 .builder-step.just-added   { animation:efcPillIn .48s var(--ui-ease) both !important }
@@ -1203,6 +1273,24 @@ body.light .metro-step { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04
   .mode-menu      { left:14px !important; right:auto !important; width:calc(100vw - 28px) !important; max-height:min(56vh,360px) !important }
   .micro-popover  { width:min(320px,calc(100vw - 28px)); transform:translateY(8px) scale(.985) }
   .micro-popover.open { transform:translateY(0) scale(1) }
+  /* DAW timeline: tighter beat width + a hint that the row scrolls sideways */
+  .builder-row.is-timeline { --px-beat:38px; gap:4px }
+  .builder-row.is-timeline .builder-step .step-chord { font-size:16px }
+  .builder-step .step-resize { width:20px }   /* easier to grab with a thumb */
+
+  /* Metronome: the full header occupies the top on phones, so dock it as a
+     floating FAB at the bottom-right; the panel expands upward from there. */
+  #metronome {
+    top:auto; bottom:calc(16px + var(--mobile-safe-bottom, 0px));
+    left:auto; right:14px; transform:none; align-items:flex-end;
+  }
+  .metro-pill   { transform:none }
+  .metro-panel  {
+    top:auto; bottom:0; left:auto; right:0;
+    transform:scale(.82); transform-origin:bottom right;
+  }
+  #metronome.open .metro-pill  { transform:scale(.6) }
+  #metronome.open .metro-panel { transform:scale(1) }
 }
 
 </style>
@@ -2071,6 +2159,25 @@ const AudioEngine = {
       this.playChord(pitches, dur, i * step);
     });
     return token;
+  },
+
+  // DAW-style playback: each entry is { pitches, beats }. Chords are scheduled
+  // at their cumulative beat offset and sustained for their own duration, so a
+  // 4-beat chord rings four times as long as a 1-beat one. `secPerBeat` comes
+  // from the metronome BPM. Returns { token, totalSec } for the playhead.
+  playTimeline(entries, secPerBeat = 0.5) {
+    if (!this.resume() || !Array.isArray(entries) || !entries.length) return { token: 0, totalSec: 0 };
+    const token = ++this._playToken;
+    let beatAcc = 0;
+    entries.forEach(e => {
+      const beats = Math.max(0.25, e.beats || 1);
+      if (e.pitches && e.pitches.length) {
+        const dur = Math.min(2.4, beats * secPerBeat * 0.96);
+        this.playChord(e.pitches, dur, beatAcc * secPerBeat);
+      }
+      beatAcc += beats;
+    });
+    return { token, totalSec: beatAcc * secPerBeat };
   },
 
   stop() {
@@ -3367,6 +3474,7 @@ const HistoryEngine = {
       degreeIndex: idx,
       key:         st.key,
       mode:        st.mode,
+      beats:       2,        // duration in beats — resizable on the timeline
       uid:         Date.now() + '-' + Math.random().toString(36).slice(2),
       __justAdded: true,
     };
@@ -3430,38 +3538,73 @@ const HistoryEngine = {
     const root = document.getElementById('flowRow'); if (!root) return;
     const h    = Array.isArray(st.history) ? st.history : [];
 
-    // Clear __justAdded flag after render so re-renders don't repeat the animation
-    h.forEach(it => { delete it.__justAdded; });
+    // Clear __justAdded flag + migrate older items that have no duration yet.
+    h.forEach(it => { delete it.__justAdded; if (it.beats == null) it.beats = 2; });
 
     if (!h.length) {
+      root.classList.remove('is-timeline');
       root.innerHTML = `<div class="builder-empty">${t('builder.empty')}</div>`;
       BuilderEngine.meta();
       return;
     }
 
+    // DAW-style timeline: each chord is a bar whose width = its duration.
+    root.classList.add('is-timeline');
     root.innerHTML = h.map((it, i) => `
-      ${i ? '<span class="builder-arrow">→</span>' : ''}
-      <button data-uid="${it.uid || i}" class="builder-step" draggable="true"
-        ondragstart="HistoryEngine.dragStart(event,${i})"
-        ondragover="event.preventDefault()"
-        ondrop="HistoryEngine.drop(event,${i})"
-        onclick="HistoryEngine.recall(${i})">
+      <div data-uid="${it.uid || i}" data-i="${i}" class="builder-step" style="--beats:${it.beats}"
+        onclick="BuilderEngine.focusBar(${i})">
         <span class="step-num">${i + 1}</span>
         <span class="step-chord">${it.chord}</span>
-        <span class="step-degree">${it.degree}</span>
+        <span class="step-sub"><span class="step-degree">${it.degree}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
         <span class="step-tools">
           <span class="step-tool" title="Move left"  onclick="event.stopPropagation();BuilderEngine.move(${i},-1)">‹</span>
+          <span class="step-tool" title="Hear"       onclick="event.stopPropagation();BuilderEngine.hear(${i})">♪</span>
           <span class="step-tool" title="Duplicate"  onclick="event.stopPropagation();BuilderEngine.duplicate(${i})">+</span>
           <span class="step-tool" title="Delete"     onclick="event.stopPropagation();HistoryEngine.remove(${i})">×</span>
           <span class="step-tool" title="Move right" onclick="event.stopPropagation();BuilderEngine.move(${i},1)">›</span>
         </span>
-      </button>`).join('');
+        <span class="step-resize" title="Drag to set duration" onpointerdown="DurationDrag.start(event,${i})"></span>
+      </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead"></div>`;
 
-    // Animate only the last added pill
+    // Animate only the last added bar
     const lastEl = root.querySelector('.builder-step:last-of-type');
     if (lastEl) { lastEl.classList.add('just-added'); setTimeout(() => lastEl.classList.remove('just-added'), 600); }
 
     BuilderEngine.meta();
+  },
+};
+
+// "2♩", "1.5♩" — beats shown with a quarter-note glyph so the bar reads as a duration.
+function fmtBeats(b) { return (Number.isInteger(b) ? b : b.toFixed(1)) + '♩'; }
+
+// Drag the right edge of a bar to lengthen/shorten its duration (snaps to ½ beat).
+const DurationDrag = {
+  start(e, i) {
+    e.preventDefault(); e.stopPropagation();
+    const bar = e.currentTarget.closest('.builder-step');
+    const item = (st.history || [])[i];
+    if (!bar || !item) return;
+    const pxBeat = parseFloat(getComputedStyle(bar).getPropertyValue('--px-beat')) || 48;
+    const startX = e.clientX, startBeats = item.beats || 2;
+    bar.classList.add('resizing');
+    try { bar.setPointerCapture(e.pointerId); } catch (_) {}
+    let lastBeats = startBeats;
+    const move = ev => {
+      const dBeats = Math.round(((ev.clientX - startX) / pxBeat) * 2) / 2;  // snap ½
+      const nb = Math.max(1, Math.min(8, startBeats + dBeats));
+      item.beats = nb;
+      bar.style.setProperty('--beats', nb);
+      const lab = bar.querySelector('.step-len'); if (lab) lab.textContent = fmtBeats(nb);
+      if (nb !== lastBeats) { lastBeats = nb; if (typeof AudioEngine === 'object') AudioEngine.tick(820, 0.08); }
+    };
+    const up = () => {
+      bar.classList.remove('resizing');
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      saveState(); BuilderEngine.meta();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
   },
 };
 
@@ -3478,6 +3621,25 @@ const BuilderEngine = {
   addCurrent() {
     if (curDeg < 0) return;
     AppActions.selectDegree(curDeg, { force: true });
+  },
+
+  // Tap a bar → reveal its inline toolbar (works on touch where there's no
+  // hover). Tapping the same bar again hides it; tapping another moves focus.
+  // We deliberately don't re-render here, so the revealed toolbar survives.
+  focusBar(index) {
+    const bars = document.querySelectorAll('#flowRow .builder-step');
+    bars.forEach(b => {
+      const me = +b.dataset.i === index;
+      b.classList.toggle('show-tools', me && !b.classList.contains('show-tools'));
+      if (!me) b.classList.remove('show-tools');
+    });
+  },
+
+  // Hear a single bar's chord and select it on the wheel.
+  hear(index) {
+    const it = (st.history || [])[index];
+    if (it && typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(it));
+    HistoryEngine.recall(index);
   },
 
   duplicateLast() {
@@ -3518,28 +3680,51 @@ const BuilderEngine = {
   },
 };
 
-// ── Progression playback (V4.1) ───────────────────────
-let _progPlayTimers = [];
+// ── Progression playback (V4.2) ───────────────────────
+// DAW-style: each chord rings for its own duration, a playhead sweeps the
+// timeline in tempo, and the bar under the playhead lights up.
+let _progRAF = 0;
+function stopProgression() {
+  cancelAnimationFrame(_progRAF); _progRAF = 0;
+  if (typeof AudioEngine === 'object') AudioEngine.stop();
+  document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
+  const ph = document.getElementById('builderPlayhead'); if (ph) ph.classList.remove('on');
+}
+
 function playProgression() {
   if (typeof AudioEngine !== 'object') return;
   const h = Array.isArray(st.history) ? st.history : [];
-  _progPlayTimers.forEach(clearTimeout); _progPlayTimers = [];
+  cancelAnimationFrame(_progRAF); _progRAF = 0;
   document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
 
   // Nothing built yet → just sound the currently selected chord.
   if (!h.length) { AudioEngine.playChord(chordPitchesForDegree(curDeg >= 0 ? curDeg : 0)); return; }
 
-  const step = 60 / (st.bpm || 100);     // one chord per beat, synced to the metronome BPM
-  AudioEngine.playSequence(h.map(it => chordPitchesForItem(it)), step, Math.min(0.85, step * 1.05));
+  const secPerBeat = 60 / (st.bpm || 100);                  // synced to the metronome BPM
+  const entries = h.map(it => ({ pitches: chordPitchesForItem(it), beats: Math.max(1, it.beats || 2) }));
+  const { totalSec } = AudioEngine.playTimeline(entries, secPerBeat);
 
-  const pills = [...document.querySelectorAll('#flowRow .builder-step')];
-  pills.forEach((p, i) => {
-    _progPlayTimers.push(setTimeout(() => {
-      pills.forEach(x => x.classList.remove('playing'));
-      p.classList.add('playing');
-      if (i === pills.length - 1) _progPlayTimers.push(setTimeout(() => p.classList.remove('playing'), step * 1000));
-    }, i * step * 1000));
-  });
+  const root  = document.getElementById('flowRow');
+  const ph    = document.getElementById('builderPlayhead');
+  const bars  = [...root.querySelectorAll('.builder-step')];
+  let acc = 0; const starts = entries.map(e => { const s = acc; acc += e.beats; return s; });
+
+  if (ph) ph.classList.add('on');
+  const t0 = performance.now();
+  const frame = () => {
+    const elapsed = (performance.now() - t0) / 1000;
+    const beatPos = elapsed / secPerBeat;
+    let cur = 0; for (let k = 0; k < starts.length; k++) if (beatPos >= starts[k]) cur = k;
+    const bar = bars[cur];
+    if (bar && ph) {
+      const frac = Math.min(1, (beatPos - starts[cur]) / entries[cur].beats);
+      ph.style.transform = `translateX(${bar.offsetLeft + frac * bar.offsetWidth}px)`;
+    }
+    bars.forEach((b, k) => b.classList.toggle('playing', k === cur && elapsed < totalSec));
+    if (elapsed < totalSec) { _progRAF = requestAnimationFrame(frame); }
+    else { bars.forEach(b => b.classList.remove('playing')); if (ph) ph.classList.remove('on'); _progRAF = 0; }
+  };
+  _progRAF = requestAnimationFrame(frame);
 }
 
 

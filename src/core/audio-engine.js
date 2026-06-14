@@ -172,6 +172,25 @@ const AudioEngine = {
     return token;
   },
 
+  // DAW-style playback: each entry is { pitches, beats }. Chords are scheduled
+  // at their cumulative beat offset and sustained for their own duration, so a
+  // 4-beat chord rings four times as long as a 1-beat one. `secPerBeat` comes
+  // from the metronome BPM. Returns { token, totalSec } for the playhead.
+  playTimeline(entries, secPerBeat = 0.5) {
+    if (!this.resume() || !Array.isArray(entries) || !entries.length) return { token: 0, totalSec: 0 };
+    const token = ++this._playToken;
+    let beatAcc = 0;
+    entries.forEach(e => {
+      const beats = Math.max(0.25, e.beats || 1);
+      if (e.pitches && e.pitches.length) {
+        const dur = Math.min(2.4, beats * secPerBeat * 0.96);
+        this.playChord(e.pitches, dur, beatAcc * secPerBeat);
+      }
+      beatAcc += beats;
+    });
+    return { token, totalSec: beatAcc * secPerBeat };
+  },
+
   stop() {
     this._playToken++;
     if (this.ctx) {

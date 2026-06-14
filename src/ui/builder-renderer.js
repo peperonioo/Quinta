@@ -42,6 +42,7 @@ const HistoryEngine = {
       degreeIndex: idx,
       key:         st.key,
       mode:        st.mode,
+      beats:       2,        // duration in beats — resizable on the timeline
       uid:         Date.now() + '-' + Math.random().toString(36).slice(2),
       __justAdded: true,
     };
@@ -105,38 +106,73 @@ const HistoryEngine = {
     const root = document.getElementById('flowRow'); if (!root) return;
     const h    = Array.isArray(st.history) ? st.history : [];
 
-    // Clear __justAdded flag after render so re-renders don't repeat the animation
-    h.forEach(it => { delete it.__justAdded; });
+    // Clear __justAdded flag + migrate older items that have no duration yet.
+    h.forEach(it => { delete it.__justAdded; if (it.beats == null) it.beats = 2; });
 
     if (!h.length) {
+      root.classList.remove('is-timeline');
       root.innerHTML = `<div class="builder-empty">${t('builder.empty')}</div>`;
       BuilderEngine.meta();
       return;
     }
 
+    // DAW-style timeline: each chord is a bar whose width = its duration.
+    root.classList.add('is-timeline');
     root.innerHTML = h.map((it, i) => `
-      ${i ? '<span class="builder-arrow">→</span>' : ''}
-      <button data-uid="${it.uid || i}" class="builder-step" draggable="true"
-        ondragstart="HistoryEngine.dragStart(event,${i})"
-        ondragover="event.preventDefault()"
-        ondrop="HistoryEngine.drop(event,${i})"
-        onclick="HistoryEngine.recall(${i})">
+      <div data-uid="${it.uid || i}" data-i="${i}" class="builder-step" style="--beats:${it.beats}"
+        onclick="BuilderEngine.focusBar(${i})">
         <span class="step-num">${i + 1}</span>
         <span class="step-chord">${it.chord}</span>
-        <span class="step-degree">${it.degree}</span>
+        <span class="step-sub"><span class="step-degree">${it.degree}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
         <span class="step-tools">
           <span class="step-tool" title="Move left"  onclick="event.stopPropagation();BuilderEngine.move(${i},-1)">‹</span>
+          <span class="step-tool" title="Hear"       onclick="event.stopPropagation();BuilderEngine.hear(${i})">♪</span>
           <span class="step-tool" title="Duplicate"  onclick="event.stopPropagation();BuilderEngine.duplicate(${i})">+</span>
           <span class="step-tool" title="Delete"     onclick="event.stopPropagation();HistoryEngine.remove(${i})">×</span>
           <span class="step-tool" title="Move right" onclick="event.stopPropagation();BuilderEngine.move(${i},1)">›</span>
         </span>
-      </button>`).join('');
+        <span class="step-resize" title="Drag to set duration" onpointerdown="DurationDrag.start(event,${i})"></span>
+      </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead"></div>`;
 
-    // Animate only the last added pill
+    // Animate only the last added bar
     const lastEl = root.querySelector('.builder-step:last-of-type');
     if (lastEl) { lastEl.classList.add('just-added'); setTimeout(() => lastEl.classList.remove('just-added'), 600); }
 
     BuilderEngine.meta();
+  },
+};
+
+// "2♩", "1.5♩" — beats shown with a quarter-note glyph so the bar reads as a duration.
+function fmtBeats(b) { return (Number.isInteger(b) ? b : b.toFixed(1)) + '♩'; }
+
+// Drag the right edge of a bar to lengthen/shorten its duration (snaps to ½ beat).
+const DurationDrag = {
+  start(e, i) {
+    e.preventDefault(); e.stopPropagation();
+    const bar = e.currentTarget.closest('.builder-step');
+    const item = (st.history || [])[i];
+    if (!bar || !item) return;
+    const pxBeat = parseFloat(getComputedStyle(bar).getPropertyValue('--px-beat')) || 48;
+    const startX = e.clientX, startBeats = item.beats || 2;
+    bar.classList.add('resizing');
+    try { bar.setPointerCapture(e.pointerId); } catch (_) {}
+    let lastBeats = startBeats;
+    const move = ev => {
+      const dBeats = Math.round(((ev.clientX - startX) / pxBeat) * 2) / 2;  // snap ½
+      const nb = Math.max(1, Math.min(8, startBeats + dBeats));
+      item.beats = nb;
+      bar.style.setProperty('--beats', nb);
+      const lab = bar.querySelector('.step-len'); if (lab) lab.textContent = fmtBeats(nb);
+      if (nb !== lastBeats) { lastBeats = nb; if (typeof AudioEngine === 'object') AudioEngine.tick(820, 0.08); }
+    };
+    const up = () => {
+      bar.classList.remove('resizing');
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      saveState(); BuilderEngine.meta();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
   },
 };
 
@@ -153,6 +189,25 @@ const BuilderEngine = {
   addCurrent() {
     if (curDeg < 0) return;
     AppActions.selectDegree(curDeg, { force: true });
+  },
+
+  // Tap a bar → reveal its inline toolbar (works on touch where there's no
+  // hover). Tapping the same bar again hides it; tapping another moves focus.
+  // We deliberately don't re-render here, so the revealed toolbar survives.
+  focusBar(index) {
+    const bars = document.querySelectorAll('#flowRow .builder-step');
+    bars.forEach(b => {
+      const me = +b.dataset.i === index;
+      b.classList.toggle('show-tools', me && !b.classList.contains('show-tools'));
+      if (!me) b.classList.remove('show-tools');
+    });
+  },
+
+  // Hear a single bar's chord and select it on the wheel.
+  hear(index) {
+    const it = (st.history || [])[index];
+    if (it && typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(it));
+    HistoryEngine.recall(index);
   },
 
   duplicateLast() {
@@ -193,26 +248,49 @@ const BuilderEngine = {
   },
 };
 
-// ── Progression playback (V4.1) ───────────────────────
-let _progPlayTimers = [];
+// ── Progression playback (V4.2) ───────────────────────
+// DAW-style: each chord rings for its own duration, a playhead sweeps the
+// timeline in tempo, and the bar under the playhead lights up.
+let _progRAF = 0;
+function stopProgression() {
+  cancelAnimationFrame(_progRAF); _progRAF = 0;
+  if (typeof AudioEngine === 'object') AudioEngine.stop();
+  document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
+  const ph = document.getElementById('builderPlayhead'); if (ph) ph.classList.remove('on');
+}
+
 function playProgression() {
   if (typeof AudioEngine !== 'object') return;
   const h = Array.isArray(st.history) ? st.history : [];
-  _progPlayTimers.forEach(clearTimeout); _progPlayTimers = [];
+  cancelAnimationFrame(_progRAF); _progRAF = 0;
   document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
 
   // Nothing built yet → just sound the currently selected chord.
   if (!h.length) { AudioEngine.playChord(chordPitchesForDegree(curDeg >= 0 ? curDeg : 0)); return; }
 
-  const step = 60 / (st.bpm || 100);     // one chord per beat, synced to the metronome BPM
-  AudioEngine.playSequence(h.map(it => chordPitchesForItem(it)), step, Math.min(0.85, step * 1.05));
+  const secPerBeat = 60 / (st.bpm || 100);                  // synced to the metronome BPM
+  const entries = h.map(it => ({ pitches: chordPitchesForItem(it), beats: Math.max(1, it.beats || 2) }));
+  const { totalSec } = AudioEngine.playTimeline(entries, secPerBeat);
 
-  const pills = [...document.querySelectorAll('#flowRow .builder-step')];
-  pills.forEach((p, i) => {
-    _progPlayTimers.push(setTimeout(() => {
-      pills.forEach(x => x.classList.remove('playing'));
-      p.classList.add('playing');
-      if (i === pills.length - 1) _progPlayTimers.push(setTimeout(() => p.classList.remove('playing'), step * 1000));
-    }, i * step * 1000));
-  });
+  const root  = document.getElementById('flowRow');
+  const ph    = document.getElementById('builderPlayhead');
+  const bars  = [...root.querySelectorAll('.builder-step')];
+  let acc = 0; const starts = entries.map(e => { const s = acc; acc += e.beats; return s; });
+
+  if (ph) ph.classList.add('on');
+  const t0 = performance.now();
+  const frame = () => {
+    const elapsed = (performance.now() - t0) / 1000;
+    const beatPos = elapsed / secPerBeat;
+    let cur = 0; for (let k = 0; k < starts.length; k++) if (beatPos >= starts[k]) cur = k;
+    const bar = bars[cur];
+    if (bar && ph) {
+      const frac = Math.min(1, (beatPos - starts[cur]) / entries[cur].beats);
+      ph.style.transform = `translateX(${bar.offsetLeft + frac * bar.offsetWidth}px)`;
+    }
+    bars.forEach((b, k) => b.classList.toggle('playing', k === cur && elapsed < totalSec));
+    if (elapsed < totalSec) { _progRAF = requestAnimationFrame(frame); }
+    else { bars.forEach(b => b.classList.remove('playing')); if (ph) ph.classList.remove('on'); _progRAF = 0; }
+  };
+  _progRAF = requestAnimationFrame(frame);
 }

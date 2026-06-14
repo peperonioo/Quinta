@@ -47,4 +47,22 @@
   .mode-menu      { left:14px !important; right:auto !important; width:calc(100vw - 28px) !important; max-height:min(56vh,360px) !important }
   .micro-popover  { width:min(320px,calc(100vw - 28px)); transform:translateY(8px) scale(.985) }
   .micro-popover.open { transform:translateY(0) scale(1) }
+  /* DAW timeline: tighter beat width + a hint that the row scrolls sideways */
+  .builder-row.is-timeline { --px-beat:38px; gap:4px }
+  .builder-row.is-timeline .builder-step .step-chord { font-size:16px }
+  .builder-step .step-resize { width:20px }   /* easier to grab with a thumb */
+
+  /* Metronome: the full header occupies the top on phones, so dock it as a
+     floating FAB at the bottom-right; the panel expands upward from there. */
+  #metronome {
+    top:auto; bottom:calc(16px + var(--mobile-safe-bottom, 0px));
+    left:auto; right:14px; transform:none; align-items:flex-end;
+  }
+  .metro-pill   { transform:none }
+  .metro-panel  {
+    top:auto; bottom:0; left:auto; right:0;
+    transform:scale(.82); transform-origin:bottom right;
+  }
+  #metronome.open .metro-pill  { transform:scale(.6) }
+  #metronome.open .metro-panel { transform:scale(1) }
 }

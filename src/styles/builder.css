@@ -59,13 +59,20 @@ body.light .builder-step  { background:rgba(0,0,0,.04) }
 .builder-step .step-num    { font-family:'DM Mono',monospace; font-size:8px; color:var(--muted); width:15px; height:15px; border-radius:50%; display:grid; place-items:center; background:var(--sel-bg); flex:0 0 auto }
 .builder-step .step-chord  { font-family:'DM Serif Display',serif; font-size:19px; line-height:1; color:var(--ink); flex:0 0 auto }
 .builder-step .step-degree { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); flex:0 0 auto; margin-right:1px }
-/* Tools now sit IN FLOW after a thin divider — they no longer overlap the chord/degree */
+/* Tools float ABOVE the bar so they never steal width from the duration —
+   revealed on hover (desktop) or tap-focus (touch, .show-tools). */
 .builder-step .step-tools  {
-  display:flex; gap:2px; flex:0 0 auto;
-  margin-left:3px; padding-left:6px; border-left:1px solid var(--line);
+  position:absolute; left:50%; top:-34px; transform:translateX(-50%) translateY(4px);
+  display:flex; gap:3px; padding:4px 5px; border-radius:999px;
+  background:var(--card); border:1px solid var(--card-bd);
+  box-shadow:0 6px 18px rgba(0,0,0,.28); backdrop-filter:blur(10px);
+  opacity:0; pointer-events:none; transition:opacity .14s var(--ui-ease), transform .14s var(--ui-ease);
+  z-index:5; white-space:nowrap;
 }
+.builder-step:hover .step-tools,
+.builder-step.show-tools .step-tools { opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0) }
 .step-tool {
-  width:18px; height:18px; border:0; border-radius:50%;
+  width:20px; height:20px; border:0; border-radius:50%;
   background:rgba(255,255,255,.08); color:var(--muted); font-size:10px;
   line-height:1; cursor:pointer; display:grid; place-items:center;
 }
@@ -86,6 +93,69 @@ body.light .step-tool  { background:rgba(0,0,0,.06) }
 .builder-arrow:nth-of-type(4){ animation-delay:600ms }
 .builder-arrow:nth-of-type(n+5){ animation-delay:800ms }
 @media (prefers-reduced-motion: reduce){ .builder-arrow{ animation:none; opacity:.42 } }
+
+/* ── DAW timeline mode ──────────────────────────────*/
+.builder-row.is-timeline {
+  position:relative;
+  --px-beat:48px;                 /* horizontal pixels per beat */
+  align-items:stretch; gap:5px;
+  padding:14px 0 8px;             /* top room for the floating toolbars */
+  scroll-padding-left:8px;
+}
+.builder-row.is-timeline .builder-step {
+  flex:0 0 auto;
+  width:calc(var(--beats,2) * var(--px-beat));
+  min-width:46px;
+  flex-direction:column; align-items:flex-start; justify-content:center; gap:3px;
+  padding:8px 13px 8px 11px;      /* right padding clears the resize grip */
+  border-radius:11px !important;
+  background:linear-gradient(180deg, rgba(232,68,26,.14), rgba(255,255,255,.04));
+  overflow:visible;               /* let the floating toolbar escape the bar */
+}
+.builder-row.is-timeline .builder-step .step-chord {
+  max-width:100%; overflow:hidden; text-overflow:clip;
+}
+body.light .builder-row.is-timeline .builder-step {
+  background:linear-gradient(180deg, rgba(232,68,26,.12), rgba(0,0,0,.04));
+}
+.builder-row.is-timeline .builder-step .step-num {
+  position:absolute; top:5px; left:6px;
+  width:14px; height:14px; font-size:7px;
+}
+.builder-row.is-timeline .builder-step .step-chord { font-size:18px; margin-top:6px }
+.builder-step .step-sub { display:flex; align-items:baseline; gap:6px }
+.builder-step .step-len {
+  font-family:'DM Mono',monospace; font-size:9px; color:var(--accent2);
+  opacity:.85; flex:0 0 auto;
+}
+/* Right-edge grip to drag the duration */
+.builder-step .step-resize {
+  position:absolute; top:0; right:0; bottom:0; width:14px;
+  cursor:ew-resize; touch-action:none; z-index:4;
+  display:flex; align-items:center; justify-content:center;
+}
+.builder-step .step-resize::before {
+  content:''; width:3px; height:46%; border-radius:3px;
+  background:rgba(255,255,255,.28); transition:background .14s var(--ui-ease);
+}
+.builder-step:hover .step-resize::before,
+.builder-step.resizing .step-resize::before { background:var(--accent) }
+.builder-step.resizing { box-shadow:0 0 0 1px rgba(232,68,26,.5); transition:none }
+
+/* Sweeping playhead */
+.builder-playhead {
+  position:absolute; top:8px; bottom:6px; left:0; width:2px;
+  background:linear-gradient(180deg, var(--accent), rgba(232,68,26,.3));
+  border-radius:2px; pointer-events:none; opacity:0;
+  box-shadow:0 0 10px rgba(232,68,26,.7);
+  z-index:6; transform:translateX(0);
+}
+.builder-playhead.on { opacity:1 }
+.builder-playhead::before {
+  content:''; position:absolute; top:-4px; left:-3px;
+  width:8px; height:8px; border-radius:50%; background:var(--accent);
+  box-shadow:0 0 8px rgba(232,68,26,.9);
+}
 
 /* Pill animations — only new/leaving pills animate */
 .builder-step.just-added   { animation:efcPillIn .48s var(--ui-ease) both !important }
