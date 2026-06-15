@@ -31,111 +31,84 @@ body.light .next-orbit {
 .next-orbit::-webkit-scrollbar-thumb { background:rgba(255,255,255,.14); border-radius:99px }
 body.light .next-orbit::-webkit-scrollbar-thumb { background:rgba(0,0,0,.14) }
 
-/* Bubble */
+/* Bubble — frosted-glass disc with an Apple-style accent "strength ring" that
+   fills proportionally to the suggestion's fit. Cohesive with the app's
+   liquid-glass / Dynamic-Island language (no more washy, faded discs). */
 .next-bubble {
-  --d: 66px;
-  --fit: 50;
-  --diam: clamp(40px, var(--d), 92px);
+  --d: 66px; --fit: 50;
+  --diam: clamp(48px, var(--d), 92px);
+  position:relative;
   width:var(--diam) !important; height:var(--diam) !important;
-  min-width:var(--diam) !important; min-height:var(--diam) !important;
-  max-width:var(--diam) !important; max-height:var(--diam) !important;
+  min-width:var(--diam) !important; flex:0 0 var(--diam) !important;
   aspect-ratio:1/1 !important;
-  flex:0 0 var(--diam) !important;
-  border-radius:999px !important;
-  padding:6px !important;
+  border-radius:999px !important; padding:0 !important;
   scroll-snap-align:center !important;
-  transform:translateY(calc((100 - var(--fit)) * .05px));
-  display:grid !important;
-  place-items:center !important;
-  gap:0 !important;
-  border:1px solid rgba(255,255,255,.12) !important;
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255,255,255,.14), transparent 28%),
-    radial-gradient(circle at 50% 55%, rgba(255,112,72,calc(.05 + var(--fit)*.0045)), rgba(255,112,72,calc(.025 + var(--fit)*.002)) 48%, rgba(255,255,255,.035) 100%) !important;
-  box-shadow:
-    0 calc(3px + var(--fit)*.05px) calc(9px + var(--fit)*.14px) rgba(0,0,0,.13),
-    inset 0 1px 0 rgba(255,255,255,.08) !important;
-  opacity:calc(.48 + var(--fit)*.0052) !important;
-  cursor:pointer;
-  /* Springy ease so hover lifts feel alive and in-motion */
-  transition:transform .42s cubic-bezier(.34,1.56,.5,1), box-shadow .42s var(--ui-ease),
-    opacity .32s var(--ui-ease), border-color .3s var(--ui-ease) !important;
-  animation:bubbleOrbitIn .55s cubic-bezier(.2,1.3,.3,1) both;
-  animation-delay:0ms;
-}
-/* Left-to-right entrance stagger (bubbles are in degree order I…VII) */
-.next-orbit .next-bubble:nth-child(1){animation-delay:0ms}
-.next-orbit .next-bubble:nth-child(2){animation-delay:34ms}
-.next-orbit .next-bubble:nth-child(3){animation-delay:68ms}
-.next-orbit .next-bubble:nth-child(4){animation-delay:102ms}
-.next-orbit .next-bubble:nth-child(5){animation-delay:136ms}
-.next-orbit .next-bubble:nth-child(6){animation-delay:170ms}
-.next-orbit .next-bubble:nth-child(n+7){animation-delay:204ms}
-@keyframes bubbleOrbitIn {
-  from { opacity:0; transform:translateY(16px) scale(.64) }
-  to   { opacity:calc(.48 + var(--fit)*.0052); transform:translateY(calc((100 - var(--fit)) * .05px)) }
-}
-/* Gentle idle float — keeps the strongest suggestion feeling alive */
-@keyframes bubbleFloat {
-  0%,100% { transform:translateY(calc((100 - var(--fit)) * .05px)) }
-  50%     { transform:translateY(calc((100 - var(--fit)) * .05px - 5px)) }
+  display:grid !important; place-items:center !important; gap:0 !important;
+  border:1px solid rgba(255,255,255,.1) !important; color:#f0ede8;
+  background:linear-gradient(180deg, rgba(36,36,44,.74), rgba(16,16,22,.84)) !important;
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  box-shadow:0 9px 22px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.08) !important;
+  cursor:pointer; z-index:1; isolation:isolate;
+  transition:transform .42s cubic-bezier(.34,1.52,.5,1), box-shadow .3s var(--ui-ease), border-color .25s var(--ui-ease) !important;
+  animation:bubbleIn .5s cubic-bezier(.2,1.3,.3,1) both;
 }
 body.light .next-bubble {
-  border-color:rgba(0,0,0,.10) !important;
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255,255,255,.82), transparent 30%),
-    radial-gradient(circle at 50% 55%, rgba(232,68,26,calc(.035 + var(--fit)*.0027)), rgba(232,68,26,calc(.018 + var(--fit)*.0018)) 48%, rgba(255,255,255,.78) 100%) !important;
-  box-shadow:0 calc(8px + var(--fit)*.09px) calc(18px + var(--fit)*.22px) rgba(0,0,0,.105), inset 0 1px 0 rgba(255,255,255,.8) !important;
+  border-color:rgba(0,0,0,.08) !important; color:#1a1a1a;
+  background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(244,241,236,.94)) !important;
+  box-shadow:0 9px 20px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.9) !important;
 }
+/* The strength ring (conic accent up to fit%) */
+.next-bubble::before {
+  content:''; position:absolute; inset:-4px; border-radius:999px; z-index:-1;
+  background:conic-gradient(from -90deg, var(--accent), #ff8a55 calc(var(--fit) * 1%), rgba(255,255,255,.07) 0);
+  -webkit-mask:radial-gradient(circle, transparent calc(50% - 3.5px), #000 calc(50% - 3px));
+          mask:radial-gradient(circle, transparent calc(50% - 3.5px), #000 calc(50% - 3px));
+  opacity:.92; transition:opacity .3s var(--ui-ease);
+}
+body.light .next-bubble::before { background:conic-gradient(from -90deg, var(--accent), #ff8a55 calc(var(--fit)*1%), rgba(0,0,0,.08) 0) }
+/* Entrance stagger (bubbles are in degree order I…VII) */
+.next-orbit .next-bubble:nth-child(1){animation-delay:0ms}
+.next-orbit .next-bubble:nth-child(2){animation-delay:38ms}
+.next-orbit .next-bubble:nth-child(3){animation-delay:76ms}
+.next-orbit .next-bubble:nth-child(4){animation-delay:114ms}
+.next-orbit .next-bubble:nth-child(5){animation-delay:152ms}
+.next-orbit .next-bubble:nth-child(6){animation-delay:190ms}
+.next-orbit .next-bubble:nth-child(n+7){animation-delay:228ms}
+@keyframes bubbleIn { from{opacity:0; transform:translateY(14px) scale(.7)} to{opacity:1; transform:none} }
+@keyframes bestFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+/* Best move — accent-filled glass, white text, gentle float + glow */
 .next-bubble.best {
-  border-color:rgba(255,112,72,.7) !important;
-  box-shadow:
-    0 calc(6px + var(--fit)*.06px) calc(14px + var(--fit)*.16px) rgba(232,68,26,.16),
-    0 0 0 1px rgba(255,112,72,.14),
-    inset 0 1px 0 rgba(255,255,255,.12) !important;
-  animation:bubbleOrbitIn .55s cubic-bezier(.2,1.3,.3,1) both,
-    bubbleFloat 3.8s ease-in-out .65s infinite,
-    bestPulse 3.8s ease-in-out .65s infinite;
+  border-color:transparent !important; color:#fff;
+  background:linear-gradient(180deg, #ff8c57, var(--accent)) !important;
+  box-shadow:0 12px 30px rgba(232,68,26,.42), inset 0 1px 0 rgba(255,255,255,.28) !important;
+  animation:bubbleIn .5s cubic-bezier(.2,1.3,.3,1) both, bestFloat 3.6s ease-in-out .6s infinite;
 }
-@keyframes bestPulse {
-  0%,100% { box-shadow:0 6px 15px rgba(232,68,26,.15), 0 0 0 1px rgba(255,112,72,.13), inset 0 1px 0 rgba(255,255,255,.12); }
-  50%     { box-shadow:0 9px 22px rgba(232,68,26,.30), 0 0 16px rgba(232,68,26,.20), 0 0 0 1px rgba(255,112,72,.28), inset 0 1px 0 rgba(255,255,255,.14); }
-}
-@media (prefers-reduced-motion: reduce) { .next-bubble.best { animation:none !important; } }
+.next-bubble.best::before { background:conic-gradient(from -90deg, #fff, #fff calc(var(--fit)*1%), rgba(255,255,255,.3) 0); opacity:.6 }
 .next-bubble:hover {
-  transform:translateY(-6px) scale(1.07) !important;
-  border-color:rgba(255,112,72,.8) !important;
-  opacity:1 !important;
-  box-shadow:
-    0 14px 30px rgba(232,68,26,.22),
-    0 0 0 1px rgba(255,112,72,.3),
-    inset 0 1px 0 rgba(255,255,255,.16) !important;
-  z-index:4;
+  transform:translateY(-7px) scale(1.06) !important; z-index:5;
+  border-color:rgba(255,138,85,.65) !important;
+  box-shadow:0 18px 38px rgba(232,68,26,.3), inset 0 1px 0 rgba(255,255,255,.16) !important;
 }
-.next-bubble:active { transform:translateY(-2px) scale(.965) !important }
-@media (prefers-reduced-motion: reduce) {
-  .next-bubble, .next-bubble.best { animation:none !important }
-}
+.next-bubble.best:hover { box-shadow:0 20px 44px rgba(232,68,26,.5), inset 0 1px 0 rgba(255,255,255,.3) !important }
+.next-bubble:active { transform:translateY(-2px) scale(.96) !important }
+@media (prefers-reduced-motion: reduce) { .next-bubble, .next-bubble.best { animation:none !important } }
 
-/* Bubble inner — degree (subtle, on top) + chord, stacked & centered */
+/* Bubble inner — degree (small, accent) + chord (big), stacked & centred */
 .nb-deg {
   font-family:'DM Mono',monospace !important;
   font-size:clamp(6px, calc(var(--diam, 56px) * .15), 11px) !important;
   line-height:1 !important; letter-spacing:.02em !important;
-  color:var(--muted) !important; opacity:.8 !important;
+  color:var(--accent2) !important; opacity:.92 !important;
   margin-bottom:1px !important; text-align:center !important; white-space:nowrap !important;
 }
-.next-bubble.best .nb-deg { color:var(--accent2) !important; opacity:.95 !important }
+.next-bubble.best .nb-deg { color:rgba(255,255,255,.9) !important; opacity:1 !important }
 .nb-chord  {
   font-family:var(--wheel-font) !important;
-  font-weight:700 !important;
-  letter-spacing:-.03em !important;
-  font-size:clamp(12px, calc(var(--diam, 56px) * .30), 30px) !important;
-  line-height:.9 !important; text-align:center !important;
-  white-space:nowrap !important;
-  color:var(--ink) !important;
+  font-weight:700 !important; letter-spacing:-.02em !important;
+  font-size:clamp(13px, calc(var(--diam, 56px) * .32), 30px) !important;
+  line-height:.9 !important; text-align:center !important; white-space:nowrap !important;
+  color:inherit !important;
 }
-/* Hidden meta — removed from the bubble but kept defined for safety */
 .nb-fit, .nb-degree, .nb-category, .nb-metrics { display:none !important }
 
 /* Fly-to-pill ghost: bubble visually travels into the builder */

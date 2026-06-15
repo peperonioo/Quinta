@@ -118,6 +118,19 @@ function build() {
   // build straight from the main branch.
   fs.writeFileSync(path.join(ROOT, 'index.html'), out, 'utf8');
 
+  // Copy PWA assets next to the standalone build so dist/ is self-contained
+  // (the root already has them for GitHub Pages).
+  try {
+    fs.copyFileSync(path.join(ROOT, 'manifest.webmanifest'), path.join(DIST, 'manifest.webmanifest'));
+    fs.copyFileSync(path.join(ROOT, 'sw.js'), path.join(DIST, 'sw.js'));
+    fs.copyFileSync(path.join(DIST, 'Easy_Fifth_Circle.html'), path.join(DIST, 'index.html'));
+    const distIcons = path.join(DIST, 'icons');
+    if (!fs.existsSync(distIcons)) fs.mkdirSync(distIcons);
+    for (const f of fs.readdirSync(path.join(ROOT, 'icons'))) {
+      fs.copyFileSync(path.join(ROOT, 'icons', f), path.join(distIcons, f));
+    }
+  } catch (_) { /* PWA assets optional */ }
+
   const kb = Math.round(fs.statSync(dest).size / 1024);
   console.log(`\n✓  dist/Easy_Fifth_Circle.html  (${kb} KB)`);
   console.log(`✓  index.html  (GitHub Pages entry)`);
