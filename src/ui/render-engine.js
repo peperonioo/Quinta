@@ -24,5 +24,6 @@ const RenderEngine = {
     if (set.includes('history'))     { HistoryEngine.render(); this.counts.history++; renderProgressionStory(); }
     if (set.includes('trails'))      { renderProgressionStory(); }
     if (set.includes('degrees'))     { renderTheory(); }
+    if (set.includes('instruments')) { renderPiano(); renderGuitar(); }
   },
 };

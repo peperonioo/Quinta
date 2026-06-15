@@ -75,6 +75,11 @@ OverlayManager.register('chord-variants', {
   close:    () => { if (typeof ChordVariants === 'object') ChordVariants.close(); },
   contains: (t) => !!(t.closest('#chordVariants') || t.closest('.builder-step')),
 });
+OverlayManager.register('library', {
+  isOpen:   () => !!(typeof Library === 'object' && Library.open),
+  close:    () => { if (typeof Library === 'object' && Library.open) Library.close(); },
+  contains: (t) => !!(t.closest('#libraryPanel') || t.closest('[data-lib-trigger]')),
+});
 OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),
   close:  () => { if (typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible) WheelDirectionGuide.toggle(); },

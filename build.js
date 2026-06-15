@@ -64,6 +64,7 @@ const JS_FILES = [
   'src/ui/builder-renderer.js',
   'src/ui/suggestions-renderer.js',
   'src/ui/chord-variants.js',
+  'src/ui/library.js',
   'src/ui/instruments-renderer.js',
   'src/ui/metronome.js',
   'src/ui/tabs.js',

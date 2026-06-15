@@ -47,7 +47,7 @@ const ActionDispatcher = {
           if (idx < 0 || idx > 6) break;
           curDeg = idx;
           if (!payload.fromHistory) HistoryEngine.addDegree(idx, { source: payload.source, sourceEl: payload.sourceEl });
-          RenderEngine.partial(['suggestions', 'history', 'trails']);
+          RenderEngine.partial(['suggestions', 'history', 'trails', 'degrees', 'instruments']);
           break;
         }
         case 'CLEAR_DEGREE':

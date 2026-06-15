@@ -16,7 +16,13 @@
   border-radius:0 0 5px 5px; z-index:2;
 }
 .key-on.white { background:linear-gradient(180deg,#d8c8f8,#b8a0e8) !important; color:#5544aa !important }
-.key-on.black { background:linear-gradient(180deg,var(--accent),#aa2200) !important }
+.key-on.black { background:linear-gradient(180deg,#6a4ad8,#4a2aa8) !important }
+/* Current chord tones — stronger accent than scale notes */
+.chord-on.white { background:linear-gradient(180deg,#ffb38a,var(--accent)) !important; color:#fff !important; box-shadow:inset 0 0 0 1px rgba(232,68,26,.5) }
+.chord-on.black { background:linear-gradient(180deg,var(--accent),#aa2200) !important; box-shadow:0 0 8px rgba(232,68,26,.6) }
+.white, .black { cursor:pointer; transition:filter .08s ease }
+.white:hover, .black:hover { filter:brightness(1.12) }
+.white:active, .black:active { filter:brightness(.9) }
 
 /* Fretboard */
 .fretboard-wrap {
@@ -39,5 +45,8 @@
 }
 .fret-note.on   { background:#444; color:#fff; box-shadow:0 0 0 1.5px rgba(255,255,255,.2) }
 .fret-note.root { background:var(--accent); color:#fff; box-shadow:0 0 0 2px rgba(232,68,26,.35),0 3px 10px rgba(232,68,26,.3) }
+.fret-note.chord{ background:linear-gradient(180deg,#ffb38a,var(--accent)); color:#fff; box-shadow:0 0 0 2px rgba(232,68,26,.4),0 0 10px rgba(232,68,26,.45) }
+.fret-note { cursor:pointer; transition:transform .08s ease }
+.fret-note.on:hover, .fret-note.root:hover, .fret-note.chord:hover { transform:scale(1.14) }
 .fret-cell      { height:34px; display:flex; align-items:center; justify-content:center; position:relative; z-index:1 }
 .fret-cell::after { content:''; position:absolute; right:0; top:4px; bottom:4px; width:1px; background:rgba(255,255,255,.09) }

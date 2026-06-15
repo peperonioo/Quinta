@@ -215,10 +215,3 @@ function renderSuggestions() {
   const root = document.getElementById('suggestions');
   if (root) root.innerHTML = '';
 }
-
-function applyProgression(indices) {
-  if (!Array.isArray(indices)) return;
-  indices.forEach(i => HistoryEngine.addDegree(i));
-  const last = indices[indices.length - 1];
-  if (Number.isInteger(last)) AppActions.selectDegree(last, { fromHistory: true });
-}

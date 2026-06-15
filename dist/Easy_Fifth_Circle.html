@@ -1162,6 +1162,57 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
 .builder-step.dragging { box-shadow:0 14px 36px rgba(0,0,0,.4); cursor:grabbing; transition:none; opacity:.95 }
 .builder-row.is-timeline .builder-step { cursor:grab; touch-action:pan-y }
 
+/* ── Progression library ─────────────────────────────── */
+.lib-backdrop {
+  position:fixed; inset:0; z-index:var(--z-modal, 9500); background:rgba(0,0,0,.45);
+  opacity:0; pointer-events:none; transition:opacity .2s var(--ease); backdrop-filter:blur(2px);
+}
+.lib-backdrop.open { opacity:1; pointer-events:auto }
+.lib-panel {
+  position:fixed; z-index:calc(var(--z-modal, 9500) + 1);
+  left:50%; top:50%; transform:translate(-50%,-46%) scale(.96);
+  width:min(440px, calc(100vw - 28px)); max-height:min(80vh, 640px);
+  display:flex; flex-direction:column;
+  background:rgba(14,14,18,.97); border:1px solid rgba(255,255,255,.12); border-radius:20px;
+  box-shadow:0 40px 100px rgba(0,0,0,.55); backdrop-filter:blur(28px); color:#f0ede8;
+  opacity:0; pointer-events:none; transition:opacity .22s var(--ease), transform .3s cubic-bezier(.34,1.4,.4,1);
+}
+body.light .lib-panel { background:rgba(252,250,247,.98); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
+.lib-panel.open { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1) }
+.lib-head { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 10px }
+.lib-title { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted) }
+.lib-close { background:none; border:0; color:var(--muted); font-size:15px; cursor:pointer; padding:2px 6px }
+.lib-save { display:flex; gap:7px; padding:0 16px 12px; border-bottom:1px solid rgba(128,128,128,.16) }
+.lib-save input {
+  flex:1; min-width:0; padding:8px 11px; border-radius:10px; font-size:12px; color:inherit;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); font-family:'DM Sans',sans-serif;
+}
+body.light .lib-save input { background:rgba(0,0,0,.04); border-color:rgba(0,0,0,.12) }
+.lib-save input:focus { outline:none; border-color:rgba(232,68,26,.5) }
+.lib-save-btn {
+  flex:0 0 auto; padding:8px 13px; border-radius:10px; cursor:pointer; border:0;
+  background:var(--accent); color:#fff; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600;
+}
+.lib-scroll { overflow-y:auto; padding:12px 16px 16px }
+.lib-section-title { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:6px 0 8px }
+.lib-list { display:flex; flex-direction:column; gap:6px; margin-bottom:8px }
+.lib-empty { font-size:11px; color:var(--muted); opacity:.7; padding:4px 2px 10px }
+.lib-item {
+  display:flex; align-items:center; gap:8px; width:100%; text-align:left;
+  border:1px solid rgba(255,255,255,.1); border-radius:11px; background:rgba(255,255,255,.04);
+  overflow:hidden;
+}
+body.light .lib-item { background:rgba(0,0,0,.03); border-color:rgba(0,0,0,.08) }
+.lib-load, .lib-preset { flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; padding:9px 12px; background:none; border:0; color:inherit; cursor:pointer; text-align:left }
+.lib-preset { width:100% }
+.lib-item:hover { border-color:rgba(232,68,26,.45) }
+.lib-name { font-size:12.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:7px }
+body.light .lib-name { color:#1a1a1a }
+.lib-tag { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent2); background:var(--degree-tonic); border-radius:5px; padding:1px 6px }
+.lib-chords { font-family:'DM Serif Display',Georgia,serif; font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.lib-del { flex:0 0 auto; align-self:stretch; padding:0 12px; border:0; border-left:1px solid rgba(128,128,128,.16); background:none; color:var(--muted); font-size:12px; cursor:pointer }
+.lib-del:hover { background:rgba(232,68,26,.22); color:#fff }
+
 /* Drag-to-timeline (Klimper) — floating ghost + drop marker */
 .drag-ghost {
   position:fixed; pointer-events:none; z-index:9999; transform:translate(-50%,-130%);
@@ -1194,7 +1245,13 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
   border-radius:0 0 5px 5px; z-index:2;
 }
 .key-on.white { background:linear-gradient(180deg,#d8c8f8,#b8a0e8) !important; color:#5544aa !important }
-.key-on.black { background:linear-gradient(180deg,var(--accent),#aa2200) !important }
+.key-on.black { background:linear-gradient(180deg,#6a4ad8,#4a2aa8) !important }
+/* Current chord tones — stronger accent than scale notes */
+.chord-on.white { background:linear-gradient(180deg,#ffb38a,var(--accent)) !important; color:#fff !important; box-shadow:inset 0 0 0 1px rgba(232,68,26,.5) }
+.chord-on.black { background:linear-gradient(180deg,var(--accent),#aa2200) !important; box-shadow:0 0 8px rgba(232,68,26,.6) }
+.white, .black { cursor:pointer; transition:filter .08s ease }
+.white:hover, .black:hover { filter:brightness(1.12) }
+.white:active, .black:active { filter:brightness(.9) }
 
 /* Fretboard */
 .fretboard-wrap {
@@ -1217,6 +1274,9 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
 }
 .fret-note.on   { background:#444; color:#fff; box-shadow:0 0 0 1.5px rgba(255,255,255,.2) }
 .fret-note.root { background:var(--accent); color:#fff; box-shadow:0 0 0 2px rgba(232,68,26,.35),0 3px 10px rgba(232,68,26,.3) }
+.fret-note.chord{ background:linear-gradient(180deg,#ffb38a,var(--accent)); color:#fff; box-shadow:0 0 0 2px rgba(232,68,26,.4),0 0 10px rgba(232,68,26,.45) }
+.fret-note { cursor:pointer; transition:transform .08s ease }
+.fret-note.on:hover, .fret-note.root:hover, .fret-note.chord:hover { transform:scale(1.14) }
 .fret-cell      { height:34px; display:flex; align-items:center; justify-content:center; position:relative; z-index:1 }
 .fret-cell::after { content:''; position:absolute; right:0; top:4px; bottom:4px; width:1px; background:rgba(255,255,255,.09) }
 
@@ -1580,6 +1640,7 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
             <button class="builder-btn play" id="playProgBtn" onclick="toggleProgPlay()" data-i18n="builder.play">▶ Play</button>
             <button class="builder-btn opt" id="countInBtn" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false">⏱</button>
             <button class="builder-btn opt" id="voicingBtn" onclick="togglePlayOpt('voicingOpen',this)" title="Open (spread) voicing" aria-label="Open voicing" aria-pressed="false">◇</button>
+            <button class="builder-btn" data-lib-trigger onclick="Library.toggle()" data-i18n="builder.library" title="Saved progressions & presets">📚 Library</button>
             <button class="builder-btn" onclick="shareProgression()" data-i18n="builder.share" title="Copy a shareable link">🔗 Share</button>
             <button class="builder-btn" onclick="exportMIDI()" data-i18n="builder.midi" title="Download as a MIDI file">↓ MIDI</button>
             <button class="builder-btn danger" onclick="HistoryEngine.clear()" data-i18n="builder.clear">Clear</button>
@@ -1670,13 +1731,33 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
 </div>
 
 <div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
+
+<!-- PROGRESSION LIBRARY -->
+<div id="libraryBackdrop" class="lib-backdrop" onclick="Library.close()"></div>
+<div id="libraryPanel" class="lib-panel" role="dialog" aria-modal="true" aria-label="Progression library">
+  <div class="lib-head">
+    <span class="lib-title" data-i18n="library.title">Progression Library</span>
+    <button class="lib-close" onclick="Library.close()" aria-label="Close">✕</button>
+  </div>
+  <div class="lib-save">
+    <input id="libName" type="text" maxlength="40" placeholder="Name this progression…" aria-label="Progression name"
+           onkeydown="if(event.key==='Enter')Library.saveCurrent()"/>
+    <button class="lib-save-btn" onclick="Library.saveCurrent()" data-i18n="library.save">Save current</button>
+  </div>
+  <div class="lib-scroll">
+    <div class="lib-section-title" data-i18n="library.saved">Saved</div>
+    <div id="libList" class="lib-list"></div>
+    <div class="lib-section-title" data-i18n="library.presets">Presets</div>
+    <div id="libPresets" class="lib-list"></div>
+  </div>
+</div>
 <script>
 'use strict';
 // == constants.js ==
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V4.9';
+const APP_VERSION = 'V5.0';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -1769,6 +1850,11 @@ const I18N_EN = {
   'metro.title':       'Metronome',
   'mode.advanced':     'Advanced mode — it recolours the <b>chords below</b> only. The circle stays on your Major/Minor key.',
   'builder.share':     '🔗 Share',
+  'builder.library':   '📚 Library',
+  'library.title':     'Progression Library',
+  'library.save':      'Save current',
+  'library.saved':     'Saved',
+  'library.presets':   'Presets',
   'builder.midi':      '↓ MIDI',
   'builder.clear':     'Clear',
   'builder.empty':     'No chords yet — tap a degree or a suggestion bubble.',
@@ -1830,6 +1916,11 @@ const I18N_ES = {
   'metro.title':       'Metrónomo',
   'mode.advanced':     'Modo avanzado — solo recolorea los <b>acordes de abajo</b>. El círculo se queda en tu tonalidad Mayor/Menor.',
   'builder.share':     '🔗 Compartir',
+  'builder.library':   '📚 Biblioteca',
+  'library.title':     'Biblioteca de progresiones',
+  'library.save':      'Guardar actual',
+  'library.saved':     'Guardadas',
+  'library.presets':   'Presets',
   'builder.midi':      '↓ MIDI',
   'builder.clear':     'Limpiar',
   'builder.empty':     'Sin acordes — toca un grado o una burbuja.',
@@ -3534,6 +3625,7 @@ const RenderEngine = {
     if (set.includes('history'))     { HistoryEngine.render(); this.counts.history++; renderProgressionStory(); }
     if (set.includes('trails'))      { renderProgressionStory(); }
     if (set.includes('degrees'))     { renderTheory(); }
+    if (set.includes('instruments')) { renderPiano(); renderGuitar(); }
   },
 };
 
@@ -3823,6 +3915,11 @@ OverlayManager.register('chord-variants', {
   isOpen:   () => !!(typeof ChordVariants === 'object' && ChordVariants.ctx),
   close:    () => { if (typeof ChordVariants === 'object') ChordVariants.close(); },
   contains: (t) => !!(t.closest('#chordVariants') || t.closest('.builder-step')),
+});
+OverlayManager.register('library', {
+  isOpen:   () => !!(typeof Library === 'object' && Library.open),
+  close:    () => { if (typeof Library === 'object' && Library.open) Library.close(); },
+  contains: (t) => !!(t.closest('#libraryPanel') || t.closest('[data-lib-trigger]')),
 });
 OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),
@@ -4662,13 +4759,6 @@ function renderSuggestions() {
   if (root) root.innerHTML = '';
 }
 
-function applyProgression(indices) {
-  if (!Array.isArray(indices)) return;
-  indices.forEach(i => HistoryEngine.addDegree(i));
-  const last = indices[indices.length - 1];
-  if (Number.isInteger(last)) AppActions.selectDegree(last, { fromHistory: true });
-}
-
 
 // == chord-variants.js ==
 // ── CHORD VARIANTS (V4.4) ─────────────────────────────
@@ -4831,27 +4921,163 @@ const ChordVariants = {
 };
 
 
+// == library.js ==
+// ── PROGRESSION LIBRARY (V5.0) ────────────────────────
+// Save / name / load multiple progressions (beyond the single live state) and
+// load genre/style presets. Persisted in its own localStorage key. The panel is
+// a floating dialog registered with OverlayManager (Escape + click-outside).
+
+// Degree-based presets — applied in the CURRENT key/mode, so they transpose.
+const PROG_PRESETS = [
+  { name: 'I–V–vi–IV',        tag: 'Pop',       idx: [0, 4, 5, 3] },
+  { name: 'vi–IV–I–V',        tag: 'Anthemic',  idx: [5, 3, 0, 4] },
+  { name: 'I–vi–IV–V',        tag: '50s',       idx: [0, 5, 3, 4] },
+  { name: 'ii–V–I',           tag: 'Jazz',      idx: [1, 4, 0] },
+  { name: 'I–IV–V–I',         tag: 'Classic',   idx: [0, 3, 4, 0] },
+  { name: 'i–♭VI–♭VII–i',     tag: 'Cinematic', idx: [0, 5, 6, 0] },
+  { name: 'i–♭VII–♭VI–V',     tag: 'Andalusian',idx: [0, 6, 5, 4] },
+  { name: '12-bar blues',     tag: 'Blues',     idx: [0, 0, 0, 0, 3, 3, 0, 0, 4, 3, 0, 4] },
+];
+
+const Library = {
+  KEY: 'easy-fifth-circle:library',
+  open: false,
+
+  _read() { try { return JSON.parse(localStorage.getItem(this.KEY)) || []; } catch (_) { return []; } },
+  _write(list) { try { localStorage.setItem(this.KEY, JSON.stringify(list)); } catch (_) {} },
+
+  toggle() { this.open ? this.close() : this._show(); },
+  _show() {
+    const p = document.getElementById('libraryPanel'); if (!p) return;
+    this.open = true;
+    this.render();
+    p.classList.add('open');
+    document.getElementById('libraryBackdrop')?.classList.add('open');
+    if (typeof OverlayManager === 'object') OverlayManager.opened('library');
+    setTimeout(() => document.getElementById('libName')?.focus(), 60);
+  },
+  close() {
+    this.open = false;
+    document.getElementById('libraryPanel')?.classList.remove('open');
+    document.getElementById('libraryBackdrop')?.classList.remove('open');
+  },
+
+  saveCurrent() {
+    const h = Array.isArray(st.history) ? st.history : [];
+    if (!h.length) { _shareToast && _shareToast('Build a progression first'); return; }
+    const input = document.getElementById('libName');
+    const list = this._read();
+    const name = (input && input.value.trim()) || `Progression ${list.length + 1}`;
+    list.unshift({
+      id: Date.now() + '-' + Math.random().toString(36).slice(2),
+      name, key: st.key, mode: st.mode, tonality: st.tonality, bpm: st.bpm,
+      history: JSON.parse(JSON.stringify(h)), ts: Date.now(),
+    });
+    this._write(list);
+    if (input) input.value = '';
+    this.render();
+    if (typeof _shareToast === 'function') _shareToast('Saved');
+  },
+
+  remove(id) { this._write(this._read().filter(p => p.id !== id)); this.render(); },
+
+  loadSaved(id) {
+    const p = this._read().find(x => x.id === id); if (!p) return;
+    st.key = p.key; st.mode = p.mode;
+    st.tonality = p.tonality || (modeIsMinor(p.mode) ? 'minor' : 'major');
+    if (p.bpm) st.bpm = p.bpm;
+    st.history = JSON.parse(JSON.stringify(p.history || []));
+    normalizeKeyState(); curDeg = -1; saveState();
+    RenderEngine.full();
+    if (typeof Metronome === 'object') Metronome.render();
+    this.close();
+  },
+
+  // Apply a preset's degree sequence in the current key/mode.
+  loadPreset(i) {
+    const pr = PROG_PRESETS[i]; if (!pr) return;
+    st.history = [];
+    pr.idx.forEach(d => HistoryEngine.addDegree(d));
+    saveState();
+    RenderEngine.full();
+    this.close();
+  },
+
+  // Chord names for a saved progression's stored items.
+  _savedChords(p) {
+    return (p.history || []).map(it => (typeof chordDisplay === 'function' ? chordDisplay(it) : it.chord));
+  },
+  // Chord names for a preset, in the current key/mode.
+  _presetChords(pr) {
+    const c = (typeof gc === 'function') ? gc() : [];
+    return pr.idx.map(d => c[d]?.chord || '').filter(Boolean);
+  },
+
+  render() {
+    const listEl = document.getElementById('libList');
+    if (listEl) {
+      const saved = this._read();
+      listEl.innerHTML = saved.length ? saved.map(p => `
+        <div class="lib-item">
+          <button class="lib-load" onclick="Library.loadSaved('${p.id}')" title="Load">
+            <span class="lib-name">${p.name}</span>
+            <span class="lib-chords">${this._savedChords(p).join(' · ')}</span>
+          </button>
+          <button class="lib-del" onclick="Library.remove('${p.id}')" aria-label="Delete">✕</button>
+        </div>`).join('')
+        : `<div class="lib-empty">No saved progressions yet.</div>`;
+    }
+    const presetsEl = document.getElementById('libPresets');
+    if (presetsEl) {
+      presetsEl.innerHTML = PROG_PRESETS.map((pr, i) => `
+        <button class="lib-item lib-preset" onclick="Library.loadPreset(${i})" title="Load in the current key">
+          <span class="lib-name">${pr.name}<span class="lib-tag">${pr.tag}</span></span>
+          <span class="lib-chords">${this._presetChords(pr).join(' · ')}</span>
+        </button>`).join('');
+    }
+  },
+};
+
+
 // == instruments-renderer.js ==
 // ── INSTRUMENTS RENDERER ──────────────────────────────
+// Pitch classes (0–11) of the currently selected chord, for highlighting the
+// chord tones on the piano / fretboard distinctly from the scale.
+function _chordPcSet() {
+  if (typeof curDeg === 'undefined' || curDeg < 0 || typeof chordPitchesForDegree !== 'function') return null;
+  const pcs = chordPitchesForDegree(curDeg);
+  if (!pcs || !pcs.length) return null;
+  return new Set(pcs.map(p => ((p % 12) + 12) % 12));
+}
+function _hear(pitch) { if (typeof AudioEngine === 'object') AudioEngine.playNote(pitch, 0.9); }
 
 function renderPiano() {
   const root = document.getElementById('piano'); if (!root) return;
   root.innerHTML = '';
-  const set    = new Set(gr());
+  const set    = new Set(gr());                 // scale note names
+  const chord  = _chordPcSet();
   const whites = ['C','D','E','F','G','A','B','C','D','E','F','G','A','B','C'];
+  const wPitch = [0,2,4,5,7,9,11,12,14,16,17,19,21,23,24];
   const w      = 100 / whites.length;
+  const cls = (pitch, n) => {
+    if (chord && chord.has(((pitch % 12) + 12) % 12)) return ' chord-on';
+    return set.has(n) ? ' key-on' : '';
+  };
   whites.forEach((n, i) => {
+    const pitch = wPitch[i];
     const el = document.createElement('div');
-    el.className = 'white' + (set.has(n) ? ' key-on' : '');
+    el.className = 'white' + cls(pitch, n);
     el.style.cssText = `left:${i*w}%;width:${w}%;position:absolute;bottom:0;top:0`;
     el.textContent   = set.has(n) ? n : '';
+    el.onclick = () => _hear(pitch);
     root.appendChild(el);
   });
-  [['C#',.72],['D#',1.72],['F#',3.72],['G#',4.72],['A#',5.72],
-   ['C#',7.72],['D#',8.72],['F#',10.72],['G#',11.72],['A#',12.72]].forEach(([n, pos]) => {
+  [['C#',.72,1],['D#',1.72,3],['F#',3.72,6],['G#',4.72,8],['A#',5.72,10],
+   ['C#',7.72,13],['D#',8.72,15],['F#',10.72,18],['G#',11.72,20],['A#',12.72,22]].forEach(([n, pos, pitch]) => {
     const el = document.createElement('div');
-    el.className = 'black' + (set.has(n) ? ' key-on' : '');
+    el.className = 'black' + cls(pitch, n);
     el.style.cssText = `left:${pos*w}%;width:${w*.56}%;position:absolute;top:0;height:60%;z-index:2`;
+    el.onclick = () => _hear(pitch);
     root.appendChild(el);
   });
 }
@@ -4860,8 +5086,10 @@ function renderGuitar() {
   const root = document.getElementById('guitar'); if (!root) return;
   root.innerHTML = '';
   const sc       = new Set(gr());
+  const chord    = _chordPcSet();
   const rootNote = gr()[0];
-  const tuning   = [['E',4],['B',11],['G',7],['D',2],['A',9],['E',4]];
+  // [name, pitch-class, absolute base pitch] high-E to low-E (0 = middle C).
+  const tuning   = [['E',4,4],['B',11,-1],['G',7,-5],['D',2,-10],['A',9,-15],['E',4,-20]];
   const FRETS    = 17;
   const cols     = `40px repeat(${FRETS},1fr)`;
 
@@ -4888,7 +5116,8 @@ function renderGuitar() {
   }
   root.appendChild(nR);
 
-  tuning.forEach(([name, start]) => {
+  const inChord = pc => chord && chord.has(((pc % 12) + 12) % 12);
+  tuning.forEach(([name, start, base]) => {
     const row = document.createElement('div');
     row.style.cssText = `display:grid;grid-template-columns:${cols};align-items:center;border-top:1px solid rgba(255,255,255,.05);position:relative`;
     const sl = document.createElement('div');
@@ -4896,21 +5125,23 @@ function renderGuitar() {
     row.appendChild(sl);
     const nc = document.createElement('div');
     nc.style.cssText = 'width:40px;display:flex;align-items:center;justify-content:center;height:32px;border-right:2px solid rgba(255,255,255,.2);position:relative;z-index:1';
-    const on = na(start), isOn = sc.has(on), isRoot = on === rootNote;
+    const on = na(start), isOn = sc.has(on), isRoot = on === rootNote, isCh = inChord(start);
     const od = document.createElement('div');
-    od.className = 'fret-note' + (isRoot ? ' root' : isOn ? ' on' : '');
+    od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
     od.textContent = isOn ? dn(on) : name;
-    if (!isOn) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
+    if (!isOn && !isCh) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
+    od.onclick = () => _hear(base);
     nc.appendChild(od);
     row.appendChild(nc);
     for (let f = 1; f <= FRETS; f++) {
-      const n = na(start + f); const isO = sc.has(n); const isR = n === rootNote;
+      const n = na(start + f); const isO = sc.has(n); const isR = n === rootNote; const isC = inChord(start + f);
       const cell = document.createElement('div');
       cell.className = 'fret-cell';
-      if (isO) {
+      if (isO || isC) {
         const dot = document.createElement('div');
-        dot.className = 'fret-note' + (isR ? ' root' : ' on');
+        dot.className = 'fret-note' + (isC ? ' chord' : isR ? ' root' : ' on');
         dot.textContent = dn(n);
+        dot.onclick = () => _hear(base + f);
         cell.appendChild(dot);
       }
       row.appendChild(cell);
@@ -5475,7 +5706,7 @@ const ActionDispatcher = {
           if (idx < 0 || idx > 6) break;
           curDeg = idx;
           if (!payload.fromHistory) HistoryEngine.addDegree(idx, { source: payload.source, sourceEl: payload.sourceEl });
-          RenderEngine.partial(['suggestions', 'history', 'trails']);
+          RenderEngine.partial(['suggestions', 'history', 'trails', 'degrees', 'instruments']);
           break;
         }
         case 'CLEAR_DEGREE':
