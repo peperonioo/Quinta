@@ -247,6 +247,7 @@
         <h3 data-i18n="production.rhythmGrid">Rhythm Grid — 1 bar · 16 steps</h3>
         <div style="display:flex;gap:7px;align-items:center">
           <span id="bpmBadge" class="bpm-badge">124 BPM</span>
+          <button id="bpmSuggest" class="bpm-suggest" title="Use the suggested tempo">≈ 124</button>
           <button class="play-btn" id="playBtn" onclick="togglePlay()">▶ Play</button>
         </div>
       </div>
@@ -260,6 +261,10 @@
     <div class="groove-section">
       <h3 data-i18n="production.groove">Groove Construction</h3>
       <div id="grooveRules" class="groove-rules"></div>
+    </div>
+    <div class="tips-section">
+      <h3 data-i18n="production.tips">Arrangement &amp; Fills</h3>
+      <div id="prodTips" class="tips-grid"></div>
     </div>
   </div>
 

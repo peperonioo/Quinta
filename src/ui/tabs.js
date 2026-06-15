@@ -30,7 +30,8 @@ function _ae(e) {
   let icon = e.icon;
   if (e.anim === 'stab') icon = `<div class="stab-icon"><div class="sk"></div><div class="sk bk"></div><div class="sk"></div><div class="sk bk"></div><div class="sk"></div></div>`;
   else if (e.anim === 'bass') icon = `<div class="bass-icon"><div class="bb"></div><div class="bb"></div><div class="bb"></div><div class="bb"></div><div class="bb"></div></div>`;
-  return `<div class="element-item"><div class="element-icon">${icon}</div><div><div class="el-name">${e.name}</div><div class="el-desc">${e.desc}</div></div></div>`;
+  const gear = e.gear ? `<span class="el-gear">${e.gear}</span>` : '';
+  return `<div class="element-item"><div class="element-icon">${icon}</div><div class="el-body"><div class="el-name">${e.name}${gear}</div><div class="el-desc">${e.desc}</div></div></div>`;
 }
 
 function renderProduction() {
@@ -40,7 +41,17 @@ function renderProduction() {
   const pmEl = document.getElementById('prodMeta');
   if (pmEl) pmEl.textContent = `${g.bpm} BPM · ${g.sub}`;
   const bbEl = document.getElementById('bpmBadge');
-  if (bbEl) bbEl.textContent = `${g.bpm} BPM`;
+  if (bbEl) bbEl.textContent = `${st.bpm || 120} BPM`;        // shared tempo (metronome / progression)
+  const sbEl = document.getElementById('bpmSuggest');
+  if (sbEl) {
+    sbEl.textContent = `≈ ${g.bpm}`;
+    sbEl.title = `Use the suggested ${g.title} tempo (${g.bpm} BPM)`;
+    sbEl.onclick = () => {
+      st.bpm = g.bpm; saveState();
+      if (typeof Metronome === 'object') Metronome.render();
+      renderProduction();
+    };
+  }
   const pkn = document.getElementById('prodKeyNote');
   if (pkn) pkn.textContent = displayKeyLabel();
   const pkm = document.getElementById('prodKeyMode');
@@ -76,25 +87,78 @@ function renderProduction() {
       <div class="rule-text">${r}</div>
     </div>`
   ).join('');
+  const tp = document.getElementById('prodTips');
+  if (tp) tp.innerHTML = (g.tips || []).map(sec =>
+    `<div class="tips-card"><h4>${sec.h}</h4><ul>${sec.items.map(i => `<li>${i}</li>`).join('')}</ul></div>`
+  ).join('');
 }
 
+// ── Connected groove player (V4.9) ────────────────────
+// Plays the genre's drum pattern + the user's PROGRESSION (voiced & voice-led)
+// + an 808 sub-bass, all on a lookahead scheduler synced to st.bpm (shared with
+// the metronome). With no progression it just plays the beat.
+let _prodNext = 0, _prodStep = 0, _prodBar = 0, _prodPrevUpper = null, _prodVoicing = null;
+
 function togglePlay() { if (playing) stopPlay(); else startPlay(); }
+
 function startPlay() {
-  playing = true; pStep = 0;
+  if (typeof AudioEngine !== 'object' || !AudioEngine.resume()) return;
+  playing = true; _prodStep = 0; _prodBar = 0; _prodPrevUpper = null; _prodVoicing = null;
   const playBtn = document.getElementById('playBtn');
   if (playBtn) { playBtn.classList.add('playing'); playBtn.textContent = t('play.stop'); }
-  const g = GENRES[curGenre];
-  pInterval = setInterval(() => {
-    const prev = (pStep - 1 + 16) % 16;
-    g.pattern.forEach((_, ri) => { document.getElementById(`s-${ri}-${prev}`)?.classList.remove('playing'); });
-    g.pattern.forEach((r, ri) => { if (r.p[pStep]) document.getElementById(`s-${ri}-${pStep}`)?.classList.add('playing'); });
-    pStep = (pStep + 1) % 16;
-  }, 60000 / (g.bpm * 4));
+  _prodNext = AudioEngine.now() + 0.08;
+  pInterval = setInterval(_prodSchedule, 25);
 }
+
 function stopPlay() {
   playing = false;
-  clearInterval(pInterval);
+  clearInterval(pInterval); pInterval = null;
+  if (typeof AudioEngine === 'object') AudioEngine.killVoices();   // cut sustained chords/sub
   const playBtn = document.getElementById('playBtn');
   if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = t('play.play'); }
   document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
+}
+
+function _prodSchedule() {
+  const ctx = AudioEngine.ctx; if (!ctx) return;
+  const g = GENRES[curGenre]; if (!g) return;
+  const sec16 = 60 / (st.bpm || 120) / 4;        // one 16th note at the shared BPM
+  while (_prodNext < ctx.currentTime + 0.12) {
+    _prodPlayStep(g, _prodStep, _prodBar, _prodNext, sec16);
+    _prodFlash(_prodStep, _prodNext - ctx.currentTime);
+    _prodStep++;
+    if (_prodStep >= 16) { _prodStep = 0; _prodBar++; }
+    _prodNext += sec16;
+  }
+}
+
+function _prodPlayStep(g, step, bar, when, sec16) {
+  const accent = step % 4 === 0;
+  g.pattern.forEach(row => { if (row.p[step] && row.snd) AudioEngine.drumHit(row.snd, when, accent); });
+
+  const h = Array.isArray(st.history) ? st.history : [];
+  const item = h.length ? h[bar % h.length] : null;
+  if (!item) return;
+
+  // Re-voice the chord once per bar (voice-led from the previous bar).
+  if (step === 0) {
+    const v = AudioEngine._leadVoicing(_prodPrevUpper, chordPitchesForItem(item));
+    _prodVoicing = v.all; _prodPrevUpper = v.upper;
+    if (g.chordStyle === 'pad') AudioEngine.playChord(_prodVoicing, (60 / (st.bpm || 120)) * 3.6, when, false);
+  }
+  if (g.chordStyle === 'stab' && g.chordLane && g.chordLane[step] && _prodVoicing) {
+    AudioEngine.playChord(_prodVoicing, 0.22, when, false);
+  }
+  if (g.bassLane && g.bassLane[step]) {
+    AudioEngine.subBass(chordPitchesForItem(item)[0], when, sec16 * 1.9);
+  }
+}
+
+function _prodFlash(step, delay) {
+  setTimeout(() => {
+    if (!playing) return;
+    const g = GENRES[curGenre]; if (!g) return;
+    document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
+    g.pattern.forEach((r, ri) => { if (r.p[step]) document.getElementById(`s-${ri}-${step}`)?.classList.add('playing'); });
+  }, Math.max(0, delay * 1000));
 }

@@ -29,6 +29,7 @@ const I18N_ES = {
   'production.more':   'Elementos adicionales',
   'production.progressions': 'Progresiones típicas',
   'production.groove': 'Construcción del groove',
+  'production.tips':   'Arreglo y Fills',
   'production.rhythmGrid': 'Rejilla rítmica — 1 compás · 16 pasos',
   'settings.lang':     'Idioma',
   'settings.plasma':   'Plasma',

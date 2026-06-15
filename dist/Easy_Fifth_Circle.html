@@ -1263,8 +1263,26 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
 .element-item     { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--line) }
 .element-item:last-child { border-bottom:0 }
 .element-icon     { width:32px; height:32px; border-radius:9px; background:var(--sel-bg); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0 }
-.el-name { font-size:12px; font-weight:500; color:var(--ink) }
-.el-desc { font-size:10px; color:var(--muted) }
+.element-item .el-body { min-width:0 }
+.el-name { font-size:12px; font-weight:500; color:var(--ink); display:flex; align-items:center; gap:7px; flex-wrap:wrap }
+.el-gear { font-family:'DM Mono',monospace; font-size:8.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--accent2); background:var(--degree-tonic); border:1px solid rgba(232,68,26,.22); border-radius:5px; padding:1px 6px }
+.el-desc { font-size:10px; color:var(--muted); margin-top:2px }
+
+/* Suggested-tempo button next to the BPM badge */
+.bpm-suggest {
+  font-family:'DM Mono',monospace; font-size:10px; padding:3px 8px; cursor:pointer;
+  background:var(--degree-tonic); border:1px solid rgba(232,68,26,.28); border-radius:5px; color:var(--accent2);
+}
+.bpm-suggest:hover { background:rgba(232,68,26,.2) }
+
+/* Arrangement & Fills tips */
+.tips-section  { padding:14px 16px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px); margin-bottom:12px }
+.tips-section h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px }
+.tips-grid     { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px }
+.tips-card     { padding:10px 12px; border-radius:10px; background:var(--sel-bg); border:1px solid var(--line) }
+.tips-card h4  { font-size:11px; font-weight:600; color:var(--accent2); margin:0 0 6px; text-transform:none; letter-spacing:0 }
+.tips-card ul  { margin:0; padding-left:15px; display:flex; flex-direction:column; gap:5px }
+.tips-card li  { font-size:10.5px; line-height:1.4; color:var(--muted) }
 
 /* Progressions / groove */
 .prog-section  { margin-bottom:12px; padding:14px 16px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px) }
@@ -1618,6 +1636,7 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
         <h3 data-i18n="production.rhythmGrid">Rhythm Grid — 1 bar · 16 steps</h3>
         <div style="display:flex;gap:7px;align-items:center">
           <span id="bpmBadge" class="bpm-badge">124 BPM</span>
+          <button id="bpmSuggest" class="bpm-suggest" title="Use the suggested tempo">≈ 124</button>
           <button class="play-btn" id="playBtn" onclick="togglePlay()">▶ Play</button>
         </div>
       </div>
@@ -1631,6 +1650,10 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
     <div class="groove-section">
       <h3 data-i18n="production.groove">Groove Construction</h3>
       <div id="grooveRules" class="groove-rules"></div>
+    </div>
+    <div class="tips-section">
+      <h3 data-i18n="production.tips">Arrangement &amp; Fills</h3>
+      <div id="prodTips" class="tips-grid"></div>
     </div>
   </div>
 
@@ -1653,7 +1676,7 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V4.8';
+const APP_VERSION = 'V4.9';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -1757,6 +1780,7 @@ const I18N_EN = {
   'production.more':   'Additional elements',
   'production.progressions': 'Typical Progressions',
   'production.groove': 'Groove Construction',
+  'production.tips':   'Arrangement & Fills',
   'production.rhythmGrid': 'Rhythm Grid — 1 bar · 16 steps',
   'settings.lang':     'Lang',
   'settings.plasma':   'Plasma',
@@ -1817,6 +1841,7 @@ const I18N_ES = {
   'production.more':   'Elementos adicionales',
   'production.progressions': 'Progresiones típicas',
   'production.groove': 'Construcción del groove',
+  'production.tips':   'Arreglo y Fills',
   'production.rhythmGrid': 'Rejilla rítmica — 1 compás · 16 pasos',
   'settings.lang':     'Idioma',
   'settings.plasma':   'Plasma',
@@ -1893,21 +1918,24 @@ const relativeMajorFromMinor = (minorRoot) => {
 };
 
 // ── PRODUCTION DATA ────────────────────────────────────
+// Each genre drives the Production tab AND the connected groove player. Drum
+// rows carry `snd` (which synth voice to fire). `chordLane`/`bassLane` say on
+// which 16th steps the progression's chord stabs and 808 sub-bass play.
 const PRODUCTION_DATA = {
   house: {
-    title:'House', bpm:124, sub:'4/4 — kick on every beat',
+    title:'House', bpm:124, sub:'4/4 · kick on every beat · 120–128 BPM',
     cards:[
-      {h:'Scale',   b:'Minor Pentatonic', p:'Keeps the mood dark but groove-friendly.'},
-      {h:'Tension', b:'Dominant 7ths',    p:'Add b7 on the V chord for funk colour.'},
-      {h:'Tip',     b:'Use inversions',   p:'Move the bass under static harmony.'},
+      {h:'Feel',    b:'Four-on-the-floor', p:'Kick on every beat; the swing lives in the off-beat hats and bass.'},
+      {h:'Harmony', b:'7th & 9th chords',  p:'Jazzy, sampled-soul stabs. Add a ♭7 on the V for funk colour.'},
+      {h:'Glue',    b:'Sidechain pump',    p:'Duck the bass & pads to the kick — the signature “breathing” groove.'},
     ],
     elements:[
-      {icon:'🥁',name:'Kick',    desc:'4-on-the-floor, tight and punchy',           anim:null},
-      {icon:'👏',name:'Clap',   desc:'Snare on 2 and 4, with room verb',           anim:null},
-      {icon:'🎩',name:'Hi-hats',desc:'16th note groove, slight swing',             anim:null},
-      {icon:'🎹',name:'Stabs',  desc:'Off-beat chord stabs, gate or chop',         anim:'stab'},
-      {icon:'🎸',name:'Bass',   desc:'Filtered, sliding into beat 1',              anim:'bass'},
-      {icon:'🎵',name:'Synth',  desc:'Pad layer under everything',                 anim:null},
+      {icon:'🥁',name:'Kick',    desc:'Tight, punchy four-on-the-floor; tuned low, short tail.', gear:'Roland TR-909', anim:null},
+      {icon:'👏',name:'Clap',   desc:'Backbeat on 2 & 4, layered with a short room reverb.',     gear:'TR-909 / TR-808', anim:null},
+      {icon:'🎩',name:'Hats',   desc:'Closed 16ths for drive; the open hat on every off-beat (the “tss”).', gear:'TR-909', anim:null},
+      {icon:'🎹',name:'Organ stabs', desc:'Off-beat chord stabs — bright, gated, syncopated.',   gear:'Korg M1 “Organ 2”', anim:'stab'},
+      {icon:'🎸',name:'Bass',   desc:'Round sub or plucky synth, off-beat bounce, sidechained to the kick.', gear:'TB-303 / Juno / 808 sub', anim:'bass'},
+      {icon:'🎛️',name:'Pad',   desc:'Warm analog pad washing under the groove; filter-swept.',   gear:'Roland Juno-106', anim:null},
     ],
     progressions:[
       {chords:['Am','G','F','E'], desc:'i – ♭VII – ♭VI – V: classic dark groove'},
@@ -1915,32 +1943,52 @@ const PRODUCTION_DATA = {
       {chords:['Fm','Eb','Db','Ab'],desc:'Minor with flat-side gravity'},
     ],
     groove:[
-      'Lock the kick to the bass line in the first bar.',
-      'Use syncopated stabs between beats 2–3.',
-      'Layer an 8th-note open hat under the 16th groove.',
-      'Keep the main motif under 4 bars so it loops naturally.',
+      'Lock the bass to the kick, then move it to the off-beats so they interlock.',
+      'Open hat on every “and” (the off-beat) is the house signature.',
+      'Sidechain bass + pads to the kick for the pumping feel.',
+      'Keep the main loop ≤ 4 bars so it cycles naturally.',
     ],
+    tips:[
+      {h:'Arrangement', items:[
+        'Build in 8/16/32-bar phrases — DJ-friendly intros and outros of pure drums.',
+        'Breakdown: strip to pads + filtered chords, then drop the full kick + bass back in.',
+        'Automate a low-pass filter sweep across 8 bars to lift into each section.',
+      ]},
+      {h:'Fills & transitions', items:[
+        'Drop the kick for the last bar before a section change — let the off-beats breathe.',
+        'A snare/clap roll (16ths → 32nds) builds tension into the drop.',
+        'Crash on beat 1 of a new section; reverse-cymbal riser in the bar before.',
+      ]},
+      {h:'Sound design', items:[
+        'Tune the kick to the track’s root note so it sits with the bass.',
+        'High-pass the pads so the low end stays clean for kick + sub.',
+        'A touch of saturation on the bass adds harmonics that read on small speakers.',
+      ]},
+    ],
+    chordStyle:'stab',
+    chordLane:[0,0,0,1, 0,0,1,0, 0,0,0,1, 0,0,1,0],
+    bassLane: [0,0,1,0, 0,0,1,0, 0,0,1,0, 0,0,1,0],
     pattern:[
-      {label:'Kick', cl:'',        p:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0]},
-      {label:'Clap', cl:'clap',    p:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0]},
-      {label:'Hat',  cl:'hat-c',   p:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
-      {label:'Open', cl:'hat-o',   p:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0]},
+      {label:'Kick', cl:'',        snd:'kick', p:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0]},
+      {label:'Clap', cl:'clap',    snd:'clap', p:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0]},
+      {label:'Hat',  cl:'hat-c',   snd:'hat',  p:[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]},
+      {label:'Open', cl:'hat-o',   snd:'open', p:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0]},
     ],
   },
   neosoul: {
-    title:'Neo Soul', bpm:90, sub:'4/4 — laid back, swing 16ths',
+    title:'Neo Soul', bpm:90, sub:'4/4 · laid-back, swung 16ths · 70–95 BPM',
     cards:[
-      {h:'Scale',   b:'Dorian + Extensions', p:'min9, maj7, dominant 13ths.'},
-      {h:'Rhythm',  b:'Swing 16ths',          p:'Push the snare slightly behind the beat.'},
-      {h:'Tip',     b:'Chord substitutions', p:'Replace V with bVII for a hipper sound.'},
+      {h:'Feel',    b:'Behind the beat',  p:'Humanised, off-grid (Dilla-style). Snare drags slightly late.'},
+      {h:'Harmony', b:'Extended chords',  p:'maj9, min11, dom13 with chromatic passing chords.'},
+      {h:'Voice',   b:'Rhodes is king',   p:'Warm electric piano with chorus/vibrato carries the song.'},
     ],
     elements:[
-      {icon:'🥁',name:'Kick',   desc:'Slightly loose, 808-influenced',  anim:null},
-      {icon:'👏',name:'Snare',  desc:'Fat and roomy, slightly behind',  anim:null},
-      {icon:'🎩',name:'Hi-hats',desc:'Loose swing 16ths',               anim:null},
-      {icon:'🎹',name:'Rhodes', desc:'Warm chords with vibrato',        anim:'stab'},
-      {icon:'🎸',name:'Bass',   desc:'Walking or 16th-note pattern',    anim:'bass'},
-      {icon:'🎵',name:'Strings',desc:'Soft counter-melody',             anim:null},
+      {icon:'🥁',name:'Kick',   desc:'Loose, slightly soft; 808-tinged low end, never quantised hard.', gear:'MPC / TR-808 hybrid', anim:null},
+      {icon:'👏',name:'Snare',  desc:'Fat, roomy, dragged a hair behind the beat; ghost notes between.', gear:'Sampled vinyl / MPC', anim:null},
+      {icon:'🎩',name:'Hats',   desc:'Loose swung 16ths, velocity-varied for a human shuffle.',         gear:'MPC swing 54–62%', anim:null},
+      {icon:'🎹',name:'Rhodes', desc:'Warm extended chords with chorus + vibrato; the signature sound.', gear:'Fender Rhodes Mk I', anim:'stab'},
+      {icon:'🎸',name:'Bass',   desc:'Fingered electric — syncopated 16ths, slides and ghosting.',       gear:'Fender P/J Bass', anim:'bass'},
+      {icon:'🎻',name:'Strings',desc:'Soft pad / counter-melody filling the spaces between phrases.',    gear:'Wurlitzer / string ens.', anim:null},
     ],
     progressions:[
       {chords:['Dm9','G13','Cmaj7','Am9'], desc:'ii9 – V13 – Imaj7 – vi9: classic'},
@@ -1948,16 +1996,36 @@ const PRODUCTION_DATA = {
       {chords:['Cm9','Fm9','Bb13','Ebmaj7'],desc:'Neo soul in Eb Dorian'},
     ],
     groove:[
-      'Play the snare slightly behind beat 2 and 4.',
-      'Use chord extensions: maj9, min11, dom13.',
-      'Counter-melody on Rhodes or guitar fills the space.',
-      'Walk the bass under static harmony for movement.',
+      'Drag the snare a few ms behind beats 2 and 4 for the lazy feel.',
+      'Add ghost snares and hat shuffles between the main hits.',
+      'Voice chords with extensions (maj9, min11, dom13); keep the top voice smooth.',
+      'Walk or syncopate the bass under static harmony for movement.',
     ],
+    tips:[
+      {h:'Arrangement', items:[
+        'Leave space — neo-soul breathes; not every bar needs every instrument.',
+        'Verse: Rhodes + bass + light drums. Chorus: add strings/keys and lift the dynamics.',
+        'Use a 2-bar turnaround (e.g. ii–V) to loop sections smoothly.',
+      ]},
+      {h:'Fills & embellishment', items:[
+        'Rhodes runs and chromatic passing chords fill the gaps between vocal phrases.',
+        'Ghost-note snare rolls and hat triplets are the “fills” — keep them soft.',
+        'Bass slides and dead notes add the human, finger-played feel.',
+      ]},
+      {h:'Sound design', items:[
+        'Chorus + a touch of tape saturation on the Rhodes for warmth.',
+        'Roomy, slightly compressed drums; sample noise/vinyl crackle for texture.',
+        'Keep the low end mono and the bass rounded (roll off the highs).',
+      ]},
+    ],
+    chordStyle:'pad',
+    chordLane:[1,0,0,0, 0,0,1,0, 0,0,1,0, 0,0,0,0],
+    bassLane: [1,0,0,0, 0,0,1,0, 0,1,0,0, 0,0,1,0],
     pattern:[
-      {label:'Kick', cl:'',        p:[1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0]},
-      {label:'Snare',cl:'clap',    p:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0]},
-      {label:'Hat',  cl:'hat-c',   p:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},
-      {label:'Shake',cl:'shaker',  p:[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]},
+      {label:'Kick', cl:'',        snd:'kick',  p:[1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0]},
+      {label:'Snare',cl:'clap',    snd:'snare', p:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1]},
+      {label:'Hat',  cl:'hat-c',   snd:'hat',   p:[1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1]},
+      {label:'Shake',cl:'shaker',  snd:'shaker',p:[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]},
     ],
   },
 };
@@ -2201,7 +2269,89 @@ const AudioEngine = {
     this.voiceBus = ctx.createGain(); this.voiceBus.gain.value = 1;
     this.voiceBus.connect(this.master);
     this._active = new Set();
+    // Drum bus — percussion runs dry (no reverb wash) at its own level.
+    this.drumBus = ctx.createGain(); this.drumBus.gain.value = 0.85;
+    this.drumBus.connect(this.dry);
     return true;
+  },
+
+  // ── 808/909-style drum voices (synthesised, schedulable at `when`) ─────
+  drumHit(type, when = 0, accent = false) {
+    if (!this.resume()) return;
+    const t = when || this.ctx.currentTime;
+    const fn = { kick:'_kick', clap:'_clap', snare:'_snare', hat:'_hat', open:'_openhat', shaker:'_shaker', rim:'_rim' }[type];
+    if (fn && this[fn]) this[fn](t, accent);
+  },
+  _noise(t, dur, decay) {
+    const ctx = this.ctx, len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    const src = ctx.createBufferSource(); src.buffer = buf; src.start(t);
+    return src;
+  },
+  _kick(t, accent) {
+    const ctx = this.ctx, out = this.drumBus;
+    const o = ctx.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(accent ? 165 : 145, t);
+    o.frequency.exponentialRampToValueAtTime(46, t + 0.11);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(accent ? 1 : 0.86, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.55);
+    const click = this._noise(t, 0.01, 6); const cg = ctx.createGain(); cg.gain.value = 0.25;
+    click.connect(cg); cg.connect(out);
+  },
+  _hat(t, accent) {
+    const ctx = this.ctx, src = this._noise(t, 0.045, 4);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 8500;
+    const g = ctx.createGain(); g.gain.value = accent ? 0.34 : 0.24;
+    src.connect(hp); hp.connect(g); g.connect(this.drumBus);
+  },
+  _openhat(t, accent) {
+    const ctx = this.ctx, src = this._noise(t, 0.28, 1.4);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 8000;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(accent ? 0.32 : 0.24, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+    src.connect(hp); hp.connect(g); g.connect(this.drumBus);
+  },
+  _clap(t, accent) {
+    const ctx = this.ctx;
+    [0, 0.009, 0.018, 0.028].forEach((off, i) => {
+      const src = this._noise(t + off, 0.05, 3);
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = 1.3;
+      const g = ctx.createGain(); g.gain.value = (accent ? 0.46 : 0.36) * (i === 3 ? 1 : 0.6);
+      src.connect(bp); bp.connect(g); g.connect(this.drumBus);
+    });
+  },
+  _snare(t, accent) {
+    const ctx = this.ctx, out = this.drumBus;
+    const src = this._noise(t, 0.13, 2.4);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1600;
+    const ng = ctx.createGain(); ng.gain.value = accent ? 0.42 : 0.32;
+    src.connect(hp); hp.connect(ng); ng.connect(out);
+    const o = ctx.createOscillator(); o.type = 'triangle';
+    o.frequency.setValueAtTime(195, t); o.frequency.exponentialRampToValueAtTime(120, t + 0.09);
+    const og = ctx.createGain(); og.gain.setValueAtTime(accent ? 0.34 : 0.26, t);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    o.connect(og); og.connect(out); o.start(t); o.stop(t + 0.14);
+  },
+  _shaker(t, accent) {
+    const ctx = this.ctx, len = Math.floor(ctx.sampleRate * 0.04);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.5) * Math.min(1, i / (len * 0.3));
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 6500;
+    const g = ctx.createGain(); g.gain.value = accent ? 0.2 : 0.14;
+    src.connect(hp); hp.connect(g); g.connect(this.drumBus); src.start(t);
+  },
+  _rim(t, accent) {
+    const ctx = this.ctx, o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = 1700;
+    const g = ctx.createGain(); g.gain.setValueAtTime(accent ? 0.3 : 0.22, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+    o.connect(g); g.connect(this.drumBus); o.start(t); o.stop(t + 0.04);
   },
 
   _impulse(dur, decay) {
@@ -2365,6 +2515,20 @@ const AudioEngine = {
   playNote(pitch, dur = 0.7) {
     if (!this.resume()) return;
     this._voice(this._freq(pitch), this.ctx.currentTime, dur, 1);
+  },
+
+  // 808-style sub bass: a clean low sine on `pitch` (auto-dropped two octaves),
+  // schedulable; registered so progression Stop also kills it.
+  subBass(pitch, when = 0, dur = 0.32) {
+    if (!this.resume()) return;
+    const ctx = this.ctx, t = when || ctx.currentTime, out = this.voiceBus || this.master;
+    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = this._freq(pitch - 24);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.55, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + 0.05);
+    if (this._active) { const e = { oscs: [o], amp: g }; this._active.add(e); o.onended = () => this._active && this._active.delete(e); }
   },
 
   // Play a list of chords (arrays of pitches) in sequence.
@@ -4929,7 +5093,8 @@ function _ae(e) {
   let icon = e.icon;
   if (e.anim === 'stab') icon = `<div class="stab-icon"><div class="sk"></div><div class="sk bk"></div><div class="sk"></div><div class="sk bk"></div><div class="sk"></div></div>`;
   else if (e.anim === 'bass') icon = `<div class="bass-icon"><div class="bb"></div><div class="bb"></div><div class="bb"></div><div class="bb"></div><div class="bb"></div></div>`;
-  return `<div class="element-item"><div class="element-icon">${icon}</div><div><div class="el-name">${e.name}</div><div class="el-desc">${e.desc}</div></div></div>`;
+  const gear = e.gear ? `<span class="el-gear">${e.gear}</span>` : '';
+  return `<div class="element-item"><div class="element-icon">${icon}</div><div class="el-body"><div class="el-name">${e.name}${gear}</div><div class="el-desc">${e.desc}</div></div></div>`;
 }
 
 function renderProduction() {
@@ -4939,7 +5104,17 @@ function renderProduction() {
   const pmEl = document.getElementById('prodMeta');
   if (pmEl) pmEl.textContent = `${g.bpm} BPM · ${g.sub}`;
   const bbEl = document.getElementById('bpmBadge');
-  if (bbEl) bbEl.textContent = `${g.bpm} BPM`;
+  if (bbEl) bbEl.textContent = `${st.bpm || 120} BPM`;        // shared tempo (metronome / progression)
+  const sbEl = document.getElementById('bpmSuggest');
+  if (sbEl) {
+    sbEl.textContent = `≈ ${g.bpm}`;
+    sbEl.title = `Use the suggested ${g.title} tempo (${g.bpm} BPM)`;
+    sbEl.onclick = () => {
+      st.bpm = g.bpm; saveState();
+      if (typeof Metronome === 'object') Metronome.render();
+      renderProduction();
+    };
+  }
   const pkn = document.getElementById('prodKeyNote');
   if (pkn) pkn.textContent = displayKeyLabel();
   const pkm = document.getElementById('prodKeyMode');
@@ -4975,27 +5150,80 @@ function renderProduction() {
       <div class="rule-text">${r}</div>
     </div>`
   ).join('');
+  const tp = document.getElementById('prodTips');
+  if (tp) tp.innerHTML = (g.tips || []).map(sec =>
+    `<div class="tips-card"><h4>${sec.h}</h4><ul>${sec.items.map(i => `<li>${i}</li>`).join('')}</ul></div>`
+  ).join('');
 }
 
+// ── Connected groove player (V4.9) ────────────────────
+// Plays the genre's drum pattern + the user's PROGRESSION (voiced & voice-led)
+// + an 808 sub-bass, all on a lookahead scheduler synced to st.bpm (shared with
+// the metronome). With no progression it just plays the beat.
+let _prodNext = 0, _prodStep = 0, _prodBar = 0, _prodPrevUpper = null, _prodVoicing = null;
+
 function togglePlay() { if (playing) stopPlay(); else startPlay(); }
+
 function startPlay() {
-  playing = true; pStep = 0;
+  if (typeof AudioEngine !== 'object' || !AudioEngine.resume()) return;
+  playing = true; _prodStep = 0; _prodBar = 0; _prodPrevUpper = null; _prodVoicing = null;
   const playBtn = document.getElementById('playBtn');
   if (playBtn) { playBtn.classList.add('playing'); playBtn.textContent = t('play.stop'); }
-  const g = GENRES[curGenre];
-  pInterval = setInterval(() => {
-    const prev = (pStep - 1 + 16) % 16;
-    g.pattern.forEach((_, ri) => { document.getElementById(`s-${ri}-${prev}`)?.classList.remove('playing'); });
-    g.pattern.forEach((r, ri) => { if (r.p[pStep]) document.getElementById(`s-${ri}-${pStep}`)?.classList.add('playing'); });
-    pStep = (pStep + 1) % 16;
-  }, 60000 / (g.bpm * 4));
+  _prodNext = AudioEngine.now() + 0.08;
+  pInterval = setInterval(_prodSchedule, 25);
 }
+
 function stopPlay() {
   playing = false;
-  clearInterval(pInterval);
+  clearInterval(pInterval); pInterval = null;
+  if (typeof AudioEngine === 'object') AudioEngine.killVoices();   // cut sustained chords/sub
   const playBtn = document.getElementById('playBtn');
   if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = t('play.play'); }
   document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
+}
+
+function _prodSchedule() {
+  const ctx = AudioEngine.ctx; if (!ctx) return;
+  const g = GENRES[curGenre]; if (!g) return;
+  const sec16 = 60 / (st.bpm || 120) / 4;        // one 16th note at the shared BPM
+  while (_prodNext < ctx.currentTime + 0.12) {
+    _prodPlayStep(g, _prodStep, _prodBar, _prodNext, sec16);
+    _prodFlash(_prodStep, _prodNext - ctx.currentTime);
+    _prodStep++;
+    if (_prodStep >= 16) { _prodStep = 0; _prodBar++; }
+    _prodNext += sec16;
+  }
+}
+
+function _prodPlayStep(g, step, bar, when, sec16) {
+  const accent = step % 4 === 0;
+  g.pattern.forEach(row => { if (row.p[step] && row.snd) AudioEngine.drumHit(row.snd, when, accent); });
+
+  const h = Array.isArray(st.history) ? st.history : [];
+  const item = h.length ? h[bar % h.length] : null;
+  if (!item) return;
+
+  // Re-voice the chord once per bar (voice-led from the previous bar).
+  if (step === 0) {
+    const v = AudioEngine._leadVoicing(_prodPrevUpper, chordPitchesForItem(item));
+    _prodVoicing = v.all; _prodPrevUpper = v.upper;
+    if (g.chordStyle === 'pad') AudioEngine.playChord(_prodVoicing, (60 / (st.bpm || 120)) * 3.6, when, false);
+  }
+  if (g.chordStyle === 'stab' && g.chordLane && g.chordLane[step] && _prodVoicing) {
+    AudioEngine.playChord(_prodVoicing, 0.22, when, false);
+  }
+  if (g.bassLane && g.bassLane[step]) {
+    AudioEngine.subBass(chordPitchesForItem(item)[0], when, sec16 * 1.9);
+  }
+}
+
+function _prodFlash(step, delay) {
+  setTimeout(() => {
+    if (!playing) return;
+    const g = GENRES[curGenre]; if (!g) return;
+    document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
+    g.pattern.forEach((r, ri) => { if (r.p[step]) document.getElementById(`s-${ri}-${step}`)?.classList.add('playing'); });
+  }, Math.max(0, delay * 1000));
 }
 
 

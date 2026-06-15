@@ -47,7 +47,89 @@ const AudioEngine = {
     this.voiceBus = ctx.createGain(); this.voiceBus.gain.value = 1;
     this.voiceBus.connect(this.master);
     this._active = new Set();
+    // Drum bus — percussion runs dry (no reverb wash) at its own level.
+    this.drumBus = ctx.createGain(); this.drumBus.gain.value = 0.85;
+    this.drumBus.connect(this.dry);
     return true;
+  },
+
+  // ── 808/909-style drum voices (synthesised, schedulable at `when`) ─────
+  drumHit(type, when = 0, accent = false) {
+    if (!this.resume()) return;
+    const t = when || this.ctx.currentTime;
+    const fn = { kick:'_kick', clap:'_clap', snare:'_snare', hat:'_hat', open:'_openhat', shaker:'_shaker', rim:'_rim' }[type];
+    if (fn && this[fn]) this[fn](t, accent);
+  },
+  _noise(t, dur, decay) {
+    const ctx = this.ctx, len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    const src = ctx.createBufferSource(); src.buffer = buf; src.start(t);
+    return src;
+  },
+  _kick(t, accent) {
+    const ctx = this.ctx, out = this.drumBus;
+    const o = ctx.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(accent ? 165 : 145, t);
+    o.frequency.exponentialRampToValueAtTime(46, t + 0.11);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(accent ? 1 : 0.86, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.55);
+    const click = this._noise(t, 0.01, 6); const cg = ctx.createGain(); cg.gain.value = 0.25;
+    click.connect(cg); cg.connect(out);
+  },
+  _hat(t, accent) {
+    const ctx = this.ctx, src = this._noise(t, 0.045, 4);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 8500;
+    const g = ctx.createGain(); g.gain.value = accent ? 0.34 : 0.24;
+    src.connect(hp); hp.connect(g); g.connect(this.drumBus);
+  },
+  _openhat(t, accent) {
+    const ctx = this.ctx, src = this._noise(t, 0.28, 1.4);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 8000;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(accent ? 0.32 : 0.24, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+    src.connect(hp); hp.connect(g); g.connect(this.drumBus);
+  },
+  _clap(t, accent) {
+    const ctx = this.ctx;
+    [0, 0.009, 0.018, 0.028].forEach((off, i) => {
+      const src = this._noise(t + off, 0.05, 3);
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = 1.3;
+      const g = ctx.createGain(); g.gain.value = (accent ? 0.46 : 0.36) * (i === 3 ? 1 : 0.6);
+      src.connect(bp); bp.connect(g); g.connect(this.drumBus);
+    });
+  },
+  _snare(t, accent) {
+    const ctx = this.ctx, out = this.drumBus;
+    const src = this._noise(t, 0.13, 2.4);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1600;
+    const ng = ctx.createGain(); ng.gain.value = accent ? 0.42 : 0.32;
+    src.connect(hp); hp.connect(ng); ng.connect(out);
+    const o = ctx.createOscillator(); o.type = 'triangle';
+    o.frequency.setValueAtTime(195, t); o.frequency.exponentialRampToValueAtTime(120, t + 0.09);
+    const og = ctx.createGain(); og.gain.setValueAtTime(accent ? 0.34 : 0.26, t);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    o.connect(og); og.connect(out); o.start(t); o.stop(t + 0.14);
+  },
+  _shaker(t, accent) {
+    const ctx = this.ctx, len = Math.floor(ctx.sampleRate * 0.04);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.5) * Math.min(1, i / (len * 0.3));
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 6500;
+    const g = ctx.createGain(); g.gain.value = accent ? 0.2 : 0.14;
+    src.connect(hp); hp.connect(g); g.connect(this.drumBus); src.start(t);
+  },
+  _rim(t, accent) {
+    const ctx = this.ctx, o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = 1700;
+    const g = ctx.createGain(); g.gain.setValueAtTime(accent ? 0.3 : 0.22, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+    o.connect(g); g.connect(this.drumBus); o.start(t); o.stop(t + 0.04);
   },
 
   _impulse(dur, decay) {
@@ -211,6 +293,20 @@ const AudioEngine = {
   playNote(pitch, dur = 0.7) {
     if (!this.resume()) return;
     this._voice(this._freq(pitch), this.ctx.currentTime, dur, 1);
+  },
+
+  // 808-style sub bass: a clean low sine on `pitch` (auto-dropped two octaves),
+  // schedulable; registered so progression Stop also kills it.
+  subBass(pitch, when = 0, dur = 0.32) {
+    if (!this.resume()) return;
+    const ctx = this.ctx, t = when || ctx.currentTime, out = this.voiceBus || this.master;
+    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = this._freq(pitch - 24);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.55, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + 0.05);
+    if (this._active) { const e = { oscs: [o], amp: g }; this._active.add(e); o.onended = () => this._active && this._active.delete(e); }
   },
 
   // Play a list of chords (arrays of pitches) in sequence.

@@ -29,6 +29,7 @@ const I18N_EN = {
   'production.more':   'Additional elements',
   'production.progressions': 'Typical Progressions',
   'production.groove': 'Groove Construction',
+  'production.tips':   'Arrangement & Fills',
   'production.rhythmGrid': 'Rhythm Grid — 1 bar · 16 steps',
   'settings.lang':     'Lang',
   'settings.plasma':   'Plasma',
