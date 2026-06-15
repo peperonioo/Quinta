@@ -80,6 +80,11 @@ OverlayManager.register('library', {
   close:    () => { if (typeof Library === 'object' && Library.open) Library.close(); },
   contains: (t) => !!(t.closest('#libraryPanel') || t.closest('[data-lib-trigger]')),
 });
+OverlayManager.register('instr-zoom', {
+  isOpen:   () => !!(typeof InstrumentZoom === 'object' && InstrumentZoom.open),
+  close:    () => { if (typeof InstrumentZoom === 'object' && InstrumentZoom.open) InstrumentZoom.close(); },
+  contains: (t) => !!(t.closest('#instrZoomPanel') || t.closest('[data-zoom-trigger]')),
+});
 OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),
   close:  () => { if (typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible) WheelDirectionGuide.toggle(); },

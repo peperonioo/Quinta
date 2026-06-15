@@ -82,7 +82,7 @@ const ChordVariants = {
     const root = ctx.root;
     const list = variantsFor(ctx.quality);
     const mid  = Math.ceil(list.length / 2);
-    const chip = v => `<button class="cv-chip${ctx.current === v.id ? ' active' : ''}" role="menuitemradio" aria-checked="${ctx.current === v.id}" onclick="ChordVariants.pick('${v.id}')">${root}${v.suf || ''}</button>`;
+    const chip = v => `<button class="cv-chip${ctx.current === v.id ? ' active' : ''}" role="menuitemradio" aria-checked="${ctx.current === v.id}" onclick="ChordVariants.pick('${v.id}')" onmouseover="ChordVariants.preview('${v.id}')">${root}${v.suf || ''}</button>`;
     // top group sits above the bar (rendered so the nearest is closest to it)
     const top = list.slice(0, mid).map(chip).join('');
     const bot = list.slice(mid).map(chip).join('');
@@ -102,9 +102,19 @@ const ChordVariants = {
     el.style.display = 'block';
     this._place();
     requestAnimationFrame(() => el.classList.add('open'));
+    // Light up the current chord's notes on the piano/fretboard (build-a-chord guide).
+    this._light(ctx.current);
     // Escape + click-outside handled centrally by OverlayManager ('chord-variants').
     if (typeof OverlayManager === 'object') OverlayManager.opened('chord-variants');
   },
+
+  // Pitch classes for a variant id of the open chord; show them on the boards.
+  _light(id) {
+    const ctx = this.ctx; if (!ctx) return;
+    const rootPitch = ni(ctx.root);
+    if (typeof setActiveChord === 'function') setActiveChord(variantDef(ctx.quality, id).iv.map(x => rootPitch + x));
+  },
+  preview(id) { this._light(id); },
 
   _place() {
     const el = this.el, r = this._anchorRect; if (!el) return;
@@ -154,5 +164,6 @@ const ChordVariants = {
       setTimeout(() => { if (el && !el.classList.contains('open')) el.style.display = 'none'; }, 220);
     }
     this.ctx = null;
+    if (typeof setActiveChord === 'function') setActiveChord(null);   // boards revert to the wheel degree
   },
 };

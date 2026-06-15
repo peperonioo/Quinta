@@ -218,11 +218,21 @@
       <!-- Instrument drawers -->
       <div class="drawers">
         <details class="drawer" open>
-          <summary><span data-i18n="drawers.piano">Piano</span> <span class="chev">⌄</span></summary>
+          <summary>
+            <span data-i18n="drawers.piano">Piano</span>
+            <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge piano"
+              onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('piano')">⤢</button>
+            <span class="chev">⌄</span>
+          </summary>
           <div class="drawer-body"><div id="piano" class="piano"></div></div>
         </details>
         <details class="drawer">
-          <summary><span data-i18n="drawers.guitar">Guitar / Fretboard</span> <span class="chev">⌄</span></summary>
+          <summary>
+            <span data-i18n="drawers.guitar">Guitar / Fretboard</span>
+            <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge fretboard"
+              onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('guitar')">⤢</button>
+            <span class="chev">⌄</span>
+          </summary>
           <div class="drawer-body"><div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div></div>
         </details>
       </div>
@@ -282,6 +292,17 @@
 </div>
 
 <div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
+
+<!-- INSTRUMENT FULLSCREEN / ENLARGE -->
+<div id="instrZoom" class="instr-zoom" onclick="if(event.target===this)InstrumentZoom.close()">
+  <div class="iz-panel" id="instrZoomPanel" role="dialog" aria-modal="true" aria-label="Instrument">
+    <div class="iz-head">
+      <span id="instrZoomTitle" class="iz-title">Piano</span>
+      <button class="iz-close" onclick="InstrumentZoom.close()" aria-label="Close">✕</button>
+    </div>
+    <div id="instrZoomBody" class="iz-body"></div>
+  </div>
+</div>
 
 <!-- PROGRESSION LIBRARY -->
 <div id="libraryBackdrop" class="lib-backdrop" onclick="Library.close()"></div>

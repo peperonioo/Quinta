@@ -1227,31 +1227,55 @@ body.light .lib-name { color:#1a1a1a }
 }
 
 /* == instruments.css == */
-/* ── INSTRUMENTS ─────────────────────────────────────*/
+/* ── INSTRUMENTS — liquid-glass piano ────────────────*/
 .piano {
-  height:116px; position:relative; border-radius:10px;
-  overflow:hidden; background:rgba(0,0,0,.15); border:1px solid var(--line);
+  height:128px; position:relative; border-radius:16px; overflow:hidden;
+  background:linear-gradient(180deg, rgba(22,22,28,.55), rgba(8,8,12,.7));
+  border:1px solid var(--card-bd); backdrop-filter:blur(20px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 10px 28px rgba(0,0,0,.28);
 }
 .white {
   position:absolute; bottom:0; top:0;
-  background:linear-gradient(180deg,#f8f8f4,#e8e8e0);
-  border-right:1px solid #bbb; border-radius:0 0 7px 7px;
-  display:flex; align-items:flex-end; justify-content:center;
-  padding-bottom:9px; font-family:'DM Mono',monospace; font-size:9px; color:#aaa;
+  background:linear-gradient(180deg,#f7f7f3 0%,#ecece6 70%,#deded6 100%);
+  border-right:1px solid rgba(0,0,0,.12); border-radius:0 0 9px 9px;
+  display:flex; align-items:flex-end; justify-content:center; padding-bottom:9px;
+  box-shadow:inset 0 -7px 9px -6px rgba(0,0,0,.12);
+  cursor:pointer; transition:transform .09s var(--ui-ease), filter .12s ease, box-shadow .22s ease;
 }
 .black {
   position:absolute; top:0; height:60%;
-  background:linear-gradient(180deg,#252525,#101010);
-  border-radius:0 0 5px 5px; z-index:2;
+  background:linear-gradient(180deg,#34343c,#0c0c12);
+  border-radius:0 0 6px 6px; z-index:2; cursor:pointer;
+  box-shadow:0 4px 7px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
+  transition:transform .09s var(--ui-ease), filter .12s ease, box-shadow .22s ease;
 }
-.key-on.white { background:linear-gradient(180deg,#d8c8f8,#b8a0e8) !important; color:#5544aa !important }
-.key-on.black { background:linear-gradient(180deg,#6a4ad8,#4a2aa8) !important }
-/* Current chord tones — stronger accent than scale notes */
-.chord-on.white { background:linear-gradient(180deg,#ffb38a,var(--accent)) !important; color:#fff !important; box-shadow:inset 0 0 0 1px rgba(232,68,26,.5) }
-.chord-on.black { background:linear-gradient(180deg,var(--accent),#aa2200) !important; box-shadow:0 0 8px rgba(232,68,26,.6) }
-.white, .black { cursor:pointer; transition:filter .08s ease }
-.white:hover, .black:hover { filter:brightness(1.12) }
-.white:active, .black:active { filter:brightness(.9) }
+.white .kl { font-family:'DM Mono',monospace; font-size:9px; color:#9a9a93; transition:color .2s }
+.black .kl { position:absolute; bottom:6px; left:0; right:0; text-align:center; font-family:'DM Mono',monospace; font-size:8px; color:rgba(255,255,255,.85) }
+
+/* Scale notes — a faint accent tint rising from the key bottom (no more lilac).
+   Kept subtle so the actual chord tones clearly stand out as the guide. */
+.key-on.white { box-shadow:inset 0 -11px 13px -9px rgba(232,68,26,.2), inset 0 -7px 9px -6px rgba(0,0,0,.12) }
+.key-on.white .kl { color:rgba(232,68,26,.62) }
+.key-on.black { box-shadow:inset 0 -8px 10px -7px rgba(232,68,26,.4), 0 4px 7px rgba(0,0,0,.55) }
+
+/* Current chord tones — strong accent + a lit base + a pop animation */
+.chord-on.white {
+  background:linear-gradient(180deg,#fff4ee 0%,#ffe0d2 75%,#ffd0bd 100%);
+  box-shadow:inset 0 -24px 22px -8px var(--accent), inset 0 0 0 1px rgba(232,68,26,.5), 0 0 16px rgba(232,68,26,.32);
+  animation:keyPop .42s var(--ui-ease);
+}
+.chord-on.white .kl { color:#fff; font-weight:700; text-shadow:0 1px 2px rgba(180,40,10,.6) }
+.chord-on.black {
+  background:linear-gradient(180deg,#ff8a55,var(--accent));
+  box-shadow:0 0 16px rgba(232,68,26,.7), inset 0 1px 0 rgba(255,255,255,.3), 0 4px 7px rgba(0,0,0,.5);
+  animation:keyPop .42s var(--ui-ease);
+}
+@keyframes keyPop { 0%{transform:translateY(-3px)} 55%{transform:translateY(1px)} 100%{transform:none} }
+.white:hover  { filter:brightness(1.04) }
+.black:hover  { filter:brightness(1.35) }
+.white:active { transform:translateY(2px) scale(.99); filter:brightness(.95) }
+.black:active { transform:translateY(2px); filter:brightness(.85) }
+@media (prefers-reduced-motion: reduce){ .chord-on.white, .chord-on.black { animation:none } }
 
 /* Fretboard */
 .fretboard-wrap {
@@ -1279,6 +1303,54 @@ body.light .lib-name { color:#1a1a1a }
 .fret-note.on:hover, .fret-note.root:hover, .fret-note.chord:hover { transform:scale(1.14) }
 .fret-cell      { height:34px; display:flex; align-items:center; justify-content:center; position:relative; z-index:1 }
 .fret-cell::after { content:''; position:absolute; right:0; top:4px; bottom:4px; width:1px; background:rgba(255,255,255,.09) }
+
+/* ── Enlarge button on each drawer ────────────────────*/
+.drawer summary { display:flex; align-items:center; gap:8px }
+.drawer summary .chev { margin-left:auto }
+.instr-expand {
+  width:24px; height:24px; flex:0 0 auto; border-radius:8px; cursor:pointer;
+  border:1px solid var(--card-bd); background:var(--sel-bg); color:var(--muted);
+  font-size:13px; line-height:1; display:grid; place-items:center;
+  transition:transform .12s var(--ui-ease), color .12s, border-color .12s;
+}
+.instr-expand:hover { color:var(--accent2); border-color:rgba(232,68,26,.4); transform:scale(1.08) }
+
+/* ── Fullscreen / enlarge overlay (liquid glass) ──────*/
+.instr-zoom {
+  position:fixed; inset:0; z-index:var(--z-modal, 9500); display:flex;
+  align-items:center; justify-content:center; padding:18px;
+  background:rgba(0,0,0,.5); backdrop-filter:blur(6px);
+  opacity:0; pointer-events:none; transition:opacity .24s var(--ease);
+}
+.instr-zoom.open { opacity:1; pointer-events:auto }
+.iz-panel {
+  width:min(1100px, 96vw); max-height:92vh; display:flex; flex-direction:column;
+  background:linear-gradient(180deg, rgba(20,20,26,.92), rgba(12,12,16,.95));
+  border:1px solid rgba(255,255,255,.12); border-radius:22px;
+  box-shadow:0 40px 110px rgba(0,0,0,.6); backdrop-filter:blur(30px); color:#f0ede8;
+  transform:scale(.95) translateY(8px); transition:transform .3s cubic-bezier(.34,1.4,.4,1);
+  overflow:hidden;
+}
+body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96), rgba(244,241,236,.98)); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
+.instr-zoom.open .iz-panel { transform:none }
+.iz-head { display:flex; align-items:center; justify-content:space-between; padding:14px 18px 10px }
+.iz-title { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted) }
+.iz-close { background:none; border:0; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 8px }
+.iz-body  { padding:6px 18px 20px; overflow:auto; display:flex; align-items:center; justify-content:center }
+/* Enlarged boards */
+.piano.zoom    { height:min(56vh, 440px); width:100%; border-radius:18px }
+.piano.zoom .white { padding-bottom:14px } .piano.zoom .white .kl { font-size:13px }
+.piano.zoom .black .kl { font-size:11px; bottom:10px }
+.fretboard-wrap.zoom { width:100%; max-height:84vh; overflow:auto }
+.fretboard-wrap.zoom .fretboard { min-width:980px }
+.fretboard-wrap.zoom .fret-note { width:30px; height:30px; font-size:10px }
+.fretboard-wrap.zoom .fret-cell  { height:46px }
+@media (max-width:860px){
+  .instr-zoom { padding:0 }
+  .iz-panel { width:100vw; height:100vh; max-height:100vh; border-radius:0 }
+  /* On phones the piano reads best rotated to use the long edge */
+  .piano.zoom { height:min(72vw, 320px) }
+}
 
 /* == production.css == */
 /* ── PRODUCTION TAB ───────────────────────────────────*/
@@ -1667,11 +1739,21 @@ body.light .lib-name { color:#1a1a1a }
       <!-- Instrument drawers -->
       <div class="drawers">
         <details class="drawer" open>
-          <summary><span data-i18n="drawers.piano">Piano</span> <span class="chev">⌄</span></summary>
+          <summary>
+            <span data-i18n="drawers.piano">Piano</span>
+            <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge piano"
+              onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('piano')">⤢</button>
+            <span class="chev">⌄</span>
+          </summary>
           <div class="drawer-body"><div id="piano" class="piano"></div></div>
         </details>
         <details class="drawer">
-          <summary><span data-i18n="drawers.guitar">Guitar / Fretboard</span> <span class="chev">⌄</span></summary>
+          <summary>
+            <span data-i18n="drawers.guitar">Guitar / Fretboard</span>
+            <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge fretboard"
+              onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('guitar')">⤢</button>
+            <span class="chev">⌄</span>
+          </summary>
           <div class="drawer-body"><div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div></div>
         </details>
       </div>
@@ -1732,6 +1814,17 @@ body.light .lib-name { color:#1a1a1a }
 
 <div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
 
+<!-- INSTRUMENT FULLSCREEN / ENLARGE -->
+<div id="instrZoom" class="instr-zoom" onclick="if(event.target===this)InstrumentZoom.close()">
+  <div class="iz-panel" id="instrZoomPanel" role="dialog" aria-modal="true" aria-label="Instrument">
+    <div class="iz-head">
+      <span id="instrZoomTitle" class="iz-title">Piano</span>
+      <button class="iz-close" onclick="InstrumentZoom.close()" aria-label="Close">✕</button>
+    </div>
+    <div id="instrZoomBody" class="iz-body"></div>
+  </div>
+</div>
+
 <!-- PROGRESSION LIBRARY -->
 <div id="libraryBackdrop" class="lib-backdrop" onclick="Library.close()"></div>
 <div id="libraryPanel" class="lib-panel" role="dialog" aria-modal="true" aria-label="Progression library">
@@ -1757,7 +1850,7 @@ body.light .lib-name { color:#1a1a1a }
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.0';
+const APP_VERSION = 'V5.1';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -3921,6 +4014,11 @@ OverlayManager.register('library', {
   close:    () => { if (typeof Library === 'object' && Library.open) Library.close(); },
   contains: (t) => !!(t.closest('#libraryPanel') || t.closest('[data-lib-trigger]')),
 });
+OverlayManager.register('instr-zoom', {
+  isOpen:   () => !!(typeof InstrumentZoom === 'object' && InstrumentZoom.open),
+  close:    () => { if (typeof InstrumentZoom === 'object' && InstrumentZoom.open) InstrumentZoom.close(); },
+  contains: (t) => !!(t.closest('#instrZoomPanel') || t.closest('[data-zoom-trigger]')),
+});
 OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),
   close:  () => { if (typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible) WheelDirectionGuide.toggle(); },
@@ -4845,7 +4943,7 @@ const ChordVariants = {
     const root = ctx.root;
     const list = variantsFor(ctx.quality);
     const mid  = Math.ceil(list.length / 2);
-    const chip = v => `<button class="cv-chip${ctx.current === v.id ? ' active' : ''}" role="menuitemradio" aria-checked="${ctx.current === v.id}" onclick="ChordVariants.pick('${v.id}')">${root}${v.suf || ''}</button>`;
+    const chip = v => `<button class="cv-chip${ctx.current === v.id ? ' active' : ''}" role="menuitemradio" aria-checked="${ctx.current === v.id}" onclick="ChordVariants.pick('${v.id}')" onmouseover="ChordVariants.preview('${v.id}')">${root}${v.suf || ''}</button>`;
     // top group sits above the bar (rendered so the nearest is closest to it)
     const top = list.slice(0, mid).map(chip).join('');
     const bot = list.slice(mid).map(chip).join('');
@@ -4865,9 +4963,19 @@ const ChordVariants = {
     el.style.display = 'block';
     this._place();
     requestAnimationFrame(() => el.classList.add('open'));
+    // Light up the current chord's notes on the piano/fretboard (build-a-chord guide).
+    this._light(ctx.current);
     // Escape + click-outside handled centrally by OverlayManager ('chord-variants').
     if (typeof OverlayManager === 'object') OverlayManager.opened('chord-variants');
   },
+
+  // Pitch classes for a variant id of the open chord; show them on the boards.
+  _light(id) {
+    const ctx = this.ctx; if (!ctx) return;
+    const rootPitch = ni(ctx.root);
+    if (typeof setActiveChord === 'function') setActiveChord(variantDef(ctx.quality, id).iv.map(x => rootPitch + x));
+  },
+  preview(id) { this._light(id); },
 
   _place() {
     const el = this.el, r = this._anchorRect; if (!el) return;
@@ -4917,6 +5025,7 @@ const ChordVariants = {
       setTimeout(() => { if (el && !el.classList.contains('open')) el.style.display = 'none'; }, 220);
     }
     this.ctx = null;
+    if (typeof setActiveChord === 'function') setActiveChord(null);   // boards revert to the wheel degree
   },
 };
 
@@ -5041,9 +5150,17 @@ const Library = {
 
 // == instruments-renderer.js ==
 // ── INSTRUMENTS RENDERER ──────────────────────────────
-// Pitch classes (0–11) of the currently selected chord, for highlighting the
-// chord tones on the piano / fretboard distinctly from the scale.
+// The chord whose tones light up on the piano / fretboard. An explicitly set
+// "active chord" (e.g. a 7/sus/add variant from the chooser) wins, so the boards
+// become a visual guide for building the *exact* altered chord. Otherwise it
+// falls back to the triad of the selected wheel degree.
+let _activeChordPcs = null;
+function setActiveChord(pitches) {
+  _activeChordPcs = (pitches && pitches.length) ? pitches.map(p => ((p % 12) + 12) % 12) : null;
+  renderPiano(); renderGuitar();
+}
 function _chordPcSet() {
+  if (_activeChordPcs) return new Set(_activeChordPcs);
   if (typeof curDeg === 'undefined' || curDeg < 0 || typeof chordPitchesForDegree !== 'function') return null;
   const pcs = chordPitchesForDegree(curDeg);
   if (!pcs || !pcs.length) return null;
@@ -5063,12 +5180,13 @@ function renderPiano() {
     if (chord && chord.has(((pitch % 12) + 12) % 12)) return ' chord-on';
     return set.has(n) ? ' key-on' : '';
   };
+  const isCh = pitch => chord && chord.has(((pitch % 12) + 12) % 12);
   whites.forEach((n, i) => {
     const pitch = wPitch[i];
     const el = document.createElement('div');
     el.className = 'white' + cls(pitch, n);
     el.style.cssText = `left:${i*w}%;width:${w}%;position:absolute;bottom:0;top:0`;
-    el.textContent   = set.has(n) ? n : '';
+    el.innerHTML = (set.has(n) || isCh(pitch)) ? `<span class="kl">${n}</span>` : '';
     el.onclick = () => _hear(pitch);
     root.appendChild(el);
   });
@@ -5077,10 +5195,41 @@ function renderPiano() {
     const el = document.createElement('div');
     el.className = 'black' + cls(pitch, n);
     el.style.cssText = `left:${pos*w}%;width:${w*.56}%;position:absolute;top:0;height:60%;z-index:2`;
+    if (isCh(pitch)) el.innerHTML = `<span class="kl">${dn(n)}</span>`;
     el.onclick = () => _hear(pitch);
     root.appendChild(el);
   });
 }
+
+// ── Fullscreen / enlarge a board ──────────────────────
+// Moves the live #piano / fretboard into a glass overlay (fullscreen on phones,
+// large on desktop) so it's playable at a comfortable size. Registered with
+// OverlayManager (Escape + backdrop click).
+const InstrumentZoom = {
+  open: false, which: null, _el: null, _parent: null,
+  show(which) {
+    const ov = document.getElementById('instrZoom'); if (!ov) return;
+    const el = which === 'piano' ? document.getElementById('piano')
+                                 : document.getElementById('guitar')?.closest('.fretboard-wrap');
+    if (!el) return;
+    this.which = which; this._el = el; this._parent = el.parentElement;
+    const title = document.getElementById('instrZoomTitle');
+    if (title) title.textContent = which === 'piano' ? 'Piano' : 'Guitar / Fretboard';
+    const body = document.getElementById('instrZoomBody'); body.innerHTML = ''; body.appendChild(el);
+    el.classList.add('zoom');
+    ov.classList.add('open'); this.open = true;
+    (which === 'piano' ? renderPiano : renderGuitar)();
+    if (typeof OverlayManager === 'object') OverlayManager.opened('instr-zoom');
+  },
+  close() {
+    if (!this.open) return;
+    if (this._el && this._parent) { this._el.classList.remove('zoom'); this._parent.appendChild(this._el); }
+    document.getElementById('instrZoom')?.classList.remove('open');
+    const which = this.which;
+    this.open = false; this._el = null; this._parent = null; this.which = null;
+    (which === 'piano' ? renderPiano : renderGuitar)();
+  },
+};
 
 function renderGuitar() {
   const root = document.getElementById('guitar'); if (!root) return;

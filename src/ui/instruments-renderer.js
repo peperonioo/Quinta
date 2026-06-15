@@ -1,7 +1,15 @@
 // ── INSTRUMENTS RENDERER ──────────────────────────────
-// Pitch classes (0–11) of the currently selected chord, for highlighting the
-// chord tones on the piano / fretboard distinctly from the scale.
+// The chord whose tones light up on the piano / fretboard. An explicitly set
+// "active chord" (e.g. a 7/sus/add variant from the chooser) wins, so the boards
+// become a visual guide for building the *exact* altered chord. Otherwise it
+// falls back to the triad of the selected wheel degree.
+let _activeChordPcs = null;
+function setActiveChord(pitches) {
+  _activeChordPcs = (pitches && pitches.length) ? pitches.map(p => ((p % 12) + 12) % 12) : null;
+  renderPiano(); renderGuitar();
+}
 function _chordPcSet() {
+  if (_activeChordPcs) return new Set(_activeChordPcs);
   if (typeof curDeg === 'undefined' || curDeg < 0 || typeof chordPitchesForDegree !== 'function') return null;
   const pcs = chordPitchesForDegree(curDeg);
   if (!pcs || !pcs.length) return null;
@@ -21,12 +29,13 @@ function renderPiano() {
     if (chord && chord.has(((pitch % 12) + 12) % 12)) return ' chord-on';
     return set.has(n) ? ' key-on' : '';
   };
+  const isCh = pitch => chord && chord.has(((pitch % 12) + 12) % 12);
   whites.forEach((n, i) => {
     const pitch = wPitch[i];
     const el = document.createElement('div');
     el.className = 'white' + cls(pitch, n);
     el.style.cssText = `left:${i*w}%;width:${w}%;position:absolute;bottom:0;top:0`;
-    el.textContent   = set.has(n) ? n : '';
+    el.innerHTML = (set.has(n) || isCh(pitch)) ? `<span class="kl">${n}</span>` : '';
     el.onclick = () => _hear(pitch);
     root.appendChild(el);
   });
@@ -35,10 +44,41 @@ function renderPiano() {
     const el = document.createElement('div');
     el.className = 'black' + cls(pitch, n);
     el.style.cssText = `left:${pos*w}%;width:${w*.56}%;position:absolute;top:0;height:60%;z-index:2`;
+    if (isCh(pitch)) el.innerHTML = `<span class="kl">${dn(n)}</span>`;
     el.onclick = () => _hear(pitch);
     root.appendChild(el);
   });
 }
+
+// ── Fullscreen / enlarge a board ──────────────────────
+// Moves the live #piano / fretboard into a glass overlay (fullscreen on phones,
+// large on desktop) so it's playable at a comfortable size. Registered with
+// OverlayManager (Escape + backdrop click).
+const InstrumentZoom = {
+  open: false, which: null, _el: null, _parent: null,
+  show(which) {
+    const ov = document.getElementById('instrZoom'); if (!ov) return;
+    const el = which === 'piano' ? document.getElementById('piano')
+                                 : document.getElementById('guitar')?.closest('.fretboard-wrap');
+    if (!el) return;
+    this.which = which; this._el = el; this._parent = el.parentElement;
+    const title = document.getElementById('instrZoomTitle');
+    if (title) title.textContent = which === 'piano' ? 'Piano' : 'Guitar / Fretboard';
+    const body = document.getElementById('instrZoomBody'); body.innerHTML = ''; body.appendChild(el);
+    el.classList.add('zoom');
+    ov.classList.add('open'); this.open = true;
+    (which === 'piano' ? renderPiano : renderGuitar)();
+    if (typeof OverlayManager === 'object') OverlayManager.opened('instr-zoom');
+  },
+  close() {
+    if (!this.open) return;
+    if (this._el && this._parent) { this._el.classList.remove('zoom'); this._parent.appendChild(this._el); }
+    document.getElementById('instrZoom')?.classList.remove('open');
+    const which = this.which;
+    this.open = false; this._el = null; this._parent = null; this.which = null;
+    (which === 'piano' ? renderPiano : renderGuitar)();
+  },
+};
 
 function renderGuitar() {
   const root = document.getElementById('guitar'); if (!root) return;
