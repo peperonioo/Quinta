@@ -113,13 +113,12 @@ const BubbleField = {
     if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(b.to));
     const from = b.el.getBoundingClientRect();
     const chord = b.el.querySelector('.nb-chord')?.textContent || '';
-    AppActions.selectDegree(b.to, { force: true });
+    AppActions.selectDegree(b.to, { force: true });   // renders the new pill synchronously
     if (!this.reduced && typeof _flyGhost === 'function') {
-      requestAnimationFrame(() => {
-        const pill = document.querySelector('.builder-step:last-of-type');
-        const to = pill && pill.getBoundingClientRect();
-        if (to) _flyGhost(from, to, chord);
-      });
+      const steps = document.querySelectorAll('#flowRow .builder-step');
+      const pill = steps[steps.length - 1];            // last bar (the playhead div trips :last-of-type)
+      const to = pill && pill.getBoundingClientRect();
+      if (to) _flyGhost(from, to, chord);
     }
   },
   _drop(b) {  // drag → drop at a timeline slot

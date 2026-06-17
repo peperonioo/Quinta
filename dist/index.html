@@ -825,16 +825,16 @@ body.light .next-bubble.best .nb-chord { color:#fff }
 @media (prefers-reduced-motion: reduce) { .next-bubble, .nb-float, .nb-spec, .nb-glow { animation:none !important } }
 .nb-fit, .nb-degree, .nb-category, .nb-metrics { display:none !important }
 
-/* Fly-to-pill ghost: bubble visually travels into the builder */
+/* Fly-to-pill ghost: a gel disc of the chord travels into the builder (animated
+   via WAAPI in _flyGhost). Accent follows the active palette. */
 .fly-ghost {
   position:fixed; z-index:var(--z-toast); pointer-events:none;
   display:grid; place-items:center; border-radius:999px;
-  font-family:var(--wheel-font); font-weight:700; letter-spacing:-.03em;
-  font-size:clamp(13px, 4.6vw, 26px); color:var(--ink);
-  background:radial-gradient(circle at 50% 42%, rgba(255,112,72,.5), rgba(255,112,72,.18));
-  border:1px solid rgba(255,112,72,.5);
-  box-shadow:0 10px 26px rgba(232,68,26,.26);
-  transition:transform .46s cubic-bezier(.4,0,.2,1), opacity .46s ease;
+  font-family:var(--wheel-font); font-weight:700; letter-spacing:-.02em;
+  font-size:clamp(13px, 4.6vw, 26px); color:#fff;
+  background:radial-gradient(120% 130% at 50% 18%, color-mix(in srgb, #fff 28%, var(--ba)), var(--ba) 55%, color-mix(in srgb, #000 16%, var(--ba)));
+  border:1px solid rgba(255,255,255,.4);
+  box-shadow:0 12px 30px rgba(var(--ba-rgb),.5), inset 0 2px 1px rgba(255,255,255,.5);
   will-change:transform, opacity;
 }
 
@@ -1827,7 +1827,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.3';
+const APP_VERSION = 'V5.4';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -4818,20 +4818,26 @@ const SuggestionDrag = {
   _clearMarker() { const m = document.getElementById('dropMarker'); if (m) m.style.display = 'none'; },
 };
 
+// Fly a gel ghost of the tapped bubble into its new pill — it shrinks and arcs
+// across, quick and smooth, so the chord visibly "travels" into the progression.
 function _flyGhost(from, to, chord) {
   const g = document.createElement('div');
   g.className = 'fly-ghost';
   g.textContent = chord;
-  g.style.cssText = `left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px;`;
+  g.style.left = from.left + 'px'; g.style.top = from.top + 'px';
+  g.style.width = from.width + 'px'; g.style.height = from.height + 'px';
   document.body.appendChild(g);
   const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
   const dy = (to.top  + to.height / 2) - (from.top  + from.height / 2);
-  requestAnimationFrame(() => {
-    g.style.transform = `translate(${dx}px, ${dy}px) scale(.32)`;
-    g.style.opacity   = '0';
-  });
-  g.addEventListener('transitionend', () => g.remove(), { once: true });
-  setTimeout(() => { if (g.isConnected) g.remove(); }, 800);
+  const arc = Math.min(-28, -Math.abs(dx) * 0.12);     // slight lift mid-flight
+  const anim = g.animate([
+    { transform: 'translate(0,0) scale(1)', opacity: 1, offset: 0 },
+    { transform: `translate(${dx * 0.5}px, ${dy * 0.5 + arc}px) scale(.66)`, opacity: 1, offset: .5 },
+    { transform: `translate(${dx}px, ${dy}px) scale(.24)`, opacity: 0, offset: 1 },
+  ], { duration: 400, easing: 'cubic-bezier(.42,.04,.24,1)' });
+  const done = () => g.remove();
+  anim.onfinish = done; anim.oncancel = done;
+  setTimeout(() => { if (g.isConnected) g.remove(); }, 700);
 }
 
 function renderProgressionStory() {
@@ -4966,13 +4972,12 @@ const BubbleField = {
     if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(b.to));
     const from = b.el.getBoundingClientRect();
     const chord = b.el.querySelector('.nb-chord')?.textContent || '';
-    AppActions.selectDegree(b.to, { force: true });
+    AppActions.selectDegree(b.to, { force: true });   // renders the new pill synchronously
     if (!this.reduced && typeof _flyGhost === 'function') {
-      requestAnimationFrame(() => {
-        const pill = document.querySelector('.builder-step:last-of-type');
-        const to = pill && pill.getBoundingClientRect();
-        if (to) _flyGhost(from, to, chord);
-      });
+      const steps = document.querySelectorAll('#flowRow .builder-step');
+      const pill = steps[steps.length - 1];            // last bar (the playhead div trips :last-of-type)
+      const to = pill && pill.getBoundingClientRect();
+      if (to) _flyGhost(from, to, chord);
     }
   },
   _drop(b) {  // drag → drop at a timeline slot

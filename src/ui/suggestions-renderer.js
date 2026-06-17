@@ -200,20 +200,26 @@ const SuggestionDrag = {
   _clearMarker() { const m = document.getElementById('dropMarker'); if (m) m.style.display = 'none'; },
 };
 
+// Fly a gel ghost of the tapped bubble into its new pill — it shrinks and arcs
+// across, quick and smooth, so the chord visibly "travels" into the progression.
 function _flyGhost(from, to, chord) {
   const g = document.createElement('div');
   g.className = 'fly-ghost';
   g.textContent = chord;
-  g.style.cssText = `left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px;`;
+  g.style.left = from.left + 'px'; g.style.top = from.top + 'px';
+  g.style.width = from.width + 'px'; g.style.height = from.height + 'px';
   document.body.appendChild(g);
   const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
   const dy = (to.top  + to.height / 2) - (from.top  + from.height / 2);
-  requestAnimationFrame(() => {
-    g.style.transform = `translate(${dx}px, ${dy}px) scale(.32)`;
-    g.style.opacity   = '0';
-  });
-  g.addEventListener('transitionend', () => g.remove(), { once: true });
-  setTimeout(() => { if (g.isConnected) g.remove(); }, 800);
+  const arc = Math.min(-28, -Math.abs(dx) * 0.12);     // slight lift mid-flight
+  const anim = g.animate([
+    { transform: 'translate(0,0) scale(1)', opacity: 1, offset: 0 },
+    { transform: `translate(${dx * 0.5}px, ${dy * 0.5 + arc}px) scale(.66)`, opacity: 1, offset: .5 },
+    { transform: `translate(${dx}px, ${dy}px) scale(.24)`, opacity: 0, offset: 1 },
+  ], { duration: 400, easing: 'cubic-bezier(.42,.04,.24,1)' });
+  const done = () => g.remove();
+  anim.onfinish = done; anim.oncancel = done;
+  setTimeout(() => { if (g.isConnected) g.remove(); }, 700);
 }
 
 function renderProgressionStory() {

@@ -103,16 +103,16 @@ body.light .next-bubble.best .nb-chord { color:#fff }
 @media (prefers-reduced-motion: reduce) { .next-bubble, .nb-float, .nb-spec, .nb-glow { animation:none !important } }
 .nb-fit, .nb-degree, .nb-category, .nb-metrics { display:none !important }
 
-/* Fly-to-pill ghost: bubble visually travels into the builder */
+/* Fly-to-pill ghost: a gel disc of the chord travels into the builder (animated
+   via WAAPI in _flyGhost). Accent follows the active palette. */
 .fly-ghost {
   position:fixed; z-index:var(--z-toast); pointer-events:none;
   display:grid; place-items:center; border-radius:999px;
-  font-family:var(--wheel-font); font-weight:700; letter-spacing:-.03em;
-  font-size:clamp(13px, 4.6vw, 26px); color:var(--ink);
-  background:radial-gradient(circle at 50% 42%, rgba(255,112,72,.5), rgba(255,112,72,.18));
-  border:1px solid rgba(255,112,72,.5);
-  box-shadow:0 10px 26px rgba(232,68,26,.26);
-  transition:transform .46s cubic-bezier(.4,0,.2,1), opacity .46s ease;
+  font-family:var(--wheel-font); font-weight:700; letter-spacing:-.02em;
+  font-size:clamp(13px, 4.6vw, 26px); color:#fff;
+  background:radial-gradient(120% 130% at 50% 18%, color-mix(in srgb, #fff 28%, var(--ba)), var(--ba) 55%, color-mix(in srgb, #000 16%, var(--ba)));
+  border:1px solid rgba(255,255,255,.4);
+  box-shadow:0 12px 30px rgba(var(--ba-rgb),.5), inset 0 2px 1px rgba(255,255,255,.5);
   will-change:transform, opacity;
 }
 
