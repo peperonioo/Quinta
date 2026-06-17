@@ -30,6 +30,10 @@
   --card-bd:  rgba(255,255,255,.09);
   --accent:   #e8441a;
   --accent2:  #ff7048;
+  /* Bubble accent — follows the active plasma palette for colour cohesion
+     (set by applyPalette). Defaults to the app accent. */
+  --ba:       #e8441a;
+  --ba-rgb:   232,68,26;
   --degree-bg:   rgba(0,0,0,.52);
   --degree-tonic:rgba(232,68,26,.18);
   --popup-bg: rgba(8,8,12,.88);
@@ -749,77 +753,76 @@ body.light .next-orbit {
 .next-orbit::-webkit-scrollbar-thumb { background:rgba(255,255,255,.14); border-radius:99px }
 body.light .next-orbit::-webkit-scrollbar-thumb { background:rgba(0,0,0,.14) }
 
-/* Bubble — frosted-glass disc with an Apple-style accent "strength ring" that
-   fills proportionally to the suggestion's fit. Cohesive with the app's
-   liquid-glass / Dynamic-Island language (no more washy, faded discs). */
+/* ── Liquid-gel bubble (V5.3) ──────────────────────────
+   Layered: button (size) > .nb-float (idle float) > .nb-body (gel skin, driven
+   by BubbleField spring physics) > gloss + living specular + ripple + text.
+   Accent follows the active palette via --ba / --ba-rgb (colour cohesion). */
 .next-bubble {
-  --d: 66px; --fit: 50;
-  --diam: clamp(48px, var(--d), 92px);
-  position:relative;
+  --d:66px; --fit:50;
+  --diam:clamp(48px, var(--d), 96px);
+  position:relative; scroll-snap-align:center;
   width:var(--diam) !important; height:var(--diam) !important;
-  min-width:var(--diam) !important; flex:0 0 var(--diam) !important;
-  aspect-ratio:1/1 !important;
-  border-radius:999px !important; padding:0 !important;
-  scroll-snap-align:center !important;
-  display:grid !important; place-items:center !important; gap:0 !important;
-  /* Strength reads through SIZE + the accent border's intensity (no fragile ring) */
-  border:1.5px solid rgba(232,68,26, calc(.14 + var(--fit) * .0055)) !important;
-  color:#f0ede8;
-  background:linear-gradient(180deg, rgba(30,30,38,.94), rgba(14,14,20,.97)) !important;
-  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
-  box-shadow:0 9px 22px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.07) !important;
-  cursor:pointer; z-index:1;
-  transition:transform .42s cubic-bezier(.34,1.52,.5,1), box-shadow .3s var(--ui-ease), border-color .25s var(--ui-ease) !important;
-  animation:bubbleIn .5s cubic-bezier(.2,1.3,.3,1) both;
+  min-width:var(--diam) !important; flex:0 0 var(--diam) !important; aspect-ratio:1/1 !important;
+  background:none !important; border:0 !important; padding:0 !important;
+  cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:none;
 }
-body.light .next-bubble {
-  color:#1a1a1a;
-  border-color:rgba(232,68,26, calc(.16 + var(--fit) * .005)) !important;
-  background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(244,241,236,.97)) !important;
-  box-shadow:0 9px 20px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.9) !important;
+.nb-glow { display:none; position:absolute; inset:-22%; border-radius:999px; filter:blur(14px); z-index:0; pointer-events:none }
+.next-bubble.best .nb-glow { display:block; background:radial-gradient(circle, rgba(var(--ba-rgb),.7), rgba(var(--ba-rgb),0) 70%); animation:nbGlow 3.4s ease-in-out infinite }
+.nb-float { position:relative; z-index:1; display:block; width:100%; height:100% }
+.nb-body {
+  position:relative; width:100%; height:100%; border-radius:999px; display:grid; place-items:center; overflow:hidden;
+  will-change:transform; -webkit-backdrop-filter:blur(13px); backdrop-filter:blur(13px); color:#f4f1ec;
+  background:linear-gradient(160deg, rgba(52,48,64,.8), rgba(20,17,28,.93));
+  border:1.5px solid rgba(var(--ba-rgb), calc(.12 + var(--fit) * .0042));
+  box-shadow:0 10px 26px rgba(0,0,0,.42), inset 0 1.5px 0 rgba(255,255,255,.1), inset 0 -8px 18px rgba(0,0,0,.3),
+             0 0 calc(4px + var(--fit) * .16px) rgba(var(--ba-rgb), calc(var(--fit) * .004));
 }
-/* Entrance stagger (bubbles are in degree order I…VII) */
-.next-orbit .next-bubble:nth-child(1){animation-delay:0ms}
-.next-orbit .next-bubble:nth-child(2){animation-delay:38ms}
-.next-orbit .next-bubble:nth-child(3){animation-delay:76ms}
-.next-orbit .next-bubble:nth-child(4){animation-delay:114ms}
-.next-orbit .next-bubble:nth-child(5){animation-delay:152ms}
-.next-orbit .next-bubble:nth-child(6){animation-delay:190ms}
-.next-orbit .next-bubble:nth-child(n+7){animation-delay:228ms}
-@keyframes bubbleIn { from{opacity:0; transform:translateY(14px) scale(.7)} to{opacity:1; transform:none} }
-@keyframes bestFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-/* Best move — accent-filled glass, white text, gentle float + glow */
-.next-bubble.best {
-  border-color:transparent !important; color:#fff;
-  background:linear-gradient(180deg, #ff8c57, var(--accent)) !important;
-  box-shadow:0 12px 30px rgba(232,68,26,.42), inset 0 1px 0 rgba(255,255,255,.28) !important;
-  animation:bubbleIn .5s cubic-bezier(.2,1.3,.3,1) both, bestFloat 3.6s ease-in-out .6s infinite;
+.next-bubble.best .nb-body {
+  color:#fff; border:1px solid rgba(255,255,255,.42);
+  background:radial-gradient(120% 130% at 50% 120%, color-mix(in srgb, #fff 30%, var(--ba)), var(--ba) 45%, color-mix(in srgb, #000 18%, var(--ba)));
+  box-shadow:0 18px 40px rgba(var(--ba-rgb),.52), 0 0 42px rgba(var(--ba-rgb),.5), inset 0 -16px 28px rgba(0,0,0,.28),
+             inset 0 4px 3px rgba(255,255,255,.6), inset 0 0 0 2.5px rgba(255,255,255,.55);
 }
-.next-bubble:hover {
-  transform:translateY(-7px) scale(1.06) !important; z-index:5;
-  border-color:rgba(255,138,85,.65) !important;
-  box-shadow:0 18px 38px rgba(232,68,26,.3), inset 0 1px 0 rgba(255,255,255,.16) !important;
+.nb-gloss { position:absolute; left:10%; top:3%; width:80%; height:54%; border-radius:50%; pointer-events:none; z-index:2; filter:blur(1px);
+  background:linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.08) 58%, rgba(255,255,255,0) 80%) }
+.next-bubble.best .nb-gloss { background:linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.08) 58%, rgba(255,255,255,0) 80%) }
+.nb-spec { position:absolute; left:57%; top:14%; width:16%; height:13%; border-radius:50%; pointer-events:none; z-index:3;
+  background:radial-gradient(circle, rgba(255,255,255,.92), rgba(255,255,255,0) 60%) }
+.nb-rip { position:absolute; inset:0; border-radius:999px; overflow:hidden; pointer-events:none; z-index:1 }
+.nb-deg { position:relative; z-index:4; font-family:'DM Mono',monospace; line-height:1; margin-bottom:2px;
+  color:color-mix(in srgb, #fff 32%, var(--ba)); font-size:clamp(8px, calc(var(--diam) * .155), 13px) }
+.next-bubble.best .nb-deg { color:rgba(255,255,255,.92) }
+.nb-chord { position:relative; z-index:4; font-family:var(--wheel-font); font-weight:700; letter-spacing:-.02em; line-height:.85;
+  color:inherit; font-size:clamp(15px, calc(var(--diam) * .33), 34px) }
+/* Light theme */
+body.light .nb-body {
+  color:#2c2436;
+  background:linear-gradient(160deg, rgba(255,255,255,.92), rgba(243,239,249,.8));
+  border:1.5px solid rgba(var(--ba-rgb), calc(.14 + var(--fit) * .0042));
+  box-shadow:0 8px 22px rgba(80,60,110,.16), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -6px 14px rgba(120,100,150,.1),
+             0 0 calc(4px + var(--fit) * .14px) rgba(var(--ba-rgb), calc(var(--fit) * .0028));
 }
-.next-bubble.best:hover { box-shadow:0 20px 44px rgba(232,68,26,.5), inset 0 1px 0 rgba(255,255,255,.3) !important }
-.next-bubble:active { transform:translateY(-2px) scale(.96) !important }
-@media (prefers-reduced-motion: reduce) { .next-bubble, .next-bubble.best { animation:none !important } }
+body.light .next-bubble.best .nb-body { color:#fff;
+  box-shadow:0 16px 36px rgba(var(--ba-rgb),.34), inset 0 4px 3px rgba(255,255,255,.6), inset 0 0 0 2.5px rgba(255,255,255,.55) }
+body.light .nb-deg { color:var(--ba) }
+body.light .nb-chord { color:#2c2436 }
+body.light .next-bubble.best .nb-deg { color:rgba(255,255,255,.92) }
+body.light .next-bubble.best .nb-chord { color:#fff }
 
-/* Bubble inner — degree (small, accent) + chord (big), stacked & centred */
-.nb-deg {
-  font-family:'DM Mono',monospace !important;
-  font-size:clamp(6px, calc(var(--diam, 56px) * .15), 11px) !important;
-  line-height:1 !important; letter-spacing:.02em !important;
-  color:var(--accent2) !important; opacity:.92 !important;
-  margin-bottom:1px !important; text-align:center !important; white-space:nowrap !important;
+@keyframes nbEnter { from{opacity:0; transform:translateY(18px) scale(.5)} to{opacity:1; transform:none} }
+@keyframes nbFloatA { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(calc(var(--fa,1)*-7px)) rotate(.7deg)} }
+@keyframes nbFloatB { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(calc(var(--fa,1)*-5px)) rotate(-.65deg)} }
+@keyframes nbFloatC { 0%,100%{transform:translateY(0)} 50%{transform:translateY(calc(var(--fa,1)*-9px))} }
+@keyframes nbGlow { 0%,100%{opacity:.5; transform:scale(1)} 50%{opacity:.92; transform:scale(1.14)} }
+/* Living specular — the highlight drifts & breathes so the gel feels alive */
+@keyframes nbSpec {
+  0%   { transform:translate(0,0) scale(1);        opacity:.85 }
+  25%  { transform:translate(20%,9%) scale(1.18);  opacity:1 }
+  50%  { transform:translate(9%,30%) scale(.88);   opacity:.58 }
+  75%  { transform:translate(-12%,11%) scale(1.06);opacity:.96 }
+  100% { transform:translate(0,0) scale(1);        opacity:.85 }
 }
-.next-bubble.best .nb-deg { color:rgba(255,255,255,.9) !important; opacity:1 !important }
-.nb-chord  {
-  font-family:var(--wheel-font) !important;
-  font-weight:700 !important; letter-spacing:-.02em !important;
-  font-size:clamp(13px, calc(var(--diam, 56px) * .32), 30px) !important;
-  line-height:.9 !important; text-align:center !important; white-space:nowrap !important;
-  color:inherit !important;
-}
+@media (prefers-reduced-motion: reduce) { .next-bubble, .nb-float, .nb-spec, .nb-glow { animation:none !important } }
 .nb-fit, .nb-degree, .nb-category, .nb-metrics { display:none !important }
 
 /* Fly-to-pill ghost: bubble visually travels into the builder */
@@ -1824,7 +1827,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.2';
+const APP_VERSION = 'V5.3';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -4684,18 +4687,32 @@ function _buildBubblesHTML() {
   const bestTo  = all[0]?.to;
   const byDegree = [...all].sort((a, b) => a.to - b.to);
 
-  const bubbles = byDegree.map((it) => {
+  const bubbles = byDegree.map((it, i) => {
     const t   = tier(it.fit);
     const d   = SIZES[t];
     const cat = friendlyCategory(it.transition?.category);
+    const flN = ['nbFloatA', 'nbFloatB', 'nbFloatC'][i % 3];
+    const flD = (3.6 + (i % 4) * 0.5).toFixed(2);
+    const flDelay = (-i * 0.55).toFixed(2);
+    const enter = (0.05 + i * 0.06).toFixed(2);
+    const spD = (4 + (i % 3) * 1.3).toFixed(1);
+    // Liquid-gel bubble: layered body (gloss + living specular + ripple). Float &
+    // press/tap/drag physics are driven by BubbleField (a spring rAF), wired on render.
     return `<button class="next-bubble ${it.to === bestTo ? 'best' : ''}"
-        style="--fit:${it.fit};--d:${d}px;--tier:${t}"
-        onpointerdown="SuggestionDrag.start(event,${it.to})"
-        onclick="addSuggestion(${it.to},event)"
+        style="--fit:${it.fit};--d:${d}px;--tier:${t};animation:nbEnter .55s cubic-bezier(.34,1.56,.5,1) ${enter}s both"
+        data-to="${it.to}" data-best="${it.to === bestTo ? 1 : 0}"
         aria-label="Add ${it.chord.chord} (${it.chord.degree}), ${it.fit}% fit. Drag onto the timeline to place it."
         title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap to add, drag to place">
-      <span class="nb-deg">${casedRoman(it.chord.degree, it.chord.quality)}</span>
-      <span class="nb-chord">${it.chord.chord}</span>
+      <span class="nb-glow"></span>
+      <span class="nb-float" style="animation:${flN} ${flD}s ease-in-out ${flDelay}s infinite">
+        <span class="nb-body">
+          <span class="nb-gloss"></span>
+          <span class="nb-spec" style="animation:nbSpec ${spD}s ease-in-out ${flDelay}s infinite"></span>
+          <span class="nb-rip"></span>
+          <span class="nb-deg">${casedRoman(it.chord.degree, it.chord.quality)}</span>
+          <span class="nb-chord">${it.chord.chord}</span>
+        </span>
+      </span>
     </button>`;
   }).join('');
 
@@ -4821,6 +4838,7 @@ function renderProgressionStory() {
   const el = document.getElementById('progressionStory'); if (!el) return;
   el.classList.add('builder-next-moves');
   el.innerHTML = _buildBubblesHTML();
+  if (typeof BubbleField === 'object') BubbleField.mount();
 }
 
 function renderSuggestions() {
@@ -4830,6 +4848,138 @@ function renderSuggestions() {
   const root = document.getElementById('suggestions');
   if (root) root.innerHTML = '';
 }
+
+
+// == bubble-physics.js ==
+// ── BUBBLE FIELD — spring physics + interaction (V5.3) ──
+// Drives the suggestion bubbles: a per-bubble critically-damped spring rAF for
+// press squash & stretch, hover lift and drag follow (CSS keyframes handle the
+// idle float and living specular). Folds in the app's behaviour: a tap adds the
+// chord at the end (with the fly-to-pill), a drag drops it at a timeline slot.
+const BubbleField = {
+  bubbles: [], raf: 0, last: 0, reduced: false, canHover: true,
+
+  mount() {
+    this.unmount();
+    const root = document.querySelector('.next-orbit'); if (!root) return;
+    this.reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.canHover = matchMedia('(hover:hover)').matches;
+    this.bubbles = [...root.querySelectorAll('.next-bubble')].map(el => {
+      const o = {
+        el, body: el.querySelector('.nb-body'), rip: el.querySelector('.nb-rip'),
+        to: +el.dataset.to, best: el.dataset.best === '1',
+        sc:{x:1,v:0,t:1}, sq:{x:0,v:0,t:0}, lf:{x:0,v:0,t:0}, dx:{x:0,v:0,t:0}, dy:{x:0,v:0,t:0},
+        pressed:false, hover:false, dragging:false, moved:false, ddx:0, ddy:0, sx:0, sy:0, pid:null, target:-1,
+      };
+      this._wire(o);
+      return o;
+    });
+    if (!this.reduced && this.bubbles.length) {
+      this.last = performance.now();
+      this.raf = requestAnimationFrame(t => BubbleField._tick(t));
+    }
+  },
+  unmount() {
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.raf = 0; this.bubbles = [];
+    if (typeof SuggestionDrag === 'object' && SuggestionDrag._clearMarker) SuggestionDrag._clearMarker();
+  },
+
+  _step(s, k, d, dt) { s.v += (-k * (s.x - s.t) - d * s.v) * dt; s.x += s.v * dt; },
+  _tick(now) {
+    const dt = Math.min((now - this.last) / 1000, 0.032); this.last = now;
+    for (const b of this.bubbles) {
+      this._step(b.sc, 320, 15, dt); this._step(b.sq, 340, 13, dt);
+      this._step(b.lf, 260, 24, dt); this._step(b.dx, 190, 21, dt); this._step(b.dy, 190, 21, dt);
+      const sq = Math.max(-0.25, Math.min(0.25, b.sq.x));
+      const sx = b.sc.x * (1 + sq), sy = b.sc.x * (1 - sq);
+      b.body.style.transform = `translate(${b.dx.x.toFixed(2)}px,${(b.dy.x + b.lf.x).toFixed(2)}px) scale(${sx.toFixed(3)},${sy.toFixed(3)})`;
+    }
+    this.raf = requestAnimationFrame(t => BubbleField._tick(t));
+  },
+  _targets(b) {
+    let sc = 1, lf = 0;
+    if (b.pressed && !b.dragging) { sc = .9; lf = -2; }
+    else if (b.dragging) { sc = 1.08; lf = -14; }
+    else if (b.hover) { sc = 1.06; lf = -9; }
+    b.sc.t = sc; b.lf.t = lf;
+    b.dx.t = b.dragging ? b.ddx : 0; b.dy.t = b.dragging ? b.ddy : 0;
+  },
+  _simple(b) {   // reduced-motion fallback: a plain CSS transition
+    let s = 1, ty = 0;
+    if (b.pressed && !b.dragging) s = .94; else if (b.dragging) { s = 1.04; ty = -6; } else if (b.hover) { s = 1.05; ty = -7; }
+    b.body.style.transition = 'transform .14s ease';
+    b.body.style.transform = `translate(${b.dragging ? b.ddx : 0}px,${(b.dragging ? b.ddy : 0) + ty}px) scale(${s})`;
+  },
+  _apply(b) { this.reduced ? this._simple(b) : this._targets(b); },
+
+  _wire(b) {
+    const el = b.el;
+    el.addEventListener('pointerdown', e => {
+      b.pressed = true; b.moved = false; b.dragging = false; b.pid = e.pointerId;
+      b.sx = e.clientX; b.sy = e.clientY; b.ddx = 0; b.ddy = 0; b.target = -1;
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+      b.sq.t = .09; this._ripple(b, e); this._apply(b);
+    });
+    el.addEventListener('pointermove', e => {
+      if (!b.pressed) return;
+      const ddx = e.clientX - b.sx, ddy = e.clientY - b.sy;
+      if (!b.moved && Math.hypot(ddx, ddy) > 7) { b.moved = true; b.dragging = true; b.sq.t = 0; }
+      if (b.dragging) {
+        e.preventDefault(); b.ddx = ddx; b.ddy = ddy;
+        const row = document.getElementById('flowRow');
+        if (typeof SuggestionDrag === 'object') { b.target = SuggestionDrag._insertIndex(row, e.clientX, e.clientY); SuggestionDrag._marker(row, b.target); }
+        this._apply(b);
+      }
+    });
+    const up = () => {
+      if (!b.pressed) return;
+      b.pressed = false;
+      try { el.releasePointerCapture(b.pid); } catch (_) {}
+      if (!b.moved) { b.sq.t = 0; b.sq.v = -1.7; b.sc.v += 3.4; this._add(b); }      // tap → add at end
+      else { if (b.target >= 0) this._drop(b); b.sq.t = 0; if (typeof SuggestionDrag === 'object' && SuggestionDrag._clearMarker) SuggestionDrag._clearMarker(); }
+      b.dragging = false; b.ddx = 0; b.ddy = 0; b.target = -1;
+      this._apply(b);
+    };
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    el.addEventListener('pointerenter', () => { if (!this.canHover) return; b.hover = true; this._apply(b); });
+    el.addEventListener('pointerleave', () => { b.hover = false; this._apply(b); });
+  },
+
+  _accentRGB() { return (getComputedStyle(document.body).getPropertyValue('--ba-rgb').trim() || '232,68,26'); },
+  _ripple(b, e) {
+    if (this.reduced || !b.rip) return;
+    const r = b.body.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top, size = Math.max(r.width, r.height) * 2.3;
+    const rgb = this._accentRGB();
+    const c1 = b.best ? 'rgba(255,255,255,.6)' : `rgba(${rgb},.5)`;
+    const c0 = b.best ? 'rgba(255,255,255,0)' : `rgba(${rgb},0)`;
+    const sp = document.createElement('span');
+    sp.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:${size}px;height:${size}px;margin-left:${-size / 2}px;margin-top:${-size / 2}px;border-radius:999px;pointer-events:none;background:radial-gradient(circle, ${c1}, ${c0} 62%)`;
+    b.rip.appendChild(sp);
+    sp.animate([{ transform: 'scale(0)', opacity: .95 }, { transform: 'scale(1)', opacity: 0 }],
+      { duration: 620, easing: 'cubic-bezier(.22,.61,.36,1)' }).onfinish = () => sp.remove();
+  },
+
+  _add(b) {   // tap → play, add at end, fly the bubble into its new pill
+    if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(b.to));
+    const from = b.el.getBoundingClientRect();
+    const chord = b.el.querySelector('.nb-chord')?.textContent || '';
+    AppActions.selectDegree(b.to, { force: true });
+    if (!this.reduced && typeof _flyGhost === 'function') {
+      requestAnimationFrame(() => {
+        const pill = document.querySelector('.builder-step:last-of-type');
+        const to = pill && pill.getBoundingClientRect();
+        if (to) _flyGhost(from, to, chord);
+      });
+    }
+  },
+  _drop(b) {  // drag → drop at a timeline slot
+    if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(b.to));
+    HistoryEngine.addDegree(b.to, { at: b.target });
+  },
+};
 
 
 // == chord-variants.js ==
@@ -5953,6 +6103,14 @@ const PALETTES_DATA = PALETTES;
     // Always update the CSS background tint — this is what makes the palette
     // picker useful even when WebGL is unavailable.
     document.body.style.setProperty('--bg-plasma', pal.bg);
+    // Tie the suggestion-bubble accent to the palette's primary colour so the
+    // bubbles harmonise with the plasma (colour cohesion).
+    const ba = pal.colors && pal.colors[0];
+    if (ba) {
+      const [r, g, b] = hexToVec(ba).map(v => Math.round(v * 255));
+      document.body.style.setProperty('--ba', ba);
+      document.body.style.setProperty('--ba-rgb', `${r},${g},${b}`);
+    }
     if (hasGL) {
       const [c1,c2,c3] = pal.colors.map(hexToVec);
       gl.uniform3fv(c1Loc, c1); gl.uniform3fv(c2Loc, c2); gl.uniform3fv(c3Loc, c3);

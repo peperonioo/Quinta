@@ -69,18 +69,32 @@ function _buildBubblesHTML() {
   const bestTo  = all[0]?.to;
   const byDegree = [...all].sort((a, b) => a.to - b.to);
 
-  const bubbles = byDegree.map((it) => {
+  const bubbles = byDegree.map((it, i) => {
     const t   = tier(it.fit);
     const d   = SIZES[t];
     const cat = friendlyCategory(it.transition?.category);
+    const flN = ['nbFloatA', 'nbFloatB', 'nbFloatC'][i % 3];
+    const flD = (3.6 + (i % 4) * 0.5).toFixed(2);
+    const flDelay = (-i * 0.55).toFixed(2);
+    const enter = (0.05 + i * 0.06).toFixed(2);
+    const spD = (4 + (i % 3) * 1.3).toFixed(1);
+    // Liquid-gel bubble: layered body (gloss + living specular + ripple). Float &
+    // press/tap/drag physics are driven by BubbleField (a spring rAF), wired on render.
     return `<button class="next-bubble ${it.to === bestTo ? 'best' : ''}"
-        style="--fit:${it.fit};--d:${d}px;--tier:${t}"
-        onpointerdown="SuggestionDrag.start(event,${it.to})"
-        onclick="addSuggestion(${it.to},event)"
+        style="--fit:${it.fit};--d:${d}px;--tier:${t};animation:nbEnter .55s cubic-bezier(.34,1.56,.5,1) ${enter}s both"
+        data-to="${it.to}" data-best="${it.to === bestTo ? 1 : 0}"
         aria-label="Add ${it.chord.chord} (${it.chord.degree}), ${it.fit}% fit. Drag onto the timeline to place it."
         title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap to add, drag to place">
-      <span class="nb-deg">${casedRoman(it.chord.degree, it.chord.quality)}</span>
-      <span class="nb-chord">${it.chord.chord}</span>
+      <span class="nb-glow"></span>
+      <span class="nb-float" style="animation:${flN} ${flD}s ease-in-out ${flDelay}s infinite">
+        <span class="nb-body">
+          <span class="nb-gloss"></span>
+          <span class="nb-spec" style="animation:nbSpec ${spD}s ease-in-out ${flDelay}s infinite"></span>
+          <span class="nb-rip"></span>
+          <span class="nb-deg">${casedRoman(it.chord.degree, it.chord.quality)}</span>
+          <span class="nb-chord">${it.chord.chord}</span>
+        </span>
+      </span>
     </button>`;
   }).join('');
 
@@ -206,6 +220,7 @@ function renderProgressionStory() {
   const el = document.getElementById('progressionStory'); if (!el) return;
   el.classList.add('builder-next-moves');
   el.innerHTML = _buildBubblesHTML();
+  if (typeof BubbleField === 'object') BubbleField.mount();
 }
 
 function renderSuggestions() {

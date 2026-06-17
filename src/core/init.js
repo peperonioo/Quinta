@@ -61,6 +61,14 @@ const PALETTES_DATA = PALETTES;
     // Always update the CSS background tint — this is what makes the palette
     // picker useful even when WebGL is unavailable.
     document.body.style.setProperty('--bg-plasma', pal.bg);
+    // Tie the suggestion-bubble accent to the palette's primary colour so the
+    // bubbles harmonise with the plasma (colour cohesion).
+    const ba = pal.colors && pal.colors[0];
+    if (ba) {
+      const [r, g, b] = hexToVec(ba).map(v => Math.round(v * 255));
+      document.body.style.setProperty('--ba', ba);
+      document.body.style.setProperty('--ba-rgb', `${r},${g},${b}`);
+    }
     if (hasGL) {
       const [c1,c2,c3] = pal.colors.map(hexToVec);
       gl.uniform3fv(c1Loc, c1); gl.uniform3fv(c2Loc, c2); gl.uniform3fv(c3Loc, c3);

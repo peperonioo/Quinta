@@ -12,6 +12,10 @@
   --card-bd:  rgba(255,255,255,.09);
   --accent:   #e8441a;
   --accent2:  #ff7048;
+  /* Bubble accent — follows the active plasma palette for colour cohesion
+     (set by applyPalette). Defaults to the app accent. */
+  --ba:       #e8441a;
+  --ba-rgb:   232,68,26;
   --degree-bg:   rgba(0,0,0,.52);
   --degree-tonic:rgba(232,68,26,.18);
   --popup-bg: rgba(8,8,12,.88);
