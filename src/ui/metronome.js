@@ -10,6 +10,19 @@ const Metronome = {
   init() {
     this._dialDrag();
     this.render();
+    this._syncSoundUI();
+  },
+
+  setSound(s) {
+    st.metroSound = s; saveState();
+    this._syncSoundUI();
+    if (typeof AudioEngine === 'object') AudioEngine.metroClick(true);   // preview
+  },
+  _syncSoundUI() {
+    const cur = (typeof st === 'object' && st.metroSound) || 'woodblock';
+    document.querySelectorAll('.ms-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.s === cur)
+    );
   },
 
   bpm() { return Math.max(this.MIN, Math.min(this.MAX, st.bpm || 100)); },

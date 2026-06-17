@@ -184,12 +184,21 @@ const AudioEngine = {
     src.start(t0);
   },
 
-  // Classic analog-metronome click, schedulable at an exact time. Beat 1 is
-  // accented (brighter, louder) like a real mechanical metronome.
+  // ── Metronome click voices ────────────────────────────
+  // Dispatch to the active sound (persisted in st.metroSound).
   metroClick(accent, when) {
     if (!this.resume()) return;
-    const ctx = this.ctx, t0 = when != null ? when : ctx.currentTime;
-    // mechanical click = short noise burst through a bandpass
+    const t0 = when != null ? when : this.ctx.currentTime;
+    const snd = (typeof st === 'object' && st.metroSound) || 'woodblock';
+    if      (snd === 'cowbell')    this._metroCowbell(t0, accent);
+    else if (snd === 'rimshot')    this._metroRim(t0, accent);
+    else if (snd === 'electronic') this._metroElectronic(t0, accent);
+    else                           this._metroWoodblock(t0, accent);
+  },
+
+  // Original analog woodblock — noise burst + pitched tock.
+  _metroWoodblock(t0, accent) {
+    const ctx = this.ctx, bus = this.dry || this.master;
     const len = Math.floor(ctx.sampleRate * 0.03);
     const buf = ctx.createBuffer(1, len, ctx.sampleRate);
     const d = buf.getChannelData(0);
@@ -198,17 +207,98 @@ const AudioEngine = {
     const bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
     bp.frequency.value = accent ? 2700 : 1950; bp.Q.value = 1.1;
     const ng = ctx.createGain(); ng.gain.value = accent ? 0.5 : 0.34;
-    const bus = this.dry || this.master;          // dry → no reverb wash
-    src.connect(bp); bp.connect(ng); ng.connect(bus);
-    src.start(t0);
-    // a pitched body so it reads as a "tock" — short and dry
+    src.connect(bp); bp.connect(ng); ng.connect(bus); src.start(t0);
     const o = ctx.createOscillator(); o.type = 'sine';
     o.frequency.value = accent ? 2050 : 1550;
     const og = ctx.createGain(); o.connect(og); og.connect(bus);
     og.gain.setValueAtTime(0.0001, t0);
     og.gain.exponentialRampToValueAtTime(accent ? 0.32 : 0.2, t0 + 0.001);
-    og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.032);   // tighter decay = drier
+    og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.032);
     o.start(t0); o.stop(t0 + 0.045);
+  },
+
+  // TR-808 cowbell: two detuned square oscillators + bandpass shaping.
+  _metroCowbell(t0, accent) {
+    const ctx = this.ctx, bus = this.dry || this.master;
+    [562, 845].forEach(freq => {
+      const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = freq;
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 300;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(accent ? 0.26 : 0.18, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + (accent ? 0.45 : 0.3));
+      o.connect(hp); hp.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + 0.55);
+    });
+  },
+
+  // Snappy rimshot: noise crack + short pitched transient.
+  _metroRim(t0, accent) {
+    const ctx = this.ctx, bus = this.dry || this.master;
+    const src = this._noise(t0, 0.055, 5);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 800;
+    const ng = ctx.createGain(); ng.gain.value = accent ? 0.52 : 0.38;
+    src.connect(hp); hp.connect(ng); ng.connect(bus);
+    const o = ctx.createOscillator(); o.type = 'triangle';
+    o.frequency.value = accent ? 420 : 320;
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(accent ? 0.65 : 0.48, t0);
+    og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.052);
+    o.connect(og); og.connect(bus); o.start(t0); o.stop(t0 + 0.065);
+  },
+
+  // Clean electronic blip — minimal sine, bright on the downbeat.
+  _metroElectronic(t0, accent) {
+    const ctx = this.ctx, bus = this.dry || this.master;
+    const o = ctx.createOscillator(); o.type = 'sine';
+    o.frequency.value = accent ? 1600 : 900;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(accent ? 0.48 : 0.34, t0 + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.038);
+    o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + 0.05);
+  },
+
+  // ── Karplus-Strong plucked-string voice ───────────────
+  // Physical-model synthesis: a noise burst excites a feedback delay loop
+  // whose period equals 1/freq. A lowpass filter in the loop damps higher
+  // harmonics each cycle, producing the warm, decaying timbre of a plucked
+  // guitar string. Only used by playGuitarNote — chord previews use Rhodes.
+  _guitarVoice(freq, t0, gainScale) {
+    const ctx = this.ctx, out = this.voiceBus || this.master;
+    // One-period noise buffer (Karplus-Strong excitation)
+    const noiseLen = Math.max(2, Math.ceil(ctx.sampleRate / freq));
+    const buf = ctx.createBuffer(1, noiseLen, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < noiseLen; i++) d[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource(); src.buffer = buf; src.loop = false;
+    // Delay line tuned to fundamental period
+    const delay = ctx.createDelay(0.06);
+    delay.delayTime.value = 1 / freq;
+    // Averaging lowpass in the feedback loop — the string's "stiffness"
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+    lp.frequency.value = Math.min(freq * 5, ctx.sampleRate * 0.4);
+    lp.Q.value = 0.4;
+    // Feedback gain controls sustain (< 1 to prevent runaway)
+    const fb = ctx.createGain(); fb.gain.value = 0.994;
+    // Output amp with natural decay envelope
+    const decaySec = Math.max(1.2, 3.8 - freq / 500);   // lower notes sustain longer
+    const amp = ctx.createGain();
+    amp.gain.setValueAtTime(gainScale * 0.9, t0);
+    amp.gain.exponentialRampToValueAtTime(0.0001, t0 + decaySec);
+    // Routing: src → delay ⟷ (lp → fb) loop; delay also feeds output
+    src.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay);
+    delay.connect(amp); amp.connect(out);
+    src.start(t0); src.stop(t0 + 0.04);   // brief noise burst
+    if (this._active) {
+      const entry = { oscs: [src], amp };
+      this._active.add(entry);
+      const wallMs = Math.max(100, (t0 - ctx.currentTime + decaySec) * 1000);
+      setTimeout(() => { if (this._active) this._active.delete(entry); }, wallMs);
+    }
+  },
+
+  playGuitarNote(pitch) {
+    if (!this.resume()) return;
+    this._guitarVoice(this._freq(pitch), this.ctx.currentTime, 1);
   },
 
   now() { return this.ctx ? this.ctx.currentTime : 0; },

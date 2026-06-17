@@ -15,7 +15,8 @@ function _chordPcSet() {
   if (!pcs || !pcs.length) return null;
   return new Set(pcs.map(p => ((p % 12) + 12) % 12));
 }
-function _hear(pitch) { if (typeof AudioEngine === 'object') AudioEngine.playNote(pitch, 0.9); }
+function _hear(pitch)       { if (typeof AudioEngine === 'object') AudioEngine.playNote(pitch, 0.9); }
+function _hearGuitar(pitch) { if (typeof AudioEngine === 'object') AudioEngine.playGuitarNote(pitch); }
 
 function renderPiano() {
   const root = document.getElementById('piano'); if (!root) return;
@@ -128,7 +129,7 @@ function renderGuitar() {
     od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
     od.textContent = isOn ? dn(on) : name;
     if (!isOn && !isCh) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
-    od.onclick = () => _hear(base);
+    od.onclick = () => _hearGuitar(base);
     nc.appendChild(od);
     row.appendChild(nc);
     for (let f = 1; f <= FRETS; f++) {
@@ -139,7 +140,7 @@ function renderGuitar() {
         const dot = document.createElement('div');
         dot.className = 'fret-note' + (isC ? ' chord' : isR ? ' root' : ' on');
         dot.textContent = dn(n);
-        dot.onclick = () => _hear(base + f);
+        dot.onclick = () => _hearGuitar(base + f);
         cell.appendChild(dot);
       }
       row.appendChild(cell);

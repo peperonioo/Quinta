@@ -235,6 +235,18 @@ body.light .metro-tap { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04)
 #metronome.beat .metro-led, #metronome.beat .metro-play { animation:metroBeat .13s ease }
 @keyframes metroBeat { 0%{transform:scale(1)} 45%{transform:scale(1.16)} 100%{transform:scale(1)} }
 @media (prefers-reduced-motion: reduce) { #metronome.beat .metro-led, #metronome.beat .metro-play { animation:none } }
+/* Sound selector row */
+.metro-sounds { display:flex; gap:5px; margin-top:10px }
+.ms-btn {
+  flex:1; padding:5px 0; border-radius:8px;
+  font-family:'DM Mono',monospace; font-size:8.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:600;
+  cursor:pointer; border:1px solid rgba(255,255,255,.13); background:rgba(255,255,255,.05); color:var(--muted);
+  transition:all .14s;
+}
+.ms-btn.active { background:var(--degree-tonic); border-color:rgba(232,68,26,.42); color:var(--accent2) }
+.ms-btn:hover:not(.active) { background:rgba(255,255,255,.1); color:var(--ink) }
+body.light .ms-btn { border-color:rgba(0,0,0,.12); background:rgba(0,0,0,.04) }
+body.light .ms-btn.active { background:rgba(232,68,26,.1); border-color:rgba(232,68,26,.3) }
 
 /* ── Chord chooser — Dynamic-Island: opaque black panels fan above & below ── */
 .chord-variants {
