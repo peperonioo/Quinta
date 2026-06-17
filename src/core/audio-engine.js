@@ -256,51 +256,77 @@ const AudioEngine = {
     o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + 0.05);
   },
 
-  // ── Karplus-Strong plucked-string voice (pure JS) ────
-  // Web Audio's DelayNode adds a render-quantum latency (~128 samples / 2.9ms)
-  // to any feedback loop — enough to detune high-frequency notes completely.
-  // Solution: run K-S in JavaScript, write to an AudioBuffer, play it back.
-  // O(sr * duration) ≈ 110k iterations → < 1ms computation, no perceptible lag.
+  // ── Classical / nylon plucked-string voice (extended Karplus-Strong) ──
+  // A faithful physical model of a nylon-string guitar, computed sample-by-sample
+  // in JS then played back as an AudioBuffer (Web Audio's DelayNode adds a
+  // render-quantum latency that detunes high notes, so we can't loop in the graph).
+  // Model: pick-position comb + soft excitation → string loop with fractional-delay
+  // tuning + one-pole loop damping → body-resonance EQ on output.
   _guitarVoice(freq, t0, gainScale) {
     const ctx = this.ctx, sr = ctx.sampleRate;
-    const period = Math.round(sr / freq);
-    // Duration: high notes fade fast (~0.35s), bass strings ring up to 1.6s.
-    const dur = Math.min(1.6, Math.max(0.35, 2.8 - freq / 200));
-    const N = Math.floor(sr * dur);
-    const samples = new Float32Array(N);
-    const ring = new Float32Array(period);
 
-    // Half-sine + small noise: clean pluck onset without the abrasive attack of raw noise.
-    for (let i = 0; i < period; i++)
-      ring[i] = Math.sin(Math.PI * i / period) * 0.72 + (Math.random() * 2 - 1) * 0.22;
+    // Loop delay for this pitch. The one-zero loop filter contributes ~0.5 sample
+    // of group delay, so target slightly short and make up the rest fractionally.
+    const loopD = sr / freq - 0.5;
+    const Di = Math.max(2, Math.floor(loopD));
+    const frac = loopD - Di;
+    const L = Di + 2;                    // circular delay-line length
 
-    // K-S loop. decay=0.997 gives realistic sustain: bass ~1.5s, treble ~0.3s.
-    const decay = 0.997;
-    let ptr = 0;
-    for (let i = 0; i < N; i++) {
-      const next = (ptr + 1) % period;
-      samples[i] = ring[ptr];
-      ring[ptr] = (ring[ptr] + ring[next]) * 0.5 * decay;
-      ptr = next;
+    // Note length: trebles fade in ~1s, basses ring up to ~2.4s.
+    const dur = Math.min(2.4, Math.max(0.5, 2.8 - freq / 200));
+    const len = Math.floor(sr * dur);
+    const out = new Float32Array(len);
+
+    // ── Excitation: one period of softened noise + pick-position comb ──
+    // Soft (lowpassed) noise = nylon's rounded attack; the comb subtracts a copy
+    // delayed by the pluck point (~1/5 of the string) → the hollow, woody timbre.
+    const dl = new Float32Array(L);
+    const nz = new Float32Array(L);
+    for (let i = 0; i < L; i++) nz[i] = Math.random() * 2 - 1;
+    for (let i = 1; i < L; i++) nz[i] = (nz[i] + nz[i - 1]) * 0.5;
+    const pp = Math.max(1, Math.round(0.2 * L));
+    for (let i = 0; i < L; i++) dl[i] = nz[i] - (i >= pp ? nz[i - pp] : 0);
+
+    // ── String loop: fractional-delay read + one-zero loop filter + loop gain ──
+    // S = loop-filter mix (0.5 = classic averaging). rho = per-sample loop gain
+    // tuned so T60 ≈ 1.5s low → ~0.9s high (slightly faster decay up the neck).
+    const S = 0.5;
+    const rho = Math.min(0.99992, Math.max(0.9996, 0.99992 - freq * 2.5e-7));
+    let widx = 0, ydPrev = 0;
+    for (let n = 0; n < len; n++) {
+      const r0 = (widx - Di + L * 2) % L;
+      const r1 = (widx - Di - 1 + L * 2) % L;
+      const yd = dl[r0] * (1 - frac) + dl[r1] * frac;   // fractional-delay tuning
+      const lf = (1 - S) * yd + S * ydPrev;             // one-zero damping filter
+      ydPrev = yd;
+      const y = rho * lf;
+      out[n] = y;
+      dl[widx] = y;
+      widx = (widx + 1) % L;
     }
 
-    // Normalize to target gain — prevents any clipping regardless of frequency.
+    // Normalize — guarantees no clipping at any pitch.
     let peak = 0;
-    for (let i = 0; i < N; i++) { const a = Math.abs(samples[i]); if (a > peak) peak = a; }
-    if (peak > 0.001) {
-      const g = (gainScale * 0.50) / peak;
-      for (let i = 0; i < N; i++) samples[i] *= g;
-    }
+    for (let n = 0; n < len; n++) { const a = Math.abs(out[n]); if (a > peak) peak = a; }
+    if (peak > 1e-4) { const g = (gainScale * 0.5) / peak; for (let n = 0; n < len; n++) out[n] *= g; }
 
-    const audioBuf = ctx.createBuffer(1, N, sr);
-    audioBuf.copyToChannel(samples, 0);
+    const audioBuf = ctx.createBuffer(1, len, sr);
+    audioBuf.copyToChannel(out, 0);
     const src = ctx.createBufferSource(); src.buffer = audioBuf;
-    const lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = Math.min(freq * 1.8, 2400);
-    lp.Q.value = 0.4;
+
+    // ── Body resonance EQ — the hollow wooden character of the guitar body ──
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 75;
+    const b1 = ctx.createBiquadFilter(); b1.type = 'peaking'; b1.frequency.value = 100; b1.Q.value = 1.1; b1.gain.value = 3.5; // Helmholtz air
+    const b2 = ctx.createBiquadFilter(); b2.type = 'peaking'; b2.frequency.value = 215; b2.Q.value = 1.4; b2.gain.value = 2.5; // top plate
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(freq * 6, 4200); lp.Q.value = 0.5;
+
     const amp = ctx.createGain();
-    src.connect(lp); lp.connect(amp); amp.connect(this.master);
+    amp.gain.setValueAtTime(0.0001, t0);
+    amp.gain.linearRampToValueAtTime(1, t0 + 0.006);                       // soft pluck attack
+    amp.gain.setValueAtTime(1, t0 + Math.max(0.05, dur - 0.06));
+    amp.gain.linearRampToValueAtTime(0.0001, t0 + dur);                    // clean release
+
+    src.connect(hp); hp.connect(b1); b1.connect(b2); b2.connect(lp); lp.connect(amp); amp.connect(this.master);
     src.start(t0);
     if (this._active) {
       const entry = { oscs: [src], amp };

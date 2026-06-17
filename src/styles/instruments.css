@@ -78,39 +78,57 @@
 /* ── Guitar Chord Shape Strip ─────────────────────────*/
 .gss-strip {
   max-height: 0; overflow: hidden;
-  transition: max-height .38s cubic-bezier(.34,1.4,.4,1);
+  transition: max-height .4s cubic-bezier(.34,1.4,.4,1);
 }
-.gss-strip.gss-on { max-height: 168px; }
+.gss-strip.gss-on { max-height: 224px; }
 .gss-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 12px 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px 3px;
 }
 .gss-title {
-  font-family: 'DM Mono', monospace; font-size: 9px;
-  letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600;
+  letter-spacing: .03em; color: var(--fg);
 }
+.gss-seg {
+  display: flex; gap: 2px; margin-left: auto;
+  background: var(--sel-bg); border: 1px solid var(--card-bd);
+  border-radius: 9px; padding: 2px;
+}
+.gss-seg button {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .04em;
+  padding: 4px 10px; border: 0; border-radius: 7px; background: none;
+  color: var(--muted); cursor: pointer; transition: background .14s, color .14s;
+}
+.gss-seg button.on { background: var(--accent); color: #fff; }
+.gss-seg button:not(.on):hover { color: var(--fg); }
 .gss-x {
-  background: none; border: 0; color: var(--muted); font-size: 15px;
-  cursor: pointer; padding: 0 4px; line-height: 1;
+  background: none; border: 0; color: var(--muted); font-size: 16px;
+  cursor: pointer; padding: 0 2px; line-height: 1;
 }
 .gss-x:hover { color: var(--fg); }
 .gss-scroll {
-  display: flex; gap: 8px; overflow-x: auto;
-  padding: 6px 12px 12px; scrollbar-width: none;
+  display: flex; gap: 10px; overflow-x: auto;
+  padding: 8px 12px 12px; scrollbar-width: none;
 }
 .gss-scroll::-webkit-scrollbar { display: none; }
+.gss-empty { color: var(--muted); font-size: 11px; padding: 14px 4px; }
 .gss-card {
-  flex-shrink: 0; cursor: pointer; border-radius: 10px; padding: 4px;
-  border: 1.5px solid rgba(255,255,255,.08);
-  background: rgba(255,255,255,.03);
-  transition: border-color .14s, background .14s;
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; border-radius: 13px; padding: 7px 9px 6px;
+  border: 1.5px solid var(--card-bd); background: var(--sel-bg);
+  transition: border-color .14s, background .14s, transform .14s;
   user-select: none;
 }
-.gss-card:hover { border-color: rgba(255,255,255,.2); }
+.gss-card:hover { border-color: var(--muted); transform: translateY(-1px); }
 .gss-card.gss-active {
   border-color: var(--accent);
-  background: rgba(232,68,26,.09);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
+.gss-cap {
+  font-family: 'DM Mono', monospace; font-size: 8.5px; letter-spacing: .03em;
+  color: var(--muted);
+}
+.gss-card.gss-active .gss-cap { color: var(--accent2); font-weight: 600; }
 /* "Shapes" trigger button in guitar drawer summary */
 .gss-btn {
   flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 9px;
