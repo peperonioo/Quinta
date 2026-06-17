@@ -431,6 +431,40 @@ body[data-interaction="wheel"] .active-sector { animation-play-state:paused; }
 #wheelPointer { opacity:.46; transform-origin:300px 300px }
 body.light #wheelPointer { fill:rgba(20,20,20,.28) !important }
 
+/* ── Chord lock (V5.12) ─────────────────────────────*/
+#centerGloss, #cKey, #cRel { cursor:pointer }
+/* Audition flash — a quick brighten on a sector tapped while the key is locked */
+.sector-audition { animation:sectorAudition .44s ease-out }
+@keyframes sectorAudition {
+  0%   { filter:brightness(1) }
+  22%  { filter:brightness(1.9) }
+  100% { filter:brightness(1) }
+}
+/* Locked-key dashed ring slowly rotates + breathes */
+.circle-wrap.wheel-locked #wheelLockRing {
+  animation:lockRingSpin 9s linear infinite, lockRingPulse 2.4s ease-in-out infinite;
+  transform-origin:300px 300px;
+}
+@keyframes lockRingSpin  { to { transform:rotate(360deg) } }
+@keyframes lockRingPulse { 0%,100% { opacity:.55 } 50% { opacity:1 } }
+.circle-wrap.wheel-locked #wheelLockBadge { animation:lockBadgePop .34s cubic-bezier(.34,1.56,.5,1) }
+@keyframes lockBadgePop { 0% { transform:translateY(3px) scale(.7); opacity:0 } 100% { transform:none; opacity:1 } }
+.circle-wrap { position:relative }
+.wheel-lock-hint {
+  position:absolute; left:50%; bottom:-2px; transform:translateX(-50%);
+  max-width:92%; text-align:center; pointer-events:none; z-index:3; line-height:1.45;
+  font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.02em;
+  color:var(--accent2); background:color-mix(in srgb, var(--accent) 14%, transparent);
+  border:1px solid rgba(232,68,26,.34); border-radius:999px; padding:4px 12px;
+  animation:lockHintIn .3s ease-out;
+}
+@keyframes lockHintIn { from { opacity:0; transform:translate(-50%,4px) } to { opacity:1; transform:translate(-50%,0) } }
+@media (prefers-reduced-motion: reduce) {
+  .sector-audition,
+  .circle-wrap.wheel-locked #wheelLockRing,
+  .circle-wrap.wheel-locked #wheelLockBadge { animation:none }
+}
+
 /* ── Wheel Direction Guide ──────────────────────────*/
 #wheelDirectionGuide {
   pointer-events:none;
@@ -1770,18 +1804,27 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
           <circle id="wheelSheen" cx="300" cy="300" r="286" fill="none" stroke-width="10"
             stroke-dasharray="70 1727" stroke-linecap="round" pointer-events="none"/>
           <circle id="centerDisc" cx="300" cy="300" r="148" fill="rgba(6,6,10,.94)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
-          <circle cx="300" cy="300" r="148" fill="url(#discGrad)"/>
+          <circle id="centerGloss" cx="300" cy="300" r="148" fill="url(#discGrad)" cursor="pointer"/>
           <!-- Tonic heartbeat: a soft ring at the centre rim that pulses slowly -->
           <circle id="tonicPulse" cx="300" cy="300" r="150" fill="none" stroke="var(--accent)" stroke-width="2" opacity="0"/>
-          <text id="cKey" x="300" y="315" text-anchor="middle"
+          <!-- Lock ring: a dashed accent frame shown while the key is locked -->
+          <circle id="wheelLockRing" cx="300" cy="300" r="151" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="5 7" stroke-linecap="round" opacity="0" pointer-events="none"/>
+          <text id="cKey" x="300" y="315" text-anchor="middle" cursor="pointer"
             font-family="DM Serif Display,Georgia,serif" font-weight="680" font-style="normal"
             font-size="80" fill="#f0ede8"></text>
-          <text id="cRel" x="300" y="352" text-anchor="middle"
+          <text id="cRel" x="300" y="352" text-anchor="middle" cursor="pointer"
             font-family="DM Serif Display,Georgia,serif" font-weight="620" font-style="normal"
             font-size="30" fill="rgba(255,112,72,.92)"></text>
+          <!-- Padlock badge near the centre, shown while the key is locked -->
+          <g id="wheelLockBadge" opacity="0" pointer-events="none">
+            <rect x="291" y="374" width="18" height="13" rx="2.6" fill="var(--accent)"/>
+            <path d="M293.6 374 v-3.2 a6.4 6.4 0 0 1 12.8 0 v3.2" fill="none" stroke="var(--accent)" stroke-width="2.1"/>
+            <circle cx="300" cy="380" r="1.7" fill="#fff"/>
+          </g>
           <!-- Single wheelPointer: do not duplicate this id -->
           <polygon id="wheelPointer" points="300,178 304,189 296,189" fill="rgba(240,237,232,.38)"/>
         </svg>
+        <div id="wheelLockHint" class="wheel-lock-hint" hidden></div>
       </div>
 
       <!-- RIGHT SIDE -->
@@ -1998,7 +2041,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.11';
+const APP_VERSION = 'V5.12';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -4100,6 +4143,7 @@ function renderWheel() {
         const root = ni(k);
         AudioEngine.playChord([root, root + 4, root + 7]);
       }
+      if (typeof wheelLocked !== 'undefined' && wheelLocked) auditionFlash(op);
       selectWheelKey(k);
     });
     grp.appendChild(og);
@@ -4138,6 +4182,7 @@ function renderWheel() {
           AudioEngine.playChord([root, root + 3, root + 7]);
         }
       }
+      if (typeof wheelLocked !== 'undefined' && wheelLocked) auditionFlash(ip);
       selectWheelKey(k);
     });
     grp.appendChild(ig);
@@ -6468,8 +6513,62 @@ let spinAnim = null;
 let wheelDrag = null;
 let suppressWheelClick = false;
 let _lastTopIdx = -1, _lastTickT = 0;
+let wheelLocked = false;            // when true, tapping sectors auditions only — the key stays put
 
 function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {} }
+
+// ── Chord lock (V5.12) ─────────────────────────────────
+// Tap the wheel centre (the tonic) to lock the current key. While locked, tapping
+// any sector only plays its chord (audition) with a quick flash — the key, scale,
+// degrees and suggestions stay frozen, so you can explore sounds without losing
+// your place. Spinning the wheel is a deliberate move and releases the lock.
+function setWheelLock(on) {
+  if (wheelLocked === on) return;
+  wheelLocked = on;
+  haptic(on ? 14 : 8);
+  updateWheelLockUI();
+}
+function toggleWheelLock() { setWheelLock(!wheelLocked); }
+
+function updateWheelLockUI() {
+  const wrap = document.querySelector('.circle-wrap');
+  if (wrap) wrap.classList.toggle('wheel-locked', wheelLocked);
+  const ring  = document.getElementById('wheelLockRing');
+  const badge = document.getElementById('wheelLockBadge');
+  if (ring)  ring.setAttribute('opacity', wheelLocked ? '0.9' : '0');
+  if (badge) badge.setAttribute('opacity', wheelLocked ? '1' : '0');
+  const hint = document.getElementById('wheelLockHint');
+  if (hint) {
+    hint.hidden = !wheelLocked;
+    hint.textContent = (st.lang === 'es')
+      ? 'Tonalidad fija · escucha acordes sin cambiar · toca el centro para soltar'
+      : 'Key locked · audition chords freely · tap the centre to release';
+  }
+}
+
+// Brief highlight pulse on a sector tapped while locked — shows "you're hearing
+// this, not selecting it".
+function auditionFlash(el) {
+  if (!el) return;
+  el.classList.remove('sector-audition');
+  void el.getBoundingClientRect();
+  el.classList.add('sector-audition');
+  setTimeout(() => el.classList.remove('sector-audition'), 440);
+}
+
+// Wire the centre of the wheel to toggle the lock. Idempotent — safe to call once.
+function initWheelLock() {
+  ['centerGloss', 'cKey', 'cRel', 'centerDisc'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el._lockWired) return;
+    el._lockWired = true;
+    el.addEventListener('click', e => {
+      if (suppressWheelClick) return;
+      e.stopPropagation();
+      toggleWheelLock();
+    });
+  });
+}
 
 function wheelPointerAngle(e) {
   const svg   = document.getElementById('wheelSvg');
@@ -6545,6 +6644,7 @@ function settleWheelFrom(rot, velocity) {
 }
 
 function selectWheelKey(majorKey) {
+  if (wheelLocked) return;          // audition mode: the chord already sounded, don't move the key
   AppActions.setKey(majorKey);
 }
 
@@ -6585,6 +6685,7 @@ function initWheelRoulette() {
     if (Math.abs(shortestDelta(angle, startAngle)) > MIN_DRAG_DEG) {
       wheelDrag.moved    = true;
       suppressWheelClick = true;
+      if (wheelLocked) setWheelLock(false);   // a deliberate spin releases the lock
     }
   }
 
@@ -6983,6 +7084,7 @@ function toggleTheme() {
   );
 
   initWheelRoulette();
+  if (typeof initWheelLock === 'function') initWheelLock();
   WheelDirectionGuide.addInfoButton();
   if (typeof Metronome === 'object') Metronome.init();
   if (typeof initPlayOpts === 'function') initPlayOpts();

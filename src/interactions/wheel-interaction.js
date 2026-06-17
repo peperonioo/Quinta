@@ -5,8 +5,62 @@ let spinAnim = null;
 let wheelDrag = null;
 let suppressWheelClick = false;
 let _lastTopIdx = -1, _lastTickT = 0;
+let wheelLocked = false;            // when true, tapping sectors auditions only — the key stays put
 
 function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {} }
+
+// ── Chord lock (V5.12) ─────────────────────────────────
+// Tap the wheel centre (the tonic) to lock the current key. While locked, tapping
+// any sector only plays its chord (audition) with a quick flash — the key, scale,
+// degrees and suggestions stay frozen, so you can explore sounds without losing
+// your place. Spinning the wheel is a deliberate move and releases the lock.
+function setWheelLock(on) {
+  if (wheelLocked === on) return;
+  wheelLocked = on;
+  haptic(on ? 14 : 8);
+  updateWheelLockUI();
+}
+function toggleWheelLock() { setWheelLock(!wheelLocked); }
+
+function updateWheelLockUI() {
+  const wrap = document.querySelector('.circle-wrap');
+  if (wrap) wrap.classList.toggle('wheel-locked', wheelLocked);
+  const ring  = document.getElementById('wheelLockRing');
+  const badge = document.getElementById('wheelLockBadge');
+  if (ring)  ring.setAttribute('opacity', wheelLocked ? '0.9' : '0');
+  if (badge) badge.setAttribute('opacity', wheelLocked ? '1' : '0');
+  const hint = document.getElementById('wheelLockHint');
+  if (hint) {
+    hint.hidden = !wheelLocked;
+    hint.textContent = (st.lang === 'es')
+      ? 'Tonalidad fija · escucha acordes sin cambiar · toca el centro para soltar'
+      : 'Key locked · audition chords freely · tap the centre to release';
+  }
+}
+
+// Brief highlight pulse on a sector tapped while locked — shows "you're hearing
+// this, not selecting it".
+function auditionFlash(el) {
+  if (!el) return;
+  el.classList.remove('sector-audition');
+  void el.getBoundingClientRect();
+  el.classList.add('sector-audition');
+  setTimeout(() => el.classList.remove('sector-audition'), 440);
+}
+
+// Wire the centre of the wheel to toggle the lock. Idempotent — safe to call once.
+function initWheelLock() {
+  ['centerGloss', 'cKey', 'cRel', 'centerDisc'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el._lockWired) return;
+    el._lockWired = true;
+    el.addEventListener('click', e => {
+      if (suppressWheelClick) return;
+      e.stopPropagation();
+      toggleWheelLock();
+    });
+  });
+}
 
 function wheelPointerAngle(e) {
   const svg   = document.getElementById('wheelSvg');
@@ -82,6 +136,7 @@ function settleWheelFrom(rot, velocity) {
 }
 
 function selectWheelKey(majorKey) {
+  if (wheelLocked) return;          // audition mode: the chord already sounded, don't move the key
   AppActions.setKey(majorKey);
 }
 
@@ -122,6 +177,7 @@ function initWheelRoulette() {
     if (Math.abs(shortestDelta(angle, startAngle)) > MIN_DRAG_DEG) {
       wheelDrag.moved    = true;
       suppressWheelClick = true;
+      if (wheelLocked) setWheelLock(false);   // a deliberate spin releases the lock
     }
   }
 

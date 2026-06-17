@@ -94,6 +94,7 @@ function renderWheel() {
         const root = ni(k);
         AudioEngine.playChord([root, root + 4, root + 7]);
       }
+      if (typeof wheelLocked !== 'undefined' && wheelLocked) auditionFlash(op);
       selectWheelKey(k);
     });
     grp.appendChild(og);
@@ -132,6 +133,7 @@ function renderWheel() {
           AudioEngine.playChord([root, root + 3, root + 7]);
         }
       }
+      if (typeof wheelLocked !== 'undefined' && wheelLocked) auditionFlash(ip);
       selectWheelKey(k);
     });
     grp.appendChild(ig);

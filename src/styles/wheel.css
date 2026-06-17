@@ -100,6 +100,40 @@ body[data-interaction="wheel"] .active-sector { animation-play-state:paused; }
 #wheelPointer { opacity:.46; transform-origin:300px 300px }
 body.light #wheelPointer { fill:rgba(20,20,20,.28) !important }
 
+/* ── Chord lock (V5.12) ─────────────────────────────*/
+#centerGloss, #cKey, #cRel { cursor:pointer }
+/* Audition flash — a quick brighten on a sector tapped while the key is locked */
+.sector-audition { animation:sectorAudition .44s ease-out }
+@keyframes sectorAudition {
+  0%   { filter:brightness(1) }
+  22%  { filter:brightness(1.9) }
+  100% { filter:brightness(1) }
+}
+/* Locked-key dashed ring slowly rotates + breathes */
+.circle-wrap.wheel-locked #wheelLockRing {
+  animation:lockRingSpin 9s linear infinite, lockRingPulse 2.4s ease-in-out infinite;
+  transform-origin:300px 300px;
+}
+@keyframes lockRingSpin  { to { transform:rotate(360deg) } }
+@keyframes lockRingPulse { 0%,100% { opacity:.55 } 50% { opacity:1 } }
+.circle-wrap.wheel-locked #wheelLockBadge { animation:lockBadgePop .34s cubic-bezier(.34,1.56,.5,1) }
+@keyframes lockBadgePop { 0% { transform:translateY(3px) scale(.7); opacity:0 } 100% { transform:none; opacity:1 } }
+.circle-wrap { position:relative }
+.wheel-lock-hint {
+  position:absolute; left:50%; bottom:-2px; transform:translateX(-50%);
+  max-width:92%; text-align:center; pointer-events:none; z-index:3; line-height:1.45;
+  font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.02em;
+  color:var(--accent2); background:color-mix(in srgb, var(--accent) 14%, transparent);
+  border:1px solid rgba(232,68,26,.34); border-radius:999px; padding:4px 12px;
+  animation:lockHintIn .3s ease-out;
+}
+@keyframes lockHintIn { from { opacity:0; transform:translate(-50%,4px) } to { opacity:1; transform:translate(-50%,0) } }
+@media (prefers-reduced-motion: reduce) {
+  .sector-audition,
+  .circle-wrap.wheel-locked #wheelLockRing,
+  .circle-wrap.wheel-locked #wheelLockBadge { animation:none }
+}
+
 /* ── Wheel Direction Guide ──────────────────────────*/
 #wheelDirectionGuide {
   pointer-events:none;

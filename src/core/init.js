@@ -212,6 +212,7 @@ function toggleTheme() {
   );
 
   initWheelRoulette();
+  if (typeof initWheelLock === 'function') initWheelLock();
   WheelDirectionGuide.addInfoButton();
   if (typeof Metronome === 'object') Metronome.init();
   if (typeof initPlayOpts === 'function') initPlayOpts();
