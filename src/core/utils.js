@@ -41,6 +41,11 @@ const modeScale = () => { const r = ni(st.key); return gm().intervals.map(i => d
 const gr  = ()  => { const r = ni(st.key); return gm().intervals.map(i => na(r + i)); };
 const gc  = ()  => { const s = modeScale(), m = gm(); return s.map((n, i) => ({ degree: m.degrees[i], note: n, quality: m.qualities[i], chord: n + (m.qualities[i] === 'Min' ? 'm' : m.qualities[i] === 'Dim' ? '°' : '') })); };
 
+// Diatonic triads of the Major/Minor wheel scale (qualities from ionian/aeolian).
+// Drives the chord-lock highlight: which pitch classes are I/IV/V (Maj), ii/iii/vi
+// (Min) and vii°/ii° (Dim). Returns [{pc, quality}] for the 7 scale degrees.
+const wheelDiatonicChords = () => { const m = wmObj(), notes = gs(); return notes.map((n, i) => ({ pc: ni(n), quality: m.qualities[i] })); };
+
 // The relative key shown on the side card: relative MAJOR when minor, relative
 // MINOR when major — derived from the sector (always Major/Minor, not the mode).
 const grel = () => {

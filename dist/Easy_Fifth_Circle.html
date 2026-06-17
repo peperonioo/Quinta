@@ -2041,7 +2041,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.12';
+const APP_VERSION = 'V5.13';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -2484,6 +2484,11 @@ const gs  = ()  => { const r = ni(st.key); return wmObj().intervals.map(i => dn(
 const modeScale = () => { const r = ni(st.key); return gm().intervals.map(i => dn(na(r + i))); };
 const gr  = ()  => { const r = ni(st.key); return gm().intervals.map(i => na(r + i)); };
 const gc  = ()  => { const s = modeScale(), m = gm(); return s.map((n, i) => ({ degree: m.degrees[i], note: n, quality: m.qualities[i], chord: n + (m.qualities[i] === 'Min' ? 'm' : m.qualities[i] === 'Dim' ? '°' : '') })); };
+
+// Diatonic triads of the Major/Minor wheel scale (qualities from ionian/aeolian).
+// Drives the chord-lock highlight: which pitch classes are I/IV/V (Maj), ii/iii/vi
+// (Min) and vii°/ii° (Dim). Returns [{pc, quality}] for the 7 scale degrees.
+const wheelDiatonicChords = () => { const m = wmObj(), notes = gs(); return notes.map((n, i) => ({ pc: ni(n), quality: m.qualities[i] })); };
 
 // The relative key shown on the side card: relative MAJOR when minor, relative
 // MINOR when major — derived from the sector (always Major/Minor, not the mode).
@@ -4081,9 +4086,31 @@ function renderWheel() {
   const scalePCs = new Set(gs().map(n => ni(n)));
   const baRgb = getComputedStyle(document.documentElement).getPropertyValue('--ba-rgb').trim() || '232,68,26';
 
+  // ── Chord-lock highlight (V5.13) ──────────────────────
+  // While the key is locked, light the EXACT diatonic chords: major chords
+  // (I/IV/V) on the outer ring, relative minors (ii/iii/vi) on the inner ring,
+  // and the vii° dim a touch fainter — turning the lock into a teaching view.
+  const locked = (typeof wheelLocked !== 'undefined' && wheelLocked);
+  let majPCs, minPCs, dimPCs;
+  if (locked) {
+    const dc = wheelDiatonicChords();
+    majPCs = new Set(dc.filter(c => c.quality === 'Maj').map(c => c.pc));
+    minPCs = new Set(dc.filter(c => c.quality === 'Min').map(c => c.pc));
+    dimPCs = new Set(dc.filter(c => c.quality === 'Dim').map(c => c.pc));
+  }
+
   FIFTHS.forEach((k, i) => {
     const isActive  = k === aKey;
     const isDiatonic = scalePCs.has(ni(k));
+    const relMinName = relativeMinor(k);
+    const innerPC    = relMinName ? ni(stripMinorSuffix(relMinName)) : -1;
+    // Lit state: precise diatonic chords when locked, legacy root-in-scale otherwise.
+    const outerLit = locked ? majPCs.has(ni(k)) : isDiatonic;
+    let innerLit = false, innerDim = false;
+    if (locked) {
+      if (minPCs.has(innerPC)) innerLit = true;
+      else if (dimPCs.has(innerPC)) { innerLit = true; innerDim = true; }
+    }
     const sa = i * 30, a1 = sa - 15, a2 = sa + 15;
 
     // Outer sector r: 194–286
@@ -4093,16 +4120,16 @@ function renderWheel() {
     const og = se('g', { cursor:'pointer' });
     const op = se('path', {
       d: od,
-      fill:   isActive   ? (isLight ? 'rgba(232,68,26,.88)' : 'rgba(232,68,26,.82)')
-            : isDiatonic ? (isLight ? `rgba(${baRgb},.14)` : `rgba(${baRgb},.09)`)
-            :               (isLight ? 'rgba(255,255,255,.38)' : 'rgba(255,255,255,.032)'),
-      stroke: isActive   ? 'rgba(255,120,80,.4)'
-            : isDiatonic ? `rgba(${baRgb},.36)`
-            :               (isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)'),
-      'stroke-width': isActive ? '1.8' : isDiatonic ? '1.4' : '0.8',
+      fill:   isActive  ? (isLight ? 'rgba(232,68,26,.88)' : 'rgba(232,68,26,.82)')
+            : outerLit  ? (isLight ? `rgba(${baRgb},.14)` : `rgba(${baRgb},.09)`)
+            :             (isLight ? 'rgba(255,255,255,.38)' : 'rgba(255,255,255,.032)'),
+      stroke: isActive  ? 'rgba(255,120,80,.4)'
+            : outerLit  ? `rgba(${baRgb},.36)`
+            :             (isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)'),
+      'stroke-width': isActive ? '1.8' : outerLit ? '1.4' : '0.8',
     });
     if (isActive) { op.setAttribute('filter', 'url(#fGlow)'); op.setAttribute('class', 'active-sector'); }
-    if (!isActive && !isDiatonic) og.setAttribute('opacity', '0.22');
+    if (!isActive && !outerLit) og.setAttribute('opacity', '0.22');
     og.appendChild(op);
 
     // Primary label (major/minor view)
@@ -4132,7 +4159,7 @@ function renderWheel() {
     at.textContent = ACC[i] === '0' ? '♮' : ACC[i];
     og.appendChild(at);
     // Small accent pip at outer rim for diatonic non-active sectors
-    if (!isActive && isDiatonic) {
+    if (!isActive && outerLit) {
       const [px, py] = polar(281, sa);
       og.appendChild(se('circle', { cx: String(px), cy: String(py), r: '2.8', fill: `rgba(${baRgb},.65)`, class: 'diatonic-pip' }));
     }
@@ -4153,11 +4180,21 @@ function renderWheel() {
     const [ix3,iy3] = polar(150,a2), [ix4,iy4] = polar(150,a1);
     const id2 = `M${ix1} ${iy1} A194 194 0 0 1 ${ix2} ${iy2} L${ix3} ${iy3} A150 150 0 0 0 ${ix4} ${iy4}Z`;
     const ig  = se('g', { cursor:'pointer' });
-    if (!isActive && !isDiatonic) ig.setAttribute('opacity', '0.22');
+    // Dim non-diatonic inner sectors. When locked, base it on the inner CHORD so
+    // the relative minors light up; unlocked keeps the legacy (outer-root) dim.
+    const innerDimmed = locked ? (!isActive && !innerLit) : (!isActive && !isDiatonic);
+    if (innerDimmed) ig.setAttribute('opacity', '0.22');
+    const innerFill =
+        isActive            ? (isLight ? 'rgba(232,68,26,.30)' : 'rgba(160,40,10,.46)')
+      : (locked && innerLit) ? (innerDim ? `rgba(${baRgb},.07)` : `rgba(${baRgb},.17)`)
+      :                        (isLight ? 'rgba(255,255,255,.34)' : 'rgba(255,255,255,.04)');
+    const innerStroke = (locked && innerLit && !isActive)
+      ? `rgba(${baRgb},${innerDim ? '.30' : '.44'})`
+      : (isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)');
     const ip  = se('path', {
       d: id2,
-      fill:   isActive ? (isLight ? 'rgba(232,68,26,.30)' : 'rgba(160,40,10,.46)') : (isLight ? 'rgba(255,255,255,.34)' : 'rgba(255,255,255,.04)'),
-      stroke: isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)', 'stroke-width':'0.6',
+      fill:   innerFill,
+      stroke: innerStroke, 'stroke-width': (locked && innerLit && !isActive) ? '1.3' : '0.6',
     });
     ig.appendChild(ip);
 
@@ -6526,6 +6563,7 @@ function setWheelLock(on) {
   if (wheelLocked === on) return;
   wheelLocked = on;
   haptic(on ? 14 : 8);
+  if (typeof renderWheel === 'function') renderWheel();   // re-light the diatonic chords
   updateWheelLockUI();
 }
 function toggleWheelLock() { setWheelLock(!wheelLocked); }
