@@ -654,19 +654,25 @@ body.light .builder-row.is-timeline .builder-step {
 .builder-step.resizing .step-resize::before { background:var(--accent) }
 .builder-step.resizing { box-shadow:0 0 0 1px rgba(232,68,26,.5); transition:none }
 
-/* Sweeping playhead */
+/* Sweeping playhead — always visible (dim when idle, bright when playing) */
 .builder-playhead {
   position:absolute; top:8px; bottom:6px; left:0; width:2px;
   background:linear-gradient(180deg, var(--accent), rgba(232,68,26,.3));
-  border-radius:2px; pointer-events:none; opacity:0;
+  border-radius:2px;
   box-shadow:0 0 10px rgba(232,68,26,.7);
   z-index:6; transform:translateX(0);
+  pointer-events:auto; cursor:ew-resize;
+  opacity:0.3; transition:opacity .18s;
 }
 .builder-playhead.on { opacity:1 }
 .builder-playhead::before {
   content:''; position:absolute; top:-4px; left:-3px;
   width:8px; height:8px; border-radius:50%; background:var(--accent);
   box-shadow:0 0 8px rgba(232,68,26,.9);
+}
+/* Wider invisible touch zone so the 2px line is easy to grab */
+.builder-playhead::after {
+  content:''; position:absolute; top:0; bottom:0; left:-8px; right:-8px;
 }
 
 /* Pill animations — only new/leaving pills animate */
@@ -1907,7 +1913,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.6';
+const APP_VERSION = 'V5.7';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -4433,6 +4439,64 @@ function setWheelView(view) { AppActions.setWheelView(view); }
 // ── BUILDER RENDERER ──────────────────────────────────
 // Renders progression builder pills and meta.
 
+let _playheadBeat = 0, _metroStartedByPlay = false;
+
+// Convert a beat position to pixels within #flowRow.
+function _beatToPx(beat) {
+  const root = document.getElementById('flowRow');
+  if (!root) return 0;
+  const h = Array.isArray(st.history) ? st.history : [];
+  if (!h.length) return 0;
+  const bars = [...root.querySelectorAll('.builder-step')];
+  if (!bars.length) return 0;
+  let acc = 0;
+  const starts = h.map(it => { const s = acc; acc += Math.max(1, it.beats || 2); return s; });
+  let cur = 0;
+  for (let k = 0; k < starts.length; k++) if (beat >= starts[k]) cur = k;
+  const bar = bars[cur]; if (!bar) return 0;
+  const frac = Math.min(1, Math.max(0, (beat - starts[cur]) / Math.max(1, h[cur].beats || 2)));
+  return bar.offsetLeft + frac * bar.offsetWidth;
+}
+
+function _updatePlayheadPos() {
+  const ph = document.getElementById('builderPlayhead');
+  if (ph) ph.style.transform = `translateX(${_beatToPx(_playheadBeat)}px)`;
+}
+
+// Drag the playhead needle to choose a start position.
+const PlayheadDrag = {
+  start(e) {
+    e.stopPropagation();
+    if (_progRAF) return;                          // no drag during playback
+    const root = document.getElementById('flowRow');
+    if (!root) return;
+    const h = Array.isArray(st.history) ? st.history : [];
+    if (!h.length) return;
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+    const bars = [...root.querySelectorAll('.builder-step')];
+    let acc = 0;
+    const starts = h.map(it => { const s = acc; acc += Math.max(1, it.beats || 2); return s; });
+    const totalBeats = acc;
+    const move = ev => {
+      const rowRect = root.getBoundingClientRect();
+      const relX = ev.clientX - rowRect.left + root.scrollLeft;
+      let beat = 0;
+      for (let k = 0; k < bars.length; k++) {
+        const bL = bars[k].offsetLeft, bR = bL + bars[k].offsetWidth;
+        if (relX < bL) { beat = starts[k]; break; }
+        if (relX <= bR) { beat = starts[k] + (relX - bL) / bars[k].offsetWidth * Math.max(1, h[k].beats || 2); break; }
+        if (k === bars.length - 1) beat = totalBeats;
+      }
+      _playheadBeat = Math.max(0, Math.min(totalBeats - 0.01, beat));
+      const ph = document.getElementById('builderPlayhead');
+      if (ph) ph.style.transform = `translateX(${_beatToPx(_playheadBeat)}px)`;
+    };
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  },
+};
+
 function friendlyStoryFor(item, slot, i, h) {
   if (!item) return ['—', 'Choose a chord to start'];
   const d   = String(item.degree || '');
@@ -4516,6 +4580,7 @@ const HistoryEngine = {
   },
 
   clear() {
+    _playheadBeat = 0;
     st.history = [];
     this.render();
     renderProgressionStory();
@@ -4547,7 +4612,7 @@ const HistoryEngine = {
         <span class="step-chord">${chordLabel(it)}</span>
         <span class="step-sub"><span class="step-degree">${casedRoman(it.degree, it.quality)}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
         <span class="step-resize" title="Drag to set duration" onpointerdown="DurationDrag.start(event,${i})"></span>
-      </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead"></div>`;
+      </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead" onpointerdown="PlayheadDrag.start(event)"></div>`;
 
     // Re-rendering closes any open per-chord chooser.
     if (typeof ChordVariants === 'object') ChordVariants.close();
@@ -4557,6 +4622,7 @@ const HistoryEngine = {
     if (lastEl) { lastEl.classList.add('just-added'); setTimeout(() => lastEl.classList.remove('just-added'), 600); }
 
     BuilderEngine.meta();
+    requestAnimationFrame(_updatePlayheadPos);
   },
 };
 
@@ -4696,10 +4762,11 @@ function setProgBtn(playing) {
 }
 function stopProgression() {
   cancelAnimationFrame(_progRAF); _progRAF = 0;
-  if (typeof AudioEngine === 'object') AudioEngine.killVoices();   // hard-stop scheduled chords
+  if (typeof AudioEngine === 'object') AudioEngine.killVoices();
   document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
   const ph = document.getElementById('builderPlayhead'); if (ph) ph.classList.remove('on');
   setProgBtn(false);
+  if (_metroStartedByPlay) { Metronome.stop(); _metroStartedByPlay = false; }
 }
 // The ▶/■ button toggles between starting and stopping playback.
 function toggleProgPlay() {
@@ -4728,35 +4795,68 @@ function playProgression() {
   cancelAnimationFrame(_progRAF); _progRAF = 0;
   document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
 
-  // Nothing built yet → just sound the currently selected chord.
   if (!h.length) { AudioEngine.playChord(chordPitchesForDegree(curDeg >= 0 ? curDeg : 0)); return; }
 
-  const secPerBeat = 60 / (st.bpm || 100);                  // synced to the metronome BPM
-  const entries = h.map(it => ({ pitches: chordPitchesForItem(it), beats: Math.max(1, it.beats || 2) }));
-  const leadSec = st.countIn ? AudioEngine.countIn(secPerBeat) : 0;   // optional 1-bar count-in
+  const secPerBeat = 60 / (st.bpm || 100);
+  const allEntries = h.map(it => ({ pitches: chordPitchesForItem(it), beats: Math.max(1, it.beats || 2) }));
+
+  // Cumulative beat starts across all entries.
+  let bAcc = 0;
+  const starts = allEntries.map(e => { const s = bAcc; bAcc += e.beats; return s; });
+  const totalBeats = bAcc;
+
+  // Clamp playhead — if at/near the end, wrap to 0.
+  const startBeat = _playheadBeat >= totalBeats - 0.25 ? 0 : Math.max(0, _playheadBeat);
+  let startIdx = 0;
+  for (let k = 0; k < starts.length; k++) if (startBeat >= starts[k]) startIdx = k; else break;
+  const withinBeat = startBeat - starts[startIdx];
+
+  // Slice audio entries from the start position (first entry may be shorter).
+  const entries = allEntries.slice(startIdx).map((e, i) =>
+    i === 0 && withinBeat > 0.05
+      ? { pitches: e.pitches, beats: Math.max(0.5, e.beats - withinBeat) }
+      : e
+  );
+
+  // Count-in: start the Metronome so it ticks through the whole progression.
+  let leadSec = 0;
+  if (st.countIn && !Metronome.playing) {
+    Metronome.start();
+    _metroStartedByPlay = true;
+    leadSec = 4 * secPerBeat + 0.08;   // 4-beat count-in matches Metronome's internal lookahead
+  }
+
   const { totalSec } = AudioEngine.playTimeline(entries, secPerBeat, leadSec);
   setProgBtn(true);
 
-  const root  = document.getElementById('flowRow');
-  const ph    = document.getElementById('builderPlayhead');
-  const bars  = [...root.querySelectorAll('.builder-step')];
-  let acc = 0; const starts = entries.map(e => { const s = acc; acc += e.beats; return s; });
-
+  const root = document.getElementById('flowRow');
+  const ph   = document.getElementById('builderPlayhead');
+  const bars = [...root.querySelectorAll('.builder-step')];
   if (ph) ph.classList.add('on');
-  const t0 = performance.now() + leadSec * 1000;       // wait out the count-in before sweeping
+
+  const t0 = performance.now() + leadSec * 1000;
   const frame = () => {
     const elapsed = (performance.now() - t0) / 1000;
-    if (elapsed < 0) { _progRAF = requestAnimationFrame(frame); return; }   // count-in: hold at start
-    const beatPos = elapsed / secPerBeat;
-    let cur = 0; for (let k = 0; k < starts.length; k++) if (beatPos >= starts[k]) cur = k;
+    if (elapsed < 0) { _progRAF = requestAnimationFrame(frame); return; }  // count-in: hold
+    const globalBeat = startBeat + elapsed / secPerBeat;
+    let cur = 0;
+    for (let k = 0; k < starts.length; k++) if (globalBeat >= starts[k]) cur = k;
     const bar = bars[cur];
     if (bar && ph) {
-      const frac = Math.min(1, (beatPos - starts[cur]) / entries[cur].beats);
+      const frac = Math.min(1, (globalBeat - starts[cur]) / allEntries[cur].beats);
       ph.style.transform = `translateX(${bar.offsetLeft + frac * bar.offsetWidth}px)`;
+      _playheadBeat = globalBeat;
     }
     bars.forEach((b, k) => b.classList.toggle('playing', k === cur && elapsed < totalSec));
     if (elapsed < totalSec) { _progRAF = requestAnimationFrame(frame); }
-    else { bars.forEach(b => b.classList.remove('playing')); if (ph) ph.classList.remove('on'); _progRAF = 0; setProgBtn(false); }
+    else {
+      bars.forEach(b => b.classList.remove('playing'));
+      if (ph) ph.classList.remove('on');
+      _progRAF = 0; setProgBtn(false);
+      _playheadBeat = 0;
+      _updatePlayheadPos();
+      if (_metroStartedByPlay) { Metronome.stop(); _metroStartedByPlay = false; }
+    }
   };
   _progRAF = requestAnimationFrame(frame);
 }
