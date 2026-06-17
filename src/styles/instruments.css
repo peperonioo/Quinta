@@ -75,6 +75,52 @@
 .fret-cell      { height:34px; display:flex; align-items:center; justify-content:center; position:relative; z-index:1 }
 .fret-cell::after { content:''; position:absolute; right:0; top:4px; bottom:4px; width:1px; background:rgba(255,255,255,.09) }
 
+/* ── Guitar Chord Shape Strip ─────────────────────────*/
+.gss-strip {
+  max-height: 0; overflow: hidden;
+  transition: max-height .38s cubic-bezier(.34,1.4,.4,1);
+}
+.gss-strip.gss-on { max-height: 168px; }
+.gss-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px 0;
+}
+.gss-title {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+}
+.gss-x {
+  background: none; border: 0; color: var(--muted); font-size: 15px;
+  cursor: pointer; padding: 0 4px; line-height: 1;
+}
+.gss-x:hover { color: var(--fg); }
+.gss-scroll {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding: 6px 12px 12px; scrollbar-width: none;
+}
+.gss-scroll::-webkit-scrollbar { display: none; }
+.gss-card {
+  flex-shrink: 0; cursor: pointer; border-radius: 10px; padding: 4px;
+  border: 1.5px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  transition: border-color .14s, background .14s;
+  user-select: none;
+}
+.gss-card:hover { border-color: rgba(255,255,255,.2); }
+.gss-card.gss-active {
+  border-color: var(--accent);
+  background: rgba(232,68,26,.09);
+}
+/* "Shapes" trigger button in guitar drawer summary */
+.gss-btn {
+  flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: .05em; padding: 4px 8px; border-radius: 8px;
+  border: 1px solid var(--card-bd); background: var(--sel-bg);
+  color: var(--muted); cursor: pointer;
+  transition: color .12s, border-color .12s;
+}
+.gss-btn:hover { color: var(--accent2); border-color: rgba(232,68,26,.4); }
+
 /* ── Enlarge button on each drawer ────────────────────*/
 .drawer summary { display:flex; align-items:center; gap:8px }
 .drawer summary .chev { margin-left:auto }

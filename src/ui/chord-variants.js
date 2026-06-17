@@ -104,6 +104,8 @@ const ChordVariants = {
     requestAnimationFrame(() => el.classList.add('open'));
     // Light up the current chord's notes on the piano/fretboard (build-a-chord guide).
     this._light(ctx.current);
+    // Update chord shape strip if it's currently visible
+    if (typeof GuitarShapes === 'object') GuitarShapes.hint(ctx.root, ctx.quality);
     // Escape + click-outside handled centrally by OverlayManager ('chord-variants').
     if (typeof OverlayManager === 'object') OverlayManager.opened('chord-variants');
   },

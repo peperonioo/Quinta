@@ -66,6 +66,7 @@ const JS_FILES = [
   'src/ui/bubble-physics.js',
   'src/ui/chord-variants.js',
   'src/ui/library.js',
+  'src/ui/guitar-shapes.js',
   'src/ui/instruments-renderer.js',
   'src/ui/metronome.js',
   'src/ui/tabs.js',

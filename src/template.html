@@ -242,11 +242,15 @@
         <details class="drawer">
           <summary>
             <span data-i18n="drawers.guitar">Guitar / Fretboard</span>
+            <button class="gss-btn" onclick="event.stopPropagation();GuitarShapes.toggle()" title="Show chord shapes" aria-label="Show chord voicing diagrams">⬡ Shapes</button>
             <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge fretboard"
               onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('guitar')">⤢</button>
             <span class="chev">⌄</span>
           </summary>
-          <div class="drawer-body"><div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div></div>
+          <div class="drawer-body">
+            <div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div>
+            <div id="guitarShapeStrip" class="gss-strip"></div>
+          </div>
         </details>
       </div>
     </div>

@@ -90,6 +90,11 @@ OverlayManager.register('instr-zoom', {
   close:    () => { if (typeof InstrumentZoom === 'object' && InstrumentZoom.open) InstrumentZoom.close(); },
   contains: (t) => !!(t.closest('#instrZoomPanel') || t.closest('[data-zoom-trigger]')),
 });
+OverlayManager.register('guitar-shapes', {
+  isOpen:   () => !!document.getElementById('guitarShapeStrip')?.classList.contains('gss-on'),
+  close:    () => { if (typeof GuitarShapes === 'object') GuitarShapes.close(); },
+  contains: (t) => !!(t.closest('#guitarShapeStrip') || t.closest('.gss-btn')),
+});
 OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),
   close:  () => { if (typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible) WheelDirectionGuide.toggle(); },

@@ -1299,6 +1299,52 @@ body.light .lib-name { color:#1a1a1a }
 .fret-cell      { height:34px; display:flex; align-items:center; justify-content:center; position:relative; z-index:1 }
 .fret-cell::after { content:''; position:absolute; right:0; top:4px; bottom:4px; width:1px; background:rgba(255,255,255,.09) }
 
+/* ── Guitar Chord Shape Strip ─────────────────────────*/
+.gss-strip {
+  max-height: 0; overflow: hidden;
+  transition: max-height .38s cubic-bezier(.34,1.4,.4,1);
+}
+.gss-strip.gss-on { max-height: 168px; }
+.gss-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px 0;
+}
+.gss-title {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+}
+.gss-x {
+  background: none; border: 0; color: var(--muted); font-size: 15px;
+  cursor: pointer; padding: 0 4px; line-height: 1;
+}
+.gss-x:hover { color: var(--fg); }
+.gss-scroll {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding: 6px 12px 12px; scrollbar-width: none;
+}
+.gss-scroll::-webkit-scrollbar { display: none; }
+.gss-card {
+  flex-shrink: 0; cursor: pointer; border-radius: 10px; padding: 4px;
+  border: 1.5px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  transition: border-color .14s, background .14s;
+  user-select: none;
+}
+.gss-card:hover { border-color: rgba(255,255,255,.2); }
+.gss-card.gss-active {
+  border-color: var(--accent);
+  background: rgba(232,68,26,.09);
+}
+/* "Shapes" trigger button in guitar drawer summary */
+.gss-btn {
+  flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: .05em; padding: 4px 8px; border-radius: 8px;
+  border: 1px solid var(--card-bd); background: var(--sel-bg);
+  color: var(--muted); cursor: pointer;
+  transition: color .12s, border-color .12s;
+}
+.gss-btn:hover { color: var(--accent2); border-color: rgba(232,68,26,.4); }
+
 /* ── Enlarge button on each drawer ────────────────────*/
 .drawer summary { display:flex; align-items:center; gap:8px }
 .drawer summary .chev { margin-left:auto }
@@ -1810,11 +1856,15 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
         <details class="drawer">
           <summary>
             <span data-i18n="drawers.guitar">Guitar / Fretboard</span>
+            <button class="gss-btn" onclick="event.stopPropagation();GuitarShapes.toggle()" title="Show chord shapes" aria-label="Show chord voicing diagrams">⬡ Shapes</button>
             <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge fretboard"
               onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('guitar')">⤢</button>
             <span class="chev">⌄</span>
           </summary>
-          <div class="drawer-body"><div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div></div>
+          <div class="drawer-body">
+            <div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div>
+            <div id="guitarShapeStrip" class="gss-strip"></div>
+          </div>
         </details>
       </div>
     </div>
@@ -1930,7 +1980,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.9';
+const APP_VERSION = 'V5.10';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -2750,20 +2800,18 @@ const AudioEngine = {
   _guitarVoice(freq, t0, gainScale) {
     const ctx = this.ctx, sr = ctx.sampleRate;
     const period = Math.round(sr / freq);
-    // Duration: high notes decay quickly (natural guitar physics), bass notes ring longer.
-    const dur = Math.min(2.8, Math.max(0.6, 4.0 - freq / 380));
+    // Duration: high notes fade fast (~0.35s), bass strings ring up to 1.6s.
+    const dur = Math.min(1.6, Math.max(0.35, 2.8 - freq / 200));
     const N = Math.floor(sr * dur);
     const samples = new Float32Array(N);
     const ring = new Float32Array(period);
 
-    // Seed delay line with one period of noise.
-    // 5 pre-smoothing passes → rounded nylon/classical attack (steel string = 2 passes).
-    for (let i = 0; i < period; i++) ring[i] = Math.random() * 2 - 1;
-    for (let p = 0; p < 5; p++)
-      for (let i = 1; i < period; i++) ring[i] = (ring[i] + ring[i - 1]) * 0.5;
+    // Half-sine + small noise: clean pluck onset without the abrasive attack of raw noise.
+    for (let i = 0; i < period; i++)
+      ring[i] = Math.sin(Math.PI * i / period) * 0.72 + (Math.random() * 2 - 1) * 0.22;
 
-    // K-S loop
-    const decay = 0.9997;
+    // K-S loop. decay=0.997 gives realistic sustain: bass ~1.5s, treble ~0.3s.
+    const decay = 0.997;
     let ptr = 0;
     for (let i = 0; i < N; i++) {
       const next = (ptr + 1) % period;
@@ -2783,11 +2831,10 @@ const AudioEngine = {
     const audioBuf = ctx.createBuffer(1, N, sr);
     audioBuf.copyToChannel(samples, 0);
     const src = ctx.createBufferSource(); src.buffer = audioBuf;
-    // Warm LP — removes steel-string brightness, gives classical/nylon body warmth.
     const lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = Math.min(freq * 2.2, 3000);
-    lp.Q.value = 0.5;
+    lp.frequency.value = Math.min(freq * 1.8, 2400);
+    lp.Q.value = 0.4;
     const amp = ctx.createGain();
     src.connect(lp); lp.connect(amp); amp.connect(this.master);
     src.start(t0);
@@ -4240,6 +4287,11 @@ OverlayManager.register('instr-zoom', {
   close:    () => { if (typeof InstrumentZoom === 'object' && InstrumentZoom.open) InstrumentZoom.close(); },
   contains: (t) => !!(t.closest('#instrZoomPanel') || t.closest('[data-zoom-trigger]')),
 });
+OverlayManager.register('guitar-shapes', {
+  isOpen:   () => !!document.getElementById('guitarShapeStrip')?.classList.contains('gss-on'),
+  close:    () => { if (typeof GuitarShapes === 'object') GuitarShapes.close(); },
+  contains: (t) => !!(t.closest('#guitarShapeStrip') || t.closest('.gss-btn')),
+});
 OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),
   close:  () => { if (typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible) WheelDirectionGuide.toggle(); },
@@ -5464,6 +5516,8 @@ const ChordVariants = {
     requestAnimationFrame(() => el.classList.add('open'));
     // Light up the current chord's notes on the piano/fretboard (build-a-chord guide).
     this._light(ctx.current);
+    // Update chord shape strip if it's currently visible
+    if (typeof GuitarShapes === 'object') GuitarShapes.hint(ctx.root, ctx.quality);
     // Escape + click-outside handled centrally by OverlayManager ('chord-variants').
     if (typeof OverlayManager === 'object') OverlayManager.opened('chord-variants');
   },
@@ -5647,6 +5701,171 @@ const Library = {
 };
 
 
+// == guitar-shapes.js ==
+// ── GUITAR SHAPES ─────────────────────────────────────
+// Box-notation chord diagrams for the guitar fretboard.
+// Shown in a scroll strip below the fretboard when the "Shapes" button is tapped.
+const GuitarShapes = (() => {
+  const ENH = {Db:'C#',Eb:'D#',Gb:'F#',Ab:'G#',Bb:'A#'};
+  const NI  = {C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
+
+  // Barre shape generators. Array = [e6, a5, d4, g3, b2, e1] fret positions.
+  const eM = f => [f,  f+2, f+2, f+1, f,   f  ]; // E-shape major
+  const aM = f => [-1, f,   f+2, f+2, f+2, f  ]; // A-shape major
+  const em = f => [f,  f+2, f+2, f,   f,   f  ]; // E-shape minor
+  const am = f => [-1, f,   f+2, f+2, f+1, f  ]; // A-shape minor
+
+  // Root fret on the E-string (E open = 0, F = 1, G = 3, A = 5, B = 7, C = 8, D = 10)
+  const EF = r => (NI[r] - 4 + 12) % 12;
+  // Root fret on the A-string (A open = 0, B = 2, C = 3, D = 5, E = 7, F = 8, G = 10)
+  const AF = r => (NI[r] - 9 + 12) % 12;
+
+  // Open / idiomatic overrides that differ from the pure barre formula
+  const SPEC = {
+    'C:maj':  [[-1,3,2,0,1,0], aM(3), eM(8)],
+    'D:maj':  [[-1,-1,0,2,3,2], aM(5), eM(10)],
+    'G:maj':  [[3,2,0,0,0,3],   eM(3), aM(10)],
+    'D:min':  [[-1,-1,0,2,3,1], am(5), em(10)],
+  };
+
+  function voicings(root, qual) {
+    const r = ENH[root] || root;
+    const key = `${r}:${qual}`;
+    if (SPEC[key]) return SPEC[key];
+    const ef = EF(r), af = AF(r);
+    const sE = qual === 'min' ? em : eM;
+    const sA = qual === 'min' ? am : aM;
+    const shapes = af <= ef ? [sA(af), sE(ef)] : [sE(ef), sA(af)];
+    // Add a higher-position third voicing where it fits on a 17-fret neck
+    const thirdA = af + 12, thirdE = ef + 12;
+    if (thirdA <= 14) shapes.push(sA(thirdA));
+    else if (thirdE <= 14) shapes.push(sE(thirdE));
+    return shapes;
+  }
+
+  // ── SVG box diagram ───────────────────────────────
+  function drawSVG(shape, label) {
+    const W = 58, H = 78;
+    const X0 = 7, X1 = 50, Y0 = 22, Y1 = 68;
+    const FRETS = 4, NS = 6;
+    const sx = i => X0 + (X1 - X0) * i / (NS - 1);
+    const fy = f => Y0 + (Y1 - Y0) * f / FRETS;
+
+    const active = shape.filter(f => f > 0);
+    const minF = active.length ? Math.min(...active) : 0;
+    const base = minF <= 1 ? 0 : minF - 1;
+    const showNut = base === 0;
+
+    let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+    s += `<text x="${W/2}" y="9" text-anchor="middle" font-size="7.5" fill="var(--muted)" font-family="DM Mono,monospace">${label}</text>`;
+    if (!showNut)
+      s += `<text x="${X1+5}" y="${fy(1)+3}" font-size="6.5" fill="var(--muted)" font-family="DM Mono,monospace">${minF}fr</text>`;
+    // Nut / top line
+    if (showNut)
+      s += `<line x1="${sx(0)}" y1="${fy(0)}" x2="${sx(NS-1)}" y2="${fy(0)}" stroke="var(--fg)" stroke-width="2.2" stroke-linecap="round"/>`;
+    else
+      s += `<line x1="${sx(0)}" y1="${fy(0)}" x2="${sx(NS-1)}" y2="${fy(0)}" stroke="rgba(255,255,255,.2)" stroke-width="0.6"/>`;
+    // Fret lines
+    for (let f = 1; f <= FRETS; f++)
+      s += `<line x1="${sx(0)}" y1="${fy(f)}" x2="${sx(NS-1)}" y2="${fy(f)}" stroke="rgba(255,255,255,.12)" stroke-width="0.5"/>`;
+    // String lines (thicker for bass strings)
+    for (let i = 0; i < NS; i++)
+      s += `<line x1="${sx(i)}" y1="${fy(0)}" x2="${sx(i)}" y2="${fy(FRETS)}" stroke="rgba(255,255,255,.22)" stroke-width="${0.5 + (NS-1-i) * 0.16}"/>`;
+    // Open / muted indicators above nut
+    shape.forEach((f, i) => {
+      const x = sx(i);
+      if (f === -1)
+        s += `<text x="${x}" y="${fy(0)-3}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.35)">×</text>`;
+      else if (f === 0)
+        s += `<circle cx="${x}" cy="${fy(0)-7}" r="2.8" fill="none" stroke="var(--accent)" stroke-width="1.2"/>`;
+    });
+    // Fingering dots
+    shape.forEach((f, i) => {
+      if (f <= 0) return;
+      const df = f - base;
+      if (df < 1 || df > FRETS) return;
+      s += `<circle cx="${sx(i)}" cy="${fy(df - 0.5)}" r="4.2" fill="var(--accent)" opacity="0.9"/>`;
+    });
+    s += '</svg>';
+    return s;
+  }
+
+  // ── State ─────────────────────────────────────────
+  let _root = null, _qual = null, _idx = 0;
+
+  function _voiceLabel(shape, i) {
+    const frets = shape.filter(f => f > 0);
+    const minF = frets.length ? Math.min(...frets) : 0;
+    if (minF <= 1 || shape.some(f => f === 0)) return i === 0 ? 'Open' : 'Alt';
+    return `${minF}ª pos`;
+  }
+
+  function _render() {
+    const el = document.getElementById('guitarShapeStrip'); if (!el) return;
+    if (!_root) { el.classList.remove('gss-on'); return; }
+    const vs = voicings(_root, _qual);
+    const name = _root + (_qual === 'min' ? 'm' : '');
+    el.innerHTML = `
+      <div class="gss-head">
+        <span class="gss-title">${name} — voicings</span>
+        <button class="gss-x" onclick="GuitarShapes.close()" aria-label="Close shapes">×</button>
+      </div>
+      <div class="gss-scroll">
+        ${vs.map((sh, i) => `
+          <div class="gss-card${i === _idx ? ' gss-active' : ''}"
+               onclick="GuitarShapes.pick(${i})"
+               role="button" aria-label="Voicing ${i+1}">
+            ${drawSVG(sh, _voiceLabel(sh, i))}
+          </div>`).join('')}
+      </div>`;
+    el.classList.add('gss-on');
+  }
+
+  return {
+    // Toggle the strip from the "Shapes" button in the guitar drawer
+    toggle() {
+      const el = document.getElementById('guitarShapeStrip');
+      if (el && el.classList.contains('gss-on')) { this.close(); return; }
+      // Determine current chord: prefer ChordVariants context, then key tonic
+      let root = null, qual = 'maj';
+      if (typeof ChordVariants === 'object' && ChordVariants.ctx && ChordVariants.ctx.root) {
+        root = ChordVariants.ctx.root;
+        qual = ChordVariants.ctx.quality === 'min' ? 'min' : 'maj';
+      } else {
+        root = st.key;
+        qual = (typeof modeIsMinor === 'function' && modeIsMinor(st.mode)) ? 'min' : 'maj';
+      }
+      _root = root; _qual = qual; _idx = 0;
+      _render();
+      if (typeof OverlayManager === 'object') OverlayManager.opened('guitar-shapes');
+    },
+
+    // Called by ChordVariants when a bar is opened — updates the strip if visible
+    hint(root, qual) {
+      if (!document.getElementById('guitarShapeStrip')?.classList.contains('gss-on')) return;
+      if (!root) return;
+      _root = root; _qual = qual === 'min' ? 'min' : 'maj'; _idx = 0;
+      _render();
+    },
+
+    // Select a specific voicing card
+    pick(idx) {
+      _idx = idx;
+      const vs = voicings(_root, _qual);
+      if (typeof highlightGuitarShape === 'function') highlightGuitarShape(vs[idx]);
+      document.querySelectorAll('.gss-card').forEach((c, i) =>
+        c.classList.toggle('gss-active', i === idx));
+    },
+
+    close() {
+      _root = null;
+      document.getElementById('guitarShapeStrip')?.classList.remove('gss-on');
+      if (typeof highlightGuitarShape === 'function') highlightGuitarShape(null);
+    },
+  };
+})();
+
+
 // == instruments-renderer.js ==
 // ── INSTRUMENTS RENDERER ──────────────────────────────
 // The chord whose tones light up on the piano / fretboard. An explicitly set
@@ -5657,6 +5876,14 @@ let _activeChordPcs = null;
 function setActiveChord(pitches) {
   _activeChordPcs = (pitches && pitches.length) ? pitches.map(p => ((p % 12) + 12) % 12) : null;
   renderPiano(); renderGuitar();
+}
+
+// When a specific chord shape is selected in GuitarShapes, highlight only those 6 fret positions.
+// shape = [e6, a5, d4, g3, b2, e1] fret array; null = revert to full chord-tone display.
+let _activeShape = null;
+function highlightGuitarShape(shape) {
+  _activeShape = shape;
+  renderGuitar();
 }
 function _chordPcSet() {
   if (_activeChordPcs) return new Set(_activeChordPcs);
@@ -5766,7 +5993,9 @@ function renderGuitar() {
   root.appendChild(nR);
 
   const inChord = pc => chord && chord.has(((pc % 12) + 12) % 12);
-  tuning.forEach(([name, start, base]) => {
+  // _activeShape = [e6, a5, d4, g3, b2, e1]; tuning[0]=high-e → shape[5], tuning[5]=low-E → shape[0]
+  tuning.forEach(([name, start, base], ti) => {
+    const shapeFret = _activeShape ? _activeShape[5 - ti] : null; // fret for this string in active shape
     const row = document.createElement('div');
     row.style.cssText = `display:grid;grid-template-columns:${cols};align-items:center;border-top:1px solid rgba(255,255,255,.05);position:relative`;
     const sl = document.createElement('div');
@@ -5776,9 +6005,23 @@ function renderGuitar() {
     nc.style.cssText = 'width:40px;display:flex;align-items:center;justify-content:center;height:32px;border-right:2px solid rgba(255,255,255,.2);position:relative;z-index:1';
     const on = na(start), isOn = sc.has(on), isRoot = on === rootNote, isCh = inChord(start);
     const od = document.createElement('div');
-    od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
-    od.textContent = isOn ? dn(on) : name;
-    if (!isOn && !isCh) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
+    if (_activeShape) {
+      // Shape mode: nut column shows muted (×) or open-string indicator
+      if (shapeFret === -1) {
+        od.className = 'fret-note'; od.textContent = '×';
+        od.style.cssText = 'background:transparent;color:rgba(255,255,255,.35);font-size:11px;width:20px;height:20px';
+      } else if (shapeFret === 0) {
+        od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
+        od.textContent = dn(on);
+      } else {
+        od.className = 'fret-note'; od.textContent = name;
+        od.style.cssText = 'background:transparent;color:rgba(255,255,255,.15);font-size:9px;width:20px;height:20px';
+      }
+    } else {
+      od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
+      od.textContent = isOn ? dn(on) : name;
+      if (!isOn && !isCh) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
+    }
     od.onclick = () => _hearGuitar(base);
     nc.appendChild(od);
     row.appendChild(nc);
@@ -5786,7 +6029,16 @@ function renderGuitar() {
       const n = na(start + f); const isO = sc.has(n); const isR = n === rootNote; const isC = inChord(start + f);
       const cell = document.createElement('div');
       cell.className = 'fret-cell';
-      if (isO || isC) {
+      if (_activeShape) {
+        // Shape mode: only show the specific fret dot for this string
+        if (shapeFret === f) {
+          const dot = document.createElement('div');
+          dot.className = 'fret-note chord shape-dot';
+          dot.textContent = dn(n);
+          dot.onclick = () => _hearGuitar(base + f);
+          cell.appendChild(dot);
+        }
+      } else if (isO || isC) {
         const dot = document.createElement('div');
         dot.className = 'fret-note' + (isC ? ' chord' : isR ? ' root' : ' on');
         dot.textContent = dn(n);

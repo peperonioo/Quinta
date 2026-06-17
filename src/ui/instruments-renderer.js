@@ -8,6 +8,14 @@ function setActiveChord(pitches) {
   _activeChordPcs = (pitches && pitches.length) ? pitches.map(p => ((p % 12) + 12) % 12) : null;
   renderPiano(); renderGuitar();
 }
+
+// When a specific chord shape is selected in GuitarShapes, highlight only those 6 fret positions.
+// shape = [e6, a5, d4, g3, b2, e1] fret array; null = revert to full chord-tone display.
+let _activeShape = null;
+function highlightGuitarShape(shape) {
+  _activeShape = shape;
+  renderGuitar();
+}
 function _chordPcSet() {
   if (_activeChordPcs) return new Set(_activeChordPcs);
   if (typeof curDeg === 'undefined' || curDeg < 0 || typeof chordPitchesForDegree !== 'function') return null;
@@ -116,7 +124,9 @@ function renderGuitar() {
   root.appendChild(nR);
 
   const inChord = pc => chord && chord.has(((pc % 12) + 12) % 12);
-  tuning.forEach(([name, start, base]) => {
+  // _activeShape = [e6, a5, d4, g3, b2, e1]; tuning[0]=high-e → shape[5], tuning[5]=low-E → shape[0]
+  tuning.forEach(([name, start, base], ti) => {
+    const shapeFret = _activeShape ? _activeShape[5 - ti] : null; // fret for this string in active shape
     const row = document.createElement('div');
     row.style.cssText = `display:grid;grid-template-columns:${cols};align-items:center;border-top:1px solid rgba(255,255,255,.05);position:relative`;
     const sl = document.createElement('div');
@@ -126,9 +136,23 @@ function renderGuitar() {
     nc.style.cssText = 'width:40px;display:flex;align-items:center;justify-content:center;height:32px;border-right:2px solid rgba(255,255,255,.2);position:relative;z-index:1';
     const on = na(start), isOn = sc.has(on), isRoot = on === rootNote, isCh = inChord(start);
     const od = document.createElement('div');
-    od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
-    od.textContent = isOn ? dn(on) : name;
-    if (!isOn && !isCh) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
+    if (_activeShape) {
+      // Shape mode: nut column shows muted (×) or open-string indicator
+      if (shapeFret === -1) {
+        od.className = 'fret-note'; od.textContent = '×';
+        od.style.cssText = 'background:transparent;color:rgba(255,255,255,.35);font-size:11px;width:20px;height:20px';
+      } else if (shapeFret === 0) {
+        od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
+        od.textContent = dn(on);
+      } else {
+        od.className = 'fret-note'; od.textContent = name;
+        od.style.cssText = 'background:transparent;color:rgba(255,255,255,.15);font-size:9px;width:20px;height:20px';
+      }
+    } else {
+      od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
+      od.textContent = isOn ? dn(on) : name;
+      if (!isOn && !isCh) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
+    }
     od.onclick = () => _hearGuitar(base);
     nc.appendChild(od);
     row.appendChild(nc);
@@ -136,7 +160,16 @@ function renderGuitar() {
       const n = na(start + f); const isO = sc.has(n); const isR = n === rootNote; const isC = inChord(start + f);
       const cell = document.createElement('div');
       cell.className = 'fret-cell';
-      if (isO || isC) {
+      if (_activeShape) {
+        // Shape mode: only show the specific fret dot for this string
+        if (shapeFret === f) {
+          const dot = document.createElement('div');
+          dot.className = 'fret-note chord shape-dot';
+          dot.textContent = dn(n);
+          dot.onclick = () => _hearGuitar(base + f);
+          cell.appendChild(dot);
+        }
+      } else if (isO || isC) {
         const dot = document.createElement('div');
         dot.className = 'fret-note' + (isC ? ' chord' : isR ? ' root' : ' on');
         dot.textContent = dn(n);

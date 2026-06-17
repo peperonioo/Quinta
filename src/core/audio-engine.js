@@ -264,20 +264,18 @@ const AudioEngine = {
   _guitarVoice(freq, t0, gainScale) {
     const ctx = this.ctx, sr = ctx.sampleRate;
     const period = Math.round(sr / freq);
-    // Duration: high notes decay quickly (natural guitar physics), bass notes ring longer.
-    const dur = Math.min(2.8, Math.max(0.6, 4.0 - freq / 380));
+    // Duration: high notes fade fast (~0.35s), bass strings ring up to 1.6s.
+    const dur = Math.min(1.6, Math.max(0.35, 2.8 - freq / 200));
     const N = Math.floor(sr * dur);
     const samples = new Float32Array(N);
     const ring = new Float32Array(period);
 
-    // Seed delay line with one period of noise.
-    // 5 pre-smoothing passes → rounded nylon/classical attack (steel string = 2 passes).
-    for (let i = 0; i < period; i++) ring[i] = Math.random() * 2 - 1;
-    for (let p = 0; p < 5; p++)
-      for (let i = 1; i < period; i++) ring[i] = (ring[i] + ring[i - 1]) * 0.5;
+    // Half-sine + small noise: clean pluck onset without the abrasive attack of raw noise.
+    for (let i = 0; i < period; i++)
+      ring[i] = Math.sin(Math.PI * i / period) * 0.72 + (Math.random() * 2 - 1) * 0.22;
 
-    // K-S loop
-    const decay = 0.9997;
+    // K-S loop. decay=0.997 gives realistic sustain: bass ~1.5s, treble ~0.3s.
+    const decay = 0.997;
     let ptr = 0;
     for (let i = 0; i < N; i++) {
       const next = (ptr + 1) % period;
@@ -297,11 +295,10 @@ const AudioEngine = {
     const audioBuf = ctx.createBuffer(1, N, sr);
     audioBuf.copyToChannel(samples, 0);
     const src = ctx.createBufferSource(); src.buffer = audioBuf;
-    // Warm LP — removes steel-string brightness, gives classical/nylon body warmth.
     const lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = Math.min(freq * 2.2, 3000);
-    lp.Q.value = 0.5;
+    lp.frequency.value = Math.min(freq * 1.8, 2400);
+    lp.Q.value = 0.4;
     const amp = ctx.createGain();
     src.connect(lp); lp.connect(amp); amp.connect(this.master);
     src.start(t0);
