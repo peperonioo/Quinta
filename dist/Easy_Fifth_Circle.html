@@ -1644,9 +1644,8 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
         <span class="metro-tap-hint" id="metroTapHint">tap 4× to set tempo</span>
       </button>
       <div class="metro-sounds">
-        <button class="ms-btn active" data-s="woodblock" onclick="Metronome.setSound('woodblock')">Wood</button>
-        <button class="ms-btn" data-s="cowbell"  onclick="Metronome.setSound('cowbell')">Bell</button>
-        <button class="ms-btn" data-s="rimshot"  onclick="Metronome.setSound('rimshot')">Rim</button>
+        <button class="ms-btn active" data-s="woodblock"  onclick="Metronome.setSound('woodblock')">Wood</button>
+        <button class="ms-btn" data-s="rimshot"   onclick="Metronome.setSound('rimshot')">Rim</button>
         <button class="ms-btn" data-s="electronic" onclick="Metronome.setSound('electronic')">Elec</button>
       </div>
     </div>
@@ -2677,8 +2676,7 @@ const AudioEngine = {
     if (!this.resume()) return;
     const t0 = when != null ? when : this.ctx.currentTime;
     const snd = (typeof st === 'object' && st.metroSound) || 'woodblock';
-    if      (snd === 'cowbell')    this._metroCowbell(t0, accent);
-    else if (snd === 'rimshot')    this._metroRim(t0, accent);
+    if      (snd === 'rimshot')    this._metroRim(t0, accent);
     else if (snd === 'electronic') this._metroElectronic(t0, accent);
     else                           this._metroWoodblock(t0, accent);
   },
@@ -2750,31 +2748,30 @@ const AudioEngine = {
   // harmonics each cycle, producing the warm, decaying timbre of a plucked
   // guitar string. Only used by playGuitarNote — chord previews use Rhodes.
   _guitarVoice(freq, t0, gainScale) {
-    const ctx = this.ctx, out = this.voiceBus || this.master;
-    // One-period noise buffer (Karplus-Strong excitation)
-    const noiseLen = Math.max(2, Math.ceil(ctx.sampleRate / freq));
-    const buf = ctx.createBuffer(1, noiseLen, ctx.sampleRate);
+    const ctx = this.ctx, out = this.master;
+    const sr = ctx.sampleRate;
+    // Exactly one period of noise — critical: longer bursts cause harmonic buildup
+    const noiseLen = Math.max(2, Math.round(sr / freq));
+    const buf = ctx.createBuffer(1, noiseLen, sr);
     const d = buf.getChannelData(0);
-    for (let i = 0; i < noiseLen; i++) d[i] = Math.random() * 2 - 1;
+    for (let i = 0; i < noiseLen; i++) d[i] = (Math.random() * 2 - 1) * 0.45;
     const src = ctx.createBufferSource(); src.buffer = buf; src.loop = false;
-    // Delay line tuned to fundamental period
-    const delay = ctx.createDelay(0.06);
-    delay.delayTime.value = 1 / freq;
-    // Averaging lowpass in the feedback loop — the string's "stiffness"
+    // Delay tuned to string fundamental
+    const delay = ctx.createDelay(0.06); delay.delayTime.value = 1 / freq;
+    // Tight lowpass — the filter that shapes string brightness (damps harmonics each cycle)
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
-    lp.frequency.value = Math.min(freq * 5, ctx.sampleRate * 0.4);
-    lp.Q.value = 0.4;
-    // Feedback gain controls sustain (< 1 to prevent runaway)
-    const fb = ctx.createGain(); fb.gain.value = 0.994;
-    // Output amp with natural decay envelope
-    const decaySec = Math.max(1.2, 3.8 - freq / 500);   // lower notes sustain longer
+    lp.frequency.value = Math.min(freq * 2, 2400);
+    lp.Q.value = 0.3;
+    // Feedback gain — lower = more damping, shorter sustain
+    const fb = ctx.createGain(); fb.gain.value = 0.97;
+    const decaySec = Math.max(1.4, 3.4 - freq / 500);
     const amp = ctx.createGain();
-    amp.gain.setValueAtTime(gainScale * 0.9, t0);
+    amp.gain.setValueAtTime(gainScale * 0.42, t0);
     amp.gain.exponentialRampToValueAtTime(0.0001, t0 + decaySec);
-    // Routing: src → delay ⟷ (lp → fb) loop; delay also feeds output
     src.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay);
     delay.connect(amp); amp.connect(out);
-    src.start(t0); src.stop(t0 + 0.04);   // brief noise burst
+    // Stop after exactly one period — prevents inter-cycle buildup
+    src.start(t0); src.stop(t0 + noiseLen / sr);
     if (this._active) {
       const entry = { oscs: [src], amp };
       this._active.add(entry);
