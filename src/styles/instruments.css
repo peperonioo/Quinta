@@ -155,6 +155,29 @@ body[data-tab="production"] .instr-dock { display: none; }
   color: var(--muted);
 }
 .gss-card.gss-active .gss-cap { color: var(--accent2); font-weight: 600; }
+
+/* ── Progression view (all chords side by side) ───────*/
+.gss-strip.gss-on { max-height: 240px; }
+.gss-prog-scroll { align-items: flex-start; }
+.gss-empty-prog { padding: 26px 16px; text-align: center; width: 100%; }
+.gss-prog-card {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  border-radius: 13px; padding: 5px 8px 6px; border: 1.5px solid transparent;
+  transition: border-color .14s, background .14s; user-select: none;
+}
+.gss-prog-card.gpc-active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.gpc-dots { display: flex; gap: 4px; height: 8px; align-items: center; }
+.gpc-dot {
+  width: 5px; height: 5px; border-radius: 999px; cursor: pointer;
+  background: var(--ui-border-strong); transition: background .15s, transform .15s;
+}
+.gpc-dot.on { background: var(--accent); transform: scale(1.25); }
+.gpc-diag { cursor: grab; touch-action: pan-y; line-height: 0; }
+.gpc-diag:active { cursor: grabbing; }
+.gpc-name { font-family: 'DM Serif Display', Georgia, serif; font-size: 13px; color: var(--fg); margin-top: 1px; }
+.gpc-pos { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: .03em; color: var(--muted); }
+.gss-prog-card.gpc-active .gpc-pos { color: var(--accent2); }
+
 /* "Shapes" trigger button in guitar drawer summary */
 .gss-btn {
   flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 9px;

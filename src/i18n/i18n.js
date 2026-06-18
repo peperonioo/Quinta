@@ -26,5 +26,6 @@ function setLanguage(lang) {
     if (typeof HistoryEngine === 'object' && HistoryEngine.render) HistoryEngine.render();
     if (typeof updateWheelLockUI === 'function') updateWheelLockUI();
     if (typeof Metronome === 'object' && Metronome.syncTapHint) Metronome.syncTapHint();
+    if (typeof GuitarShapes === 'object' && GuitarShapes.refresh) GuitarShapes.refresh();
   } catch (_) {}
 }

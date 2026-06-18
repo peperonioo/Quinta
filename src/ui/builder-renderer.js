@@ -160,6 +160,7 @@ const HistoryEngine = {
       root.classList.remove('is-timeline');
       root.innerHTML = `<div class="builder-empty">${t('builder.empty')}</div>`;
       BuilderEngine.meta();
+      if (typeof GuitarShapes === 'object') GuitarShapes.onProgressionChange();
       return;
     }
 
@@ -184,6 +185,7 @@ const HistoryEngine = {
     if (lastEl) { lastEl.classList.add('just-added'); setTimeout(() => lastEl.classList.remove('just-added'), 600); }
 
     BuilderEngine.meta();
+    if (typeof GuitarShapes === 'object') GuitarShapes.onProgressionChange();
     requestAnimationFrame(_updatePlayheadPos);
   },
 };
