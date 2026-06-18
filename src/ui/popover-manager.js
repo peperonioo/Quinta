@@ -19,6 +19,10 @@ const OverlayManager = {
     // this overlay (panel or trigger). Overlays that provide it get centralised
     // click-outside dismissal — no per-component document listeners needed.
     it.contains = api.contains;
+    // Persistent overlays are inline panels that stay open when another overlay
+    // opens (e.g. the guitar-shapes strip should survive tapping a chord). They
+    // are still dismissed by Escape and genuine click-outside.
+    it.persistent = !!api.persistent;
     return it;
   },
   _open(it)  { try { return !!it.isOpen?.(); } catch (_) { return false; } },
@@ -28,7 +32,7 @@ const OverlayManager = {
     this._seq++;
     const me = this._items.find(x => x.id === id);
     if (me) me.order = this._seq;
-    this._items.forEach(it => { if (it.id !== id && this._open(it)) this._close(it); });
+    this._items.forEach(it => { if (it.id !== id && !it.persistent && this._open(it)) this._close(it); });
   },
   openIds() { return this._items.filter(it => this._open(it)).map(it => it.id); },
   // Close the most-recently-opened overlay still open. Returns true if it did.
@@ -91,6 +95,7 @@ OverlayManager.register('instr-zoom', {
   contains: (t) => !!(t.closest('#instrZoomPanel') || t.closest('[data-zoom-trigger]')),
 });
 OverlayManager.register('guitar-shapes', {
+  persistent: true,   // inline strip — don't auto-close it when a chord chooser opens
   isOpen:   () => !!document.getElementById('guitarShapeStrip')?.classList.contains('gss-on'),
   close:    () => { if (typeof GuitarShapes === 'object') GuitarShapes.close(); },
   // The strip lives in the guitar drawer beside the fretboard — playing a fret
