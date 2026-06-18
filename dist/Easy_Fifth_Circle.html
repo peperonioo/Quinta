@@ -1815,7 +1815,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
       </div>
       <button class="metro-tap" id="metroTap" onclick="Metronome.tap()">
         <span class="metro-tap-label">TAP</span>
-        <span class="metro-tap-hint" id="metroTapHint">tap 4× to set tempo</span>
+        <span class="metro-tap-hint" id="metroTapHint" data-i18n="metro.tapHint">tap 4× to set tempo</span>
       </button>
       <div class="metro-sounds">
         <button class="ms-btn active" data-s="woodblock"  onclick="Metronome.setSound('woodblock')">Wood</button>
@@ -2135,7 +2135,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.16';
+const APP_VERSION = 'V5.17';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -2239,6 +2239,13 @@ const I18N_EN = {
   'builder.empty':     'No chords yet — tap a degree or a suggestion bubble.',
   'suggestions.title': 'Quick harmonic ideas',
   'suggestions.subtitle': 'Generated from the selected key and mode.',
+  'suggest.title':     'Suggested next chords',
+  'suggest.strongest': 'Strongest from',
+  'suggest.hint':      'The bigger the bubble, the stronger the next move.',
+  'gravity.title':     'Harmonic gravity',
+  'mood.from':         'From',
+  'metro.tapHint':     'tap 4× to set tempo',
+  'metro.tapSet':      'tempo set · keep tapping',
   'drawers.piano':     'Piano',
   'drawers.guitar':    'Guitar / Fretboard',
   'production.instruments': 'Core instruments',
@@ -2305,6 +2312,13 @@ const I18N_ES = {
   'builder.empty':     'Sin acordes — toca un grado o una burbuja.',
   'suggestions.title': 'Ideas harmónicas',
   'suggestions.subtitle': 'Generadas desde la tonalidad y el modo seleccionados.',
+  'suggest.title':     'Acordes sugeridos',
+  'suggest.strongest': 'Lo más fuerte desde',
+  'suggest.hint':      'Cuanto más grande la burbuja, más fuerte es el siguiente movimiento.',
+  'gravity.title':     'Gravedad armónica',
+  'mood.from':         'Desde',
+  'metro.tapHint':     'toca 4× para marcar el tempo',
+  'metro.tapSet':      'tempo fijado · sigue tocando',
   'drawers.piano':     'Piano',
   'drawers.guitar':    'Guitarra / Trastera',
   'production.instruments': 'Instrumentos principales',
@@ -2362,6 +2376,14 @@ function setLanguage(lang) {
   st.lang = I18N[lang] ? lang : 'en';
   saveState();
   applyI18n();
+  // Re-render the panels whose text is generated in JS (not via data-i18n), so a
+  // language switch also updates suggestions, the builder meta, the lock hint, etc.
+  try {
+    if (typeof renderSuggestions === 'function') renderSuggestions();
+    if (typeof HistoryEngine === 'object' && HistoryEngine.render) HistoryEngine.render();
+    if (typeof updateWheelLockUI === 'function') updateWheelLockUI();
+    if (typeof Metronome === 'object' && Metronome.syncTapHint) Metronome.syncTapHint();
+  } catch (_) {}
 }
 
 
@@ -3427,6 +3449,19 @@ const MOOD_PROFILES = {
   floating: {label:'Floating', desc:'Open space, fewer hard cadences.',            prefer:[3,1,6], avoid:[4]},
 };
 
+// Spanish copy for the mood lens (label + description). EN stays in MOOD_PROFILES.
+const MOOD_ES = {
+  balanced: ['Equilibrado', 'Movimiento neutro: hogar, lift y tensión.'],
+  dreamy:   ['Soñador',     'Color suave, movimiento suspendido.'],
+  uplift:   ['Elevado',     'Rutas más brillantes, energía hacia delante.'],
+  dark:     ['Oscuro',      'Elecciones sombrías, caídas cinematográficas.'],
+  soul:     ['Soul',        'Voice-leading suave, amigable al groove.'],
+  tension:  ['Tensión',     'Más pull antes de resolver.'],
+  floating: ['Flotante',    'Espacio abierto, menos cadencias duras.'],
+};
+function moodLabel(id) { const p = MOOD_PROFILES[id]; if (!p) return id; return st.lang === 'es' ? (MOOD_ES[id]?.[0] || p.label) : p.label; }
+function moodDesc(id)  { const p = MOOD_PROFILES[id]; if (!p) return ''; return st.lang === 'es' ? (MOOD_ES[id]?.[1] || p.desc) : p.desc; }
+
 const GRAVITY_ARCHETYPES = [
   {name:'Resolution', tension:18, stability:96, brightness:72, darkness:18, movement:26, resolution:96, surprise:12},
   {name:'Prepare',    tension:48, stability:58, brightness:52, darkness:42, movement:68, resolution:50, surprise:35},
@@ -3580,14 +3615,14 @@ function categoryClass(category) {
 }
 
 function friendlyCategory(cat) {
-  if (!cat) return 'Motion';
-  const c = String(cat).toLowerCase();
-  if (c.includes('resolve'))  return 'Resolve';
-  if (c.includes('lift'))     return 'Lift';
-  if (c.includes('dark'))     return 'Darken';
-  if (c.includes('surprise')) return 'Surprise';
-  if (c.includes('float'))    return 'Float';
-  return 'Motion';
+  const es = st.lang === 'es';
+  const c = String(cat || '').toLowerCase();
+  if (c.includes('resolve'))  return es ? 'Resuelve'   : 'Resolve';
+  if (c.includes('lift'))     return es ? 'Lift'       : 'Lift';
+  if (c.includes('dark'))     return es ? 'Oscurece'   : 'Darken';
+  if (c.includes('surprise')) return es ? 'Sorpresa'   : 'Surprise';
+  if (c.includes('float'))    return es ? 'Flota'      : 'Float';
+  return es ? 'Movimiento' : 'Motion';
 }
 
 const HarmonyEngine = {
@@ -3671,38 +3706,65 @@ function progressionContext(fromIdx) {
   // Cadence-in-progress: what is the harmony pulling toward next?
   let expect = null, expectWhy = '';
   if (coherent) {
-    if      (prev === 1 && last === 4)                                              { expect = 0; expectWhy = 'Completes ii–V–I'; }
-    else if (prev === 3 && last === 4)                                              { expect = 0; expectWhy = 'Completes IV–V–I'; }
-    else if (prev === 5 && last === 6 && ['aeolian','dorian','phrygian'].includes(mode)) { expect = 0; expectWhy = 'Completes ♭VI–♭VII–i'; }
-    else if (last === 4)                                                            { expect = 0; expectWhy = 'V pulls home to I'; }
-    else if (last === 6 && mode === 'mixolydian')                                   { expect = 0; expectWhy = '♭VII resolves to I'; }
-    else if (last === 6)                                                            { expect = 0; expectWhy = 'vii° pulls to I'; }
-    else if (last === 1)                                                            { expect = 4; expectWhy = 'ii sets up V'; }
+    if      (prev === 1 && last === 4)                                              { expect = 0; expectWhy = R('exp_iiVI'); }
+    else if (prev === 3 && last === 4)                                              { expect = 0; expectWhy = R('exp_IVVI'); }
+    else if (prev === 5 && last === 6 && ['aeolian','dorian','phrygian'].includes(mode)) { expect = 0; expectWhy = R('exp_bVI'); }
+    else if (last === 4)                                                            { expect = 0; expectWhy = R('exp_Vhome'); }
+    else if (last === 6 && mode === 'mixolydian')                                   { expect = 0; expectWhy = R('exp_bVIIres'); }
+    else if (last === 6)                                                            { expect = 0; expectWhy = R('exp_viiPull'); }
+    else if (last === 1)                                                            { expect = 4; expectWhy = R('exp_iiSetsV'); }
   }
 
   return { length: h.length, tail, last, prev, repeat, isVamp, expect, expectWhy, coherent };
 }
+
+// Bilingual reason phrases. The EN values are kept verbatim so the dev-test
+// regexes (resol / ii–V–I / loop) still match; ES preserves those substrings too.
+const SUGG_REASONS = {
+  exp_iiVI:    { en: 'Completes ii–V–I',       es: 'Completa ii–V–I' },
+  exp_IVVI:    { en: 'Completes IV–V–I',       es: 'Completa IV–V–I' },
+  exp_bVI:     { en: 'Completes ♭VI–♭VII–i',   es: 'Completa ♭VI–♭VII–i' },
+  exp_Vhome:   { en: 'V pulls home to I',      es: 'La V tira a casa (I)' },
+  exp_bVIIres: { en: '♭VII resolves to I',     es: '♭VII resuelve en I' },
+  exp_viiPull: { en: 'vii° pulls to I',        es: 'vii° tira hacia I' },
+  exp_iiSetsV: { en: 'ii sets up V',           es: 'ii prepara la V' },
+  loopOpen:    { en: 'Keeps the loop open',    es: 'Mantiene el loop abierto' },
+  loopHome:    { en: 'Lands the loop home',    es: 'Cierra el loop en casa' },
+  loopLift:    { en: 'Lifts out of the loop',  es: 'Sale del loop con lift' },
+  strongRes:   { en: 'Strong resolution',      es: 'Resolución fuerte' },
+  setsCad:     { en: 'Sets up the cadence',    es: 'Prepara la cadencia' },
+  mixoLift:    { en: 'Mixolydian ♭VII lift',   es: 'Lift mixolidio de ♭VII' },
+  dorIV:       { en: 'Dorian major-IV colour', es: 'Color de IV mayor dórico' },
+  lydII:       { en: 'Lydian raised-II colour',es: 'Color de II elevada lidio' },
+  phryII:      { en: 'Phrygian ♭II colour',    es: 'Color de ♭II frigio' },
+  darker:      { en: 'Adds darker colour',     es: 'Añade color más oscuro' },
+  home:        { en: 'Returns home',           es: 'Vuelve a casa' },
+  warm:        { en: 'Warm colour shift',      es: 'Giro de color cálido' },
+  sharpModal:  { en: 'Sharper modal colour',   es: 'Color modal más marcado' },
+  moving:      { en: 'Keeps it moving',        es: 'Mantiene el movimiento' },
+};
+function R(key) { const o = SUGG_REASONS[key]; return o ? (o[st?.lang || 'en'] || o.en) : ''; }
 
 // Short, honest, musical reason for a single move. Audit §6 wants the engine to
 // "explain itself simply": Strong resolution / Keeps the loop open / etc.
 function suggestionReason(fromIdx, to, ctx, mode) {
   if (ctx.expect === to && ctx.expectWhy)        return ctx.expectWhy;
   if (ctx.isVamp) {
-    if (to === ctx.last)                         return 'Keeps the loop open';
-    if (to === 0)                                return 'Lands the loop home';
-    if ([3,4,5].includes(to))                    return 'Lifts out of the loop';
+    if (to === ctx.last)                         return R('loopOpen');
+    if (to === 0)                                return R('loopHome');
+    if ([3,4,5].includes(to))                    return R('loopLift');
   }
-  if (fromIdx === 4 && to === 0)                 return 'Strong resolution';
-  if (fromIdx === 1 && to === 4)                 return 'Sets up the cadence';
-  if (mode === 'mixolydian' && to === 6)         return 'Mixolydian ♭VII lift';
-  if (mode === 'dorian'     && to === 3)         return 'Dorian major-IV colour';
-  if (mode === 'lydian'     && to === 1)         return 'Lydian raised-II colour';
-  if (mode === 'phrygian'   && to === 1)         return 'Phrygian ♭II colour';
-  if (['aeolian','phrygian','dorian'].includes(mode) && to === 5) return 'Adds darker colour';
-  if (to === 0)                                  return 'Returns home';
-  if ([3,5].includes(to))                        return 'Warm colour shift';
-  if ([6,1].includes(to))                        return 'Sharper modal colour';
-  return 'Keeps it moving';
+  if (fromIdx === 4 && to === 0)                 return R('strongRes');
+  if (fromIdx === 1 && to === 4)                 return R('setsCad');
+  if (mode === 'mixolydian' && to === 6)         return R('mixoLift');
+  if (mode === 'dorian'     && to === 3)         return R('dorIV');
+  if (mode === 'lydian'     && to === 1)         return R('lydII');
+  if (mode === 'phrygian'   && to === 1)         return R('phryII');
+  if (['aeolian','phrygian','dorian'].includes(mode) && to === 5) return R('darker');
+  if (to === 0)                                  return R('home');
+  if ([3,5].includes(to))                        return R('warm');
+  if ([6,1].includes(to))                        return R('sharpModal');
+  return R('moving');
 }
 
 const SuggestionEngine = {
@@ -5070,7 +5132,8 @@ const BuilderEngine = {
     const h  = Array.isArray(st.history) ? st.history : [];
     if (!h.length) { el.innerHTML = ''; return; }
     const unique = new Set(h.map(x => x.degreeIndex));
-    el.innerHTML = `<span>${h.length} chord${h.length > 1 ? 's' : ''}</span>
+    const count = st.lang === 'es' ? `${h.length} acorde${h.length > 1 ? 's' : ''}` : `${h.length} chord${h.length > 1 ? 's' : ''}`;
+    el.innerHTML = `<span>${count}</span>
       <b>${progressionNarrative()}</b>`;
   },
 
@@ -5284,17 +5347,18 @@ function renderMeter(label, value) {
 
 function moodButtons() {
   const root = document.getElementById('moodLens'); if (!root) return;
-  root.innerHTML = Object.entries(MOOD_PROFILES).map(([id, p]) =>
-    `<button class="mood-btn${(st.mood || 'balanced') === id ? ' active' : ''}" onclick="AppActions.setMood('${id}')">${p.label}</button>`
+  root.innerHTML = Object.keys(MOOD_PROFILES).map(id =>
+    `<button class="mood-btn${(st.mood || 'balanced') === id ? ' active' : ''}" onclick="AppActions.setMood('${id}')">${moodLabel(id)}</button>`
   ).join('');
 }
 
 function renderMoodStatus() {
   const el = document.getElementById('moodStatus'); if (!el) return;
-  const p    = MOOD_PROFILES[st.mood || 'balanced'] || MOOD_PROFILES.balanced;
+  const id   = st.mood || 'balanced';
   const from = curDeg >= 0 ? gc()[curDeg] : gc()[0];
-  el.innerHTML = `<div class="mood-copy"><b>${p.label}</b> lens · ${p.desc}</div>
-    <div class="mood-weight">From ${from.degree} · ${from.chord}</div>`;
+  const lens = st.lang === 'es' ? `<b>${moodLabel(id)}</b> · ${moodDesc(id)}` : `<b>${moodLabel(id)}</b> lens · ${moodDesc(id)}`;
+  el.innerHTML = `<div class="mood-copy">${lens}</div>
+    <div class="mood-weight">${t('mood.from')} ${from.degree} · ${from.chord}</div>`;
 }
 
 function renderGravityStatus() {
@@ -5304,7 +5368,7 @@ function renderGravityStatus() {
   el.innerHTML = `
     <div class="gravity-card">
       <div class="g-main">
-        <span class="g-label">Harmonic gravity</span>
+        <span class="g-label">${t('gravity.title')}</span>
         <span class="g-value">${c.chord}</span>
         <span class="g-sub">${c.degree} · ${g.name} · ${g.role}</span>
       </div>
@@ -5332,6 +5396,7 @@ function _buildBubblesHTML() {
   };
   const bestTo  = all[0]?.to;
   const byDegree = [...all].sort((a, b) => a.to - b.to);
+  const es = st.lang === 'es';
 
   const bubbles = byDegree.map((it, i) => {
     const t   = tier(it.fit);
@@ -5347,8 +5412,8 @@ function _buildBubblesHTML() {
     return `<button class="next-bubble ${it.to === bestTo ? 'best' : ''}"
         style="--fit:${it.fit};--d:${d}px;--tier:${t};animation:nbEnter .55s cubic-bezier(.34,1.56,.5,1) ${enter}s both"
         data-to="${it.to}" data-best="${it.to === bestTo ? 1 : 0}"
-        aria-label="Add ${it.chord.chord} (${it.chord.degree}), ${it.fit}% fit. Drag onto the timeline to place it."
-        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap to add, drag to place">
+        aria-label="${es ? `Añadir ${it.chord.chord} (${it.chord.degree}), ${it.fit}% de encaje. Arrástrala a la timeline para colocarla.` : `Add ${it.chord.chord} (${it.chord.degree}), ${it.fit}% fit. Drag onto the timeline to place it.`}"
+        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% ${es ? 'encaje · toca para añadir, arrastra para colocar' : 'fit · tap to add, drag to place'}">
       <span class="nb-glow"></span>
       <span class="nb-float" style="animation:${flN} ${flD}s ease-in-out ${flDelay}s infinite">
         <span class="nb-body">
@@ -5364,12 +5429,12 @@ function _buildBubblesHTML() {
 
   const best = all[0];
   const hint = best
-    ? `Strongest from <b>${current.chord}</b>: <b>${best.chord.chord}</b> — ${best.reason || friendlyCategory(best.transition?.category)}`
-    : `The larger the circle, the stronger the next move from ${current.chord}.`;
+    ? `${t('suggest.strongest')} <b>${current.chord}</b>: <b>${best.chord.chord}</b> — ${best.reason || friendlyCategory(best.transition?.category)}`
+    : t('suggest.hint');
 
   return `<div class="builder-next-top">
     <div>
-      <div class="builder-next-title">Suggested next chords</div>
+      <div class="builder-next-title">${t('suggest.title')}</div>
       <div class="builder-next-hint">${hint}</div>
     </div>
   </div>
@@ -6209,7 +6274,7 @@ const InstrumentZoom = {
     if (!el) return;
     this.which = which; this._el = el; this._parent = el.parentElement;
     const title = document.getElementById('instrZoomTitle');
-    if (title) title.textContent = which === 'piano' ? 'Piano' : 'Guitar / Fretboard';
+    if (title) title.textContent = which === 'piano' ? t('drawers.piano') : t('drawers.guitar');
     const body = document.getElementById('instrZoomBody'); body.innerHTML = ''; body.appendChild(el);
     el.classList.add('zoom');
     ov.classList.add('open'); this.open = true;
@@ -6415,8 +6480,9 @@ const Metronome = {
     if (el) { el.classList.remove('beat'); void el.offsetWidth; el.classList.add('beat'); }
     if (typeof AudioEngine === 'object') AudioEngine.tick(300, 0.08);
 
+    const es = st.lang === 'es';
     const hint = document.getElementById('metroTapHint');
-    if (this._taps.length < 4) { if (hint) hint.textContent = `keep tapping… ${this._taps.length}/4`; }
+    if (this._taps.length < 4) { if (hint) hint.textContent = (es ? `sigue tocando… ${this._taps.length}/4` : `keep tapping… ${this._taps.length}/4`); }
     if (this._taps.length < 2) return;
 
     const ivs = [];
@@ -6425,8 +6491,14 @@ const Metronome = {
     const bpm = 60000 / avg;
     if (bpm >= this.MIN - 6 && bpm <= this.MAX + 6) {
       this.setBpm(bpm);
-      if (hint && this._taps.length >= 4) hint.textContent = 'tempo set · keep tapping';
+      if (hint && this._taps.length >= 4) hint.textContent = (es ? 'tempo fijado · sigue tocando' : 'tempo set · keep tapping');
     }
+  },
+
+  // Reset the tap hint to its idle prompt in the current language.
+  syncTapHint() {
+    const hint = document.getElementById('metroTapHint');
+    if (hint && (!this._taps || this._taps.length < 2)) hint.textContent = t('metro.tapHint');
   },
 
   // ── Dial geometry (from-top, clockwise) ──────────────

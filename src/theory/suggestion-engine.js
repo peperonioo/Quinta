@@ -65,38 +65,65 @@ function progressionContext(fromIdx) {
   // Cadence-in-progress: what is the harmony pulling toward next?
   let expect = null, expectWhy = '';
   if (coherent) {
-    if      (prev === 1 && last === 4)                                              { expect = 0; expectWhy = 'Completes ii–V–I'; }
-    else if (prev === 3 && last === 4)                                              { expect = 0; expectWhy = 'Completes IV–V–I'; }
-    else if (prev === 5 && last === 6 && ['aeolian','dorian','phrygian'].includes(mode)) { expect = 0; expectWhy = 'Completes ♭VI–♭VII–i'; }
-    else if (last === 4)                                                            { expect = 0; expectWhy = 'V pulls home to I'; }
-    else if (last === 6 && mode === 'mixolydian')                                   { expect = 0; expectWhy = '♭VII resolves to I'; }
-    else if (last === 6)                                                            { expect = 0; expectWhy = 'vii° pulls to I'; }
-    else if (last === 1)                                                            { expect = 4; expectWhy = 'ii sets up V'; }
+    if      (prev === 1 && last === 4)                                              { expect = 0; expectWhy = R('exp_iiVI'); }
+    else if (prev === 3 && last === 4)                                              { expect = 0; expectWhy = R('exp_IVVI'); }
+    else if (prev === 5 && last === 6 && ['aeolian','dorian','phrygian'].includes(mode)) { expect = 0; expectWhy = R('exp_bVI'); }
+    else if (last === 4)                                                            { expect = 0; expectWhy = R('exp_Vhome'); }
+    else if (last === 6 && mode === 'mixolydian')                                   { expect = 0; expectWhy = R('exp_bVIIres'); }
+    else if (last === 6)                                                            { expect = 0; expectWhy = R('exp_viiPull'); }
+    else if (last === 1)                                                            { expect = 4; expectWhy = R('exp_iiSetsV'); }
   }
 
   return { length: h.length, tail, last, prev, repeat, isVamp, expect, expectWhy, coherent };
 }
+
+// Bilingual reason phrases. The EN values are kept verbatim so the dev-test
+// regexes (resol / ii–V–I / loop) still match; ES preserves those substrings too.
+const SUGG_REASONS = {
+  exp_iiVI:    { en: 'Completes ii–V–I',       es: 'Completa ii–V–I' },
+  exp_IVVI:    { en: 'Completes IV–V–I',       es: 'Completa IV–V–I' },
+  exp_bVI:     { en: 'Completes ♭VI–♭VII–i',   es: 'Completa ♭VI–♭VII–i' },
+  exp_Vhome:   { en: 'V pulls home to I',      es: 'La V tira a casa (I)' },
+  exp_bVIIres: { en: '♭VII resolves to I',     es: '♭VII resuelve en I' },
+  exp_viiPull: { en: 'vii° pulls to I',        es: 'vii° tira hacia I' },
+  exp_iiSetsV: { en: 'ii sets up V',           es: 'ii prepara la V' },
+  loopOpen:    { en: 'Keeps the loop open',    es: 'Mantiene el loop abierto' },
+  loopHome:    { en: 'Lands the loop home',    es: 'Cierra el loop en casa' },
+  loopLift:    { en: 'Lifts out of the loop',  es: 'Sale del loop con lift' },
+  strongRes:   { en: 'Strong resolution',      es: 'Resolución fuerte' },
+  setsCad:     { en: 'Sets up the cadence',    es: 'Prepara la cadencia' },
+  mixoLift:    { en: 'Mixolydian ♭VII lift',   es: 'Lift mixolidio de ♭VII' },
+  dorIV:       { en: 'Dorian major-IV colour', es: 'Color de IV mayor dórico' },
+  lydII:       { en: 'Lydian raised-II colour',es: 'Color de II elevada lidio' },
+  phryII:      { en: 'Phrygian ♭II colour',    es: 'Color de ♭II frigio' },
+  darker:      { en: 'Adds darker colour',     es: 'Añade color más oscuro' },
+  home:        { en: 'Returns home',           es: 'Vuelve a casa' },
+  warm:        { en: 'Warm colour shift',      es: 'Giro de color cálido' },
+  sharpModal:  { en: 'Sharper modal colour',   es: 'Color modal más marcado' },
+  moving:      { en: 'Keeps it moving',        es: 'Mantiene el movimiento' },
+};
+function R(key) { const o = SUGG_REASONS[key]; return o ? (o[st?.lang || 'en'] || o.en) : ''; }
 
 // Short, honest, musical reason for a single move. Audit §6 wants the engine to
 // "explain itself simply": Strong resolution / Keeps the loop open / etc.
 function suggestionReason(fromIdx, to, ctx, mode) {
   if (ctx.expect === to && ctx.expectWhy)        return ctx.expectWhy;
   if (ctx.isVamp) {
-    if (to === ctx.last)                         return 'Keeps the loop open';
-    if (to === 0)                                return 'Lands the loop home';
-    if ([3,4,5].includes(to))                    return 'Lifts out of the loop';
+    if (to === ctx.last)                         return R('loopOpen');
+    if (to === 0)                                return R('loopHome');
+    if ([3,4,5].includes(to))                    return R('loopLift');
   }
-  if (fromIdx === 4 && to === 0)                 return 'Strong resolution';
-  if (fromIdx === 1 && to === 4)                 return 'Sets up the cadence';
-  if (mode === 'mixolydian' && to === 6)         return 'Mixolydian ♭VII lift';
-  if (mode === 'dorian'     && to === 3)         return 'Dorian major-IV colour';
-  if (mode === 'lydian'     && to === 1)         return 'Lydian raised-II colour';
-  if (mode === 'phrygian'   && to === 1)         return 'Phrygian ♭II colour';
-  if (['aeolian','phrygian','dorian'].includes(mode) && to === 5) return 'Adds darker colour';
-  if (to === 0)                                  return 'Returns home';
-  if ([3,5].includes(to))                        return 'Warm colour shift';
-  if ([6,1].includes(to))                        return 'Sharper modal colour';
-  return 'Keeps it moving';
+  if (fromIdx === 4 && to === 0)                 return R('strongRes');
+  if (fromIdx === 1 && to === 4)                 return R('setsCad');
+  if (mode === 'mixolydian' && to === 6)         return R('mixoLift');
+  if (mode === 'dorian'     && to === 3)         return R('dorIV');
+  if (mode === 'lydian'     && to === 1)         return R('lydII');
+  if (mode === 'phrygian'   && to === 1)         return R('phryII');
+  if (['aeolian','phrygian','dorian'].includes(mode) && to === 5) return R('darker');
+  if (to === 0)                                  return R('home');
+  if ([3,5].includes(to))                        return R('warm');
+  if ([6,1].includes(to))                        return R('sharpModal');
+  return R('moving');
 }
 
 const SuggestionEngine = {

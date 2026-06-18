@@ -12,6 +12,19 @@ const MOOD_PROFILES = {
   floating: {label:'Floating', desc:'Open space, fewer hard cadences.',            prefer:[3,1,6], avoid:[4]},
 };
 
+// Spanish copy for the mood lens (label + description). EN stays in MOOD_PROFILES.
+const MOOD_ES = {
+  balanced: ['Equilibrado', 'Movimiento neutro: hogar, lift y tensión.'],
+  dreamy:   ['Soñador',     'Color suave, movimiento suspendido.'],
+  uplift:   ['Elevado',     'Rutas más brillantes, energía hacia delante.'],
+  dark:     ['Oscuro',      'Elecciones sombrías, caídas cinematográficas.'],
+  soul:     ['Soul',        'Voice-leading suave, amigable al groove.'],
+  tension:  ['Tensión',     'Más pull antes de resolver.'],
+  floating: ['Flotante',    'Espacio abierto, menos cadencias duras.'],
+};
+function moodLabel(id) { const p = MOOD_PROFILES[id]; if (!p) return id; return st.lang === 'es' ? (MOOD_ES[id]?.[0] || p.label) : p.label; }
+function moodDesc(id)  { const p = MOOD_PROFILES[id]; if (!p) return ''; return st.lang === 'es' ? (MOOD_ES[id]?.[1] || p.desc) : p.desc; }
+
 const GRAVITY_ARCHETYPES = [
   {name:'Resolution', tension:18, stability:96, brightness:72, darkness:18, movement:26, resolution:96, surprise:12},
   {name:'Prepare',    tension:48, stability:58, brightness:52, darkness:42, movement:68, resolution:50, surprise:35},
@@ -165,14 +178,14 @@ function categoryClass(category) {
 }
 
 function friendlyCategory(cat) {
-  if (!cat) return 'Motion';
-  const c = String(cat).toLowerCase();
-  if (c.includes('resolve'))  return 'Resolve';
-  if (c.includes('lift'))     return 'Lift';
-  if (c.includes('dark'))     return 'Darken';
-  if (c.includes('surprise')) return 'Surprise';
-  if (c.includes('float'))    return 'Float';
-  return 'Motion';
+  const es = st.lang === 'es';
+  const c = String(cat || '').toLowerCase();
+  if (c.includes('resolve'))  return es ? 'Resuelve'   : 'Resolve';
+  if (c.includes('lift'))     return es ? 'Lift'       : 'Lift';
+  if (c.includes('dark'))     return es ? 'Oscurece'   : 'Darken';
+  if (c.includes('surprise')) return es ? 'Sorpresa'   : 'Surprise';
+  if (c.includes('float'))    return es ? 'Flota'      : 'Float';
+  return es ? 'Movimiento' : 'Motion';
 }
 
 const HarmonyEngine = {

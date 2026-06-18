@@ -92,8 +92,9 @@ const Metronome = {
     if (el) { el.classList.remove('beat'); void el.offsetWidth; el.classList.add('beat'); }
     if (typeof AudioEngine === 'object') AudioEngine.tick(300, 0.08);
 
+    const es = st.lang === 'es';
     const hint = document.getElementById('metroTapHint');
-    if (this._taps.length < 4) { if (hint) hint.textContent = `keep tapping… ${this._taps.length}/4`; }
+    if (this._taps.length < 4) { if (hint) hint.textContent = (es ? `sigue tocando… ${this._taps.length}/4` : `keep tapping… ${this._taps.length}/4`); }
     if (this._taps.length < 2) return;
 
     const ivs = [];
@@ -102,8 +103,14 @@ const Metronome = {
     const bpm = 60000 / avg;
     if (bpm >= this.MIN - 6 && bpm <= this.MAX + 6) {
       this.setBpm(bpm);
-      if (hint && this._taps.length >= 4) hint.textContent = 'tempo set · keep tapping';
+      if (hint && this._taps.length >= 4) hint.textContent = (es ? 'tempo fijado · sigue tocando' : 'tempo set · keep tapping');
     }
+  },
+
+  // Reset the tap hint to its idle prompt in the current language.
+  syncTapHint() {
+    const hint = document.getElementById('metroTapHint');
+    if (hint && (!this._taps || this._taps.length < 2)) hint.textContent = t('metro.tapHint');
   },
 
   // ── Dial geometry (from-top, clockwise) ──────────────

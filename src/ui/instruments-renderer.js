@@ -72,7 +72,7 @@ const InstrumentZoom = {
     if (!el) return;
     this.which = which; this._el = el; this._parent = el.parentElement;
     const title = document.getElementById('instrZoomTitle');
-    if (title) title.textContent = which === 'piano' ? 'Piano' : 'Guitar / Fretboard';
+    if (title) title.textContent = which === 'piano' ? t('drawers.piano') : t('drawers.guitar');
     const body = document.getElementById('instrZoomBody'); body.innerHTML = ''; body.appendChild(el);
     el.classList.add('zoom');
     ov.classList.add('open'); this.open = true;

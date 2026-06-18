@@ -20,17 +20,18 @@ function renderMeter(label, value) {
 
 function moodButtons() {
   const root = document.getElementById('moodLens'); if (!root) return;
-  root.innerHTML = Object.entries(MOOD_PROFILES).map(([id, p]) =>
-    `<button class="mood-btn${(st.mood || 'balanced') === id ? ' active' : ''}" onclick="AppActions.setMood('${id}')">${p.label}</button>`
+  root.innerHTML = Object.keys(MOOD_PROFILES).map(id =>
+    `<button class="mood-btn${(st.mood || 'balanced') === id ? ' active' : ''}" onclick="AppActions.setMood('${id}')">${moodLabel(id)}</button>`
   ).join('');
 }
 
 function renderMoodStatus() {
   const el = document.getElementById('moodStatus'); if (!el) return;
-  const p    = MOOD_PROFILES[st.mood || 'balanced'] || MOOD_PROFILES.balanced;
+  const id   = st.mood || 'balanced';
   const from = curDeg >= 0 ? gc()[curDeg] : gc()[0];
-  el.innerHTML = `<div class="mood-copy"><b>${p.label}</b> lens · ${p.desc}</div>
-    <div class="mood-weight">From ${from.degree} · ${from.chord}</div>`;
+  const lens = st.lang === 'es' ? `<b>${moodLabel(id)}</b> · ${moodDesc(id)}` : `<b>${moodLabel(id)}</b> lens · ${moodDesc(id)}`;
+  el.innerHTML = `<div class="mood-copy">${lens}</div>
+    <div class="mood-weight">${t('mood.from')} ${from.degree} · ${from.chord}</div>`;
 }
 
 function renderGravityStatus() {
@@ -40,7 +41,7 @@ function renderGravityStatus() {
   el.innerHTML = `
     <div class="gravity-card">
       <div class="g-main">
-        <span class="g-label">Harmonic gravity</span>
+        <span class="g-label">${t('gravity.title')}</span>
         <span class="g-value">${c.chord}</span>
         <span class="g-sub">${c.degree} · ${g.name} · ${g.role}</span>
       </div>
@@ -68,6 +69,7 @@ function _buildBubblesHTML() {
   };
   const bestTo  = all[0]?.to;
   const byDegree = [...all].sort((a, b) => a.to - b.to);
+  const es = st.lang === 'es';
 
   const bubbles = byDegree.map((it, i) => {
     const t   = tier(it.fit);
@@ -83,8 +85,8 @@ function _buildBubblesHTML() {
     return `<button class="next-bubble ${it.to === bestTo ? 'best' : ''}"
         style="--fit:${it.fit};--d:${d}px;--tier:${t};animation:nbEnter .55s cubic-bezier(.34,1.56,.5,1) ${enter}s both"
         data-to="${it.to}" data-best="${it.to === bestTo ? 1 : 0}"
-        aria-label="Add ${it.chord.chord} (${it.chord.degree}), ${it.fit}% fit. Drag onto the timeline to place it."
-        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap to add, drag to place">
+        aria-label="${es ? `Añadir ${it.chord.chord} (${it.chord.degree}), ${it.fit}% de encaje. Arrástrala a la timeline para colocarla.` : `Add ${it.chord.chord} (${it.chord.degree}), ${it.fit}% fit. Drag onto the timeline to place it.`}"
+        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% ${es ? 'encaje · toca para añadir, arrastra para colocar' : 'fit · tap to add, drag to place'}">
       <span class="nb-glow"></span>
       <span class="nb-float" style="animation:${flN} ${flD}s ease-in-out ${flDelay}s infinite">
         <span class="nb-body">
@@ -100,12 +102,12 @@ function _buildBubblesHTML() {
 
   const best = all[0];
   const hint = best
-    ? `Strongest from <b>${current.chord}</b>: <b>${best.chord.chord}</b> — ${best.reason || friendlyCategory(best.transition?.category)}`
-    : `The larger the circle, the stronger the next move from ${current.chord}.`;
+    ? `${t('suggest.strongest')} <b>${current.chord}</b>: <b>${best.chord.chord}</b> — ${best.reason || friendlyCategory(best.transition?.category)}`
+    : t('suggest.hint');
 
   return `<div class="builder-next-top">
     <div>
-      <div class="builder-next-title">Suggested next chords</div>
+      <div class="builder-next-title">${t('suggest.title')}</div>
       <div class="builder-next-hint">${hint}</div>
     </div>
   </div>

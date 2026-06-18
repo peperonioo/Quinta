@@ -19,4 +19,12 @@ function setLanguage(lang) {
   st.lang = I18N[lang] ? lang : 'en';
   saveState();
   applyI18n();
+  // Re-render the panels whose text is generated in JS (not via data-i18n), so a
+  // language switch also updates suggestions, the builder meta, the lock hint, etc.
+  try {
+    if (typeof renderSuggestions === 'function') renderSuggestions();
+    if (typeof HistoryEngine === 'object' && HistoryEngine.render) HistoryEngine.render();
+    if (typeof updateWheelLockUI === 'function') updateWheelLockUI();
+    if (typeof Metronome === 'object' && Metronome.syncTapHint) Metronome.syncTapHint();
+  } catch (_) {}
 }

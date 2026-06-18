@@ -233,7 +233,8 @@ const BuilderEngine = {
     const h  = Array.isArray(st.history) ? st.history : [];
     if (!h.length) { el.innerHTML = ''; return; }
     const unique = new Set(h.map(x => x.degreeIndex));
-    el.innerHTML = `<span>${h.length} chord${h.length > 1 ? 's' : ''}</span>
+    const count = st.lang === 'es' ? `${h.length} acorde${h.length > 1 ? 's' : ''}` : `${h.length} chord${h.length > 1 ? 's' : ''}`;
+    el.innerHTML = `<span>${count}</span>
       <b>${progressionNarrative()}</b>`;
   },
 

@@ -431,6 +431,40 @@ body[data-interaction="wheel"] .active-sector { animation-play-state:paused; }
 #wheelPointer { opacity:.46; transform-origin:300px 300px }
 body.light #wheelPointer { fill:rgba(20,20,20,.28) !important }
 
+/* ── Chord lock (V5.12) ─────────────────────────────*/
+#centerGloss, #cKey, #cRel { cursor:pointer }
+/* Audition flash — a quick brighten on a sector tapped while the key is locked */
+.sector-audition { animation:sectorAudition .44s ease-out }
+@keyframes sectorAudition {
+  0%   { filter:brightness(1) }
+  22%  { filter:brightness(1.9) }
+  100% { filter:brightness(1) }
+}
+/* Locked-key dashed ring slowly rotates + breathes */
+.circle-wrap.wheel-locked #wheelLockRing {
+  animation:lockRingSpin 9s linear infinite, lockRingPulse 2.4s ease-in-out infinite;
+  transform-origin:300px 300px;
+}
+@keyframes lockRingSpin  { to { transform:rotate(360deg) } }
+@keyframes lockRingPulse { 0%,100% { opacity:.55 } 50% { opacity:1 } }
+.circle-wrap.wheel-locked #wheelLockBadge { animation:lockBadgePop .34s cubic-bezier(.34,1.56,.5,1) }
+@keyframes lockBadgePop { 0% { transform:translateY(3px) scale(.7); opacity:0 } 100% { transform:none; opacity:1 } }
+.circle-wrap { position:relative }
+.wheel-lock-hint {
+  position:absolute; left:50%; bottom:-2px; transform:translateX(-50%);
+  max-width:92%; text-align:center; pointer-events:none; z-index:3; line-height:1.45;
+  font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.02em;
+  color:var(--accent2); background:color-mix(in srgb, var(--accent) 14%, transparent);
+  border:1px solid rgba(232,68,26,.34); border-radius:999px; padding:4px 12px;
+  animation:lockHintIn .3s ease-out;
+}
+@keyframes lockHintIn { from { opacity:0; transform:translate(-50%,4px) } to { opacity:1; transform:translate(-50%,0) } }
+@media (prefers-reduced-motion: reduce) {
+  .sector-audition,
+  .circle-wrap.wheel-locked #wheelLockRing,
+  .circle-wrap.wheel-locked #wheelLockBadge { animation:none }
+}
+
 /* ── Wheel Direction Guide ──────────────────────────*/
 #wheelDirectionGuide {
   pointer-events:none;
@@ -1299,6 +1333,70 @@ body.light .lib-name { color:#1a1a1a }
 .fret-cell      { height:34px; display:flex; align-items:center; justify-content:center; position:relative; z-index:1 }
 .fret-cell::after { content:''; position:absolute; right:0; top:4px; bottom:4px; width:1px; background:rgba(255,255,255,.09) }
 
+/* ── Guitar Chord Shape Strip ─────────────────────────*/
+.gss-strip {
+  max-height: 0; overflow: hidden;
+  transition: max-height .4s cubic-bezier(.34,1.4,.4,1);
+}
+.gss-strip.gss-on { max-height: 224px; }
+.gss-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px 3px;
+}
+.gss-title {
+  font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600;
+  letter-spacing: .03em; color: var(--fg);
+}
+.gss-seg {
+  display: flex; gap: 2px; margin-left: auto;
+  background: var(--sel-bg); border: 1px solid var(--card-bd);
+  border-radius: 9px; padding: 2px;
+}
+.gss-seg button {
+  font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .04em;
+  padding: 4px 10px; border: 0; border-radius: 7px; background: none;
+  color: var(--muted); cursor: pointer; transition: background .14s, color .14s;
+}
+.gss-seg button.on { background: var(--accent); color: #fff; }
+.gss-seg button:not(.on):hover { color: var(--fg); }
+.gss-x {
+  background: none; border: 0; color: var(--muted); font-size: 16px;
+  cursor: pointer; padding: 0 2px; line-height: 1;
+}
+.gss-x:hover { color: var(--fg); }
+.gss-scroll {
+  display: flex; gap: 10px; overflow-x: auto;
+  padding: 8px 12px 12px; scrollbar-width: none;
+}
+.gss-scroll::-webkit-scrollbar { display: none; }
+.gss-empty { color: var(--muted); font-size: 11px; padding: 14px 4px; }
+.gss-card {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; border-radius: 13px; padding: 7px 9px 6px;
+  border: 1.5px solid var(--card-bd); background: var(--sel-bg);
+  transition: border-color .14s, background .14s, transform .14s;
+  user-select: none;
+}
+.gss-card:hover { border-color: var(--muted); transform: translateY(-1px); }
+.gss-card.gss-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.gss-cap {
+  font-family: 'DM Mono', monospace; font-size: 8.5px; letter-spacing: .03em;
+  color: var(--muted);
+}
+.gss-card.gss-active .gss-cap { color: var(--accent2); font-weight: 600; }
+/* "Shapes" trigger button in guitar drawer summary */
+.gss-btn {
+  flex-shrink: 0; font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: .05em; padding: 4px 8px; border-radius: 8px;
+  border: 1px solid var(--card-bd); background: var(--sel-bg);
+  color: var(--muted); cursor: pointer;
+  transition: color .12s, border-color .12s;
+}
+.gss-btn:hover { color: var(--accent2); border-color: rgba(232,68,26,.4); }
+
 /* ── Enlarge button on each drawer ────────────────────*/
 .drawer summary { display:flex; align-items:center; gap:8px }
 .drawer summary .chev { margin-left:auto }
@@ -1358,6 +1456,81 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   .instr-zoom.open .iz-panel { transform:rotate(-90deg) !important }
   .piano.zoom { height:min(44dvw, 260px) }
   .fretboard-wrap.zoom { max-height:100dvw }
+}
+
+/* == onboarding.css == */
+/* ── ONBOARDING / GUIDED SPOTLIGHT TOUR ─────────────── */
+.ob { position: fixed; inset: 0; z-index: 10050; pointer-events: none; opacity: 0; transition: opacity .3s var(--ease); }
+.ob.ob-on { opacity: 1; }
+.ob[hidden] { display: none; }
+
+/* Click-catcher: dims interaction with the rest of the page during the tour. */
+.ob-catch { position: fixed; inset: 0; pointer-events: auto; }
+
+/* Spotlight: a transparent rect whose huge box-shadow darkens everything else,
+   ringed in accent. Moves smoothly between targets. */
+.ob-spot {
+  position: fixed; z-index: 1; pointer-events: none; border-radius: 16px; left: 0; top: 0; width: 0; height: 0;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.68), 0 0 0 2px var(--accent), 0 0 16px 3px rgba(232,68,26,.4);
+  transition: left .42s var(--ease), top .42s var(--ease), width .42s var(--ease), height .42s var(--ease), border-radius .42s var(--ease);
+  animation: obSpotPulse 2.2s ease-in-out infinite;
+}
+@keyframes obSpotPulse {
+  0%,100% { box-shadow: 0 0 0 9999px rgba(0,0,0,.68), 0 0 0 2px var(--accent),  0 0 16px 3px rgba(232,68,26,.38); }
+  50%     { box-shadow: 0 0 0 9999px rgba(0,0,0,.68), 0 0 0 2.5px var(--accent2), 0 0 30px 7px rgba(232,68,26,.62); }
+}
+.ob-spot.ob-spot-hidden { box-shadow: 0 0 0 9999px rgba(0,0,0,.68); animation: none; width: 0; height: 0; }
+
+/* Tooltip card */
+.ob-tip {
+  position: fixed; z-index: 2; pointer-events: auto; width: 340px; max-width: calc(100vw - 24px);
+  background: linear-gradient(180deg, var(--ui-surface-strong), var(--ui-surface));
+  border: 1px solid var(--ui-border-strong); border-radius: 18px; box-shadow: var(--shadow-lift);
+  color: var(--ink); padding: 18px 18px 14px;
+  transition: left .4s var(--ease), top .4s var(--ease);
+}
+.ob-fade { animation: obFade .42s var(--ease); }
+@keyframes obFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.ob-skip {
+  position: absolute; top: 12px; right: 14px; border: 0; background: none; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .04em; color: var(--muted); padding: 2px 4px;
+}
+.ob-skip:hover { color: var(--ink); }
+.ob-step { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .2em; color: var(--accent2); margin-bottom: 7px; }
+.ob-title { font-family: 'DM Serif Display', Georgia, serif; font-weight: 600; font-size: 19px; line-height: 1.2; margin: 0 0 7px; color: var(--ink); padding-right: 36px; }
+.ob-text { font-size: 13px; line-height: 1.5; color: var(--muted); margin: 0; }
+
+.ob-tip-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; }
+.ob-dots { display: flex; gap: 6px; }
+.ob-dot { width: 6px; height: 6px; border-radius: 999px; border: 0; padding: 0; cursor: pointer; background: var(--ui-border-strong); transition: width .3s var(--ease), background .3s; }
+.ob-dot.on { width: 18px; background: var(--accent); }
+.ob-nav { display: flex; gap: 8px; }
+.ob-btn {
+  font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  border-radius: 999px; padding: 8px 16px; border: 1px solid transparent;
+  transition: transform .12s var(--ease), filter .15s, background .15s, color .15s;
+}
+.ob-btn:active { transform: scale(.97); }
+.ob-ghost { background: transparent; color: var(--muted); border-color: var(--ui-border); }
+.ob-ghost:hover { color: var(--ink); border-color: var(--ui-border-strong); }
+.ob-primary { background: var(--accent); color: #fff; box-shadow: 0 5px 16px rgba(232,68,26,.3); }
+.ob-primary:hover { filter: brightness(1.07); }
+
+/* Header "?" replay button */
+.help-btn {
+  width: 34px; height: 34px; flex: 0 0 auto; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--card-bd); background: var(--sel-bg); color: var(--muted);
+  font-size: 14px; font-weight: 700; line-height: 1; display: grid; place-items: center;
+  transition: color .14s, border-color .14s, transform .12s var(--ease);
+}
+.help-btn:hover { color: var(--accent2); border-color: rgba(232,68,26,.4); transform: scale(1.06); }
+
+@media (max-width: 480px) { .ob-tip { width: calc(100vw - 20px); } }
+@media (prefers-reduced-motion: reduce) {
+  .ob-spot { animation: none; transition: none; }
+  .ob-tip { transition: none; }
+  .ob-fade { animation: none; }
 }
 
 /* == production.css == */
@@ -1603,6 +1776,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
           <option value="es">ES</option>
         </select>
       </div>
+      <button class="help-btn" id="helpBtn" onclick="Onboarding.open(true)" title="How it works" aria-label="How it works">?</button>
       <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark">☀</button>
       <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('theory',this)" data-i18n="tabs.theory">Theory</button>
@@ -1641,12 +1815,11 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
       </div>
       <button class="metro-tap" id="metroTap" onclick="Metronome.tap()">
         <span class="metro-tap-label">TAP</span>
-        <span class="metro-tap-hint" id="metroTapHint">tap 4× to set tempo</span>
+        <span class="metro-tap-hint" id="metroTapHint" data-i18n="metro.tapHint">tap 4× to set tempo</span>
       </button>
       <div class="metro-sounds">
-        <button class="ms-btn active" data-s="woodblock" onclick="Metronome.setSound('woodblock')">Wood</button>
-        <button class="ms-btn" data-s="cowbell"  onclick="Metronome.setSound('cowbell')">Bell</button>
-        <button class="ms-btn" data-s="rimshot"  onclick="Metronome.setSound('rimshot')">Rim</button>
+        <button class="ms-btn active" data-s="woodblock"  onclick="Metronome.setSound('woodblock')">Wood</button>
+        <button class="ms-btn" data-s="rimshot"   onclick="Metronome.setSound('rimshot')">Rim</button>
         <button class="ms-btn" data-s="electronic" onclick="Metronome.setSound('electronic')">Elec</button>
       </div>
     </div>
@@ -1707,18 +1880,27 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
           <circle id="wheelSheen" cx="300" cy="300" r="286" fill="none" stroke-width="10"
             stroke-dasharray="70 1727" stroke-linecap="round" pointer-events="none"/>
           <circle id="centerDisc" cx="300" cy="300" r="148" fill="rgba(6,6,10,.94)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
-          <circle cx="300" cy="300" r="148" fill="url(#discGrad)"/>
+          <circle id="centerGloss" cx="300" cy="300" r="148" fill="url(#discGrad)" cursor="pointer"/>
           <!-- Tonic heartbeat: a soft ring at the centre rim that pulses slowly -->
           <circle id="tonicPulse" cx="300" cy="300" r="150" fill="none" stroke="var(--accent)" stroke-width="2" opacity="0"/>
-          <text id="cKey" x="300" y="315" text-anchor="middle"
+          <!-- Lock ring: a dashed accent frame shown while the key is locked -->
+          <circle id="wheelLockRing" cx="300" cy="300" r="151" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="5 7" stroke-linecap="round" opacity="0" pointer-events="none"/>
+          <text id="cKey" x="300" y="315" text-anchor="middle" cursor="pointer"
             font-family="DM Serif Display,Georgia,serif" font-weight="680" font-style="normal"
             font-size="80" fill="#f0ede8"></text>
-          <text id="cRel" x="300" y="352" text-anchor="middle"
+          <text id="cRel" x="300" y="352" text-anchor="middle" cursor="pointer"
             font-family="DM Serif Display,Georgia,serif" font-weight="620" font-style="normal"
             font-size="30" fill="rgba(255,112,72,.92)"></text>
+          <!-- Padlock badge near the centre, shown while the key is locked -->
+          <g id="wheelLockBadge" opacity="0" pointer-events="none">
+            <rect x="291" y="374" width="18" height="13" rx="2.6" fill="var(--accent)"/>
+            <path d="M293.6 374 v-3.2 a6.4 6.4 0 0 1 12.8 0 v3.2" fill="none" stroke="var(--accent)" stroke-width="2.1"/>
+            <circle cx="300" cy="380" r="1.7" fill="#fff"/>
+          </g>
           <!-- Single wheelPointer: do not duplicate this id -->
           <polygon id="wheelPointer" points="300,178 304,189 296,189" fill="rgba(240,237,232,.38)"/>
         </svg>
+        <div id="wheelLockHint" class="wheel-lock-hint" hidden></div>
       </div>
 
       <!-- RIGHT SIDE -->
@@ -1811,11 +1993,15 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
         <details class="drawer">
           <summary>
             <span data-i18n="drawers.guitar">Guitar / Fretboard</span>
+            <button class="gss-btn" onclick="event.stopPropagation();GuitarShapes.toggle()" title="Show chord shapes" aria-label="Show chord voicing diagrams">⬡ Shapes</button>
             <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge fretboard"
               onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('guitar')">⤢</button>
             <span class="chev">⌄</span>
           </summary>
-          <div class="drawer-body"><div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div></div>
+          <div class="drawer-body">
+            <div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div>
+            <div id="guitarShapeStrip" class="gss-strip"></div>
+          </div>
         </details>
       </div>
     </div>
@@ -1925,13 +2111,31 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
     <div id="libPresets" class="lib-list"></div>
   </div>
 </div>
+<!-- ONBOARDING / GUIDED SPOTLIGHT TOUR -->
+<div id="onboarding" class="ob" hidden role="dialog" aria-modal="true" aria-label="Welcome tour">
+  <div class="ob-catch"></div>
+  <div class="ob-spot" id="obSpot"></div>
+  <div class="ob-tip" id="obTip">
+    <button class="ob-skip" id="obSkip" onclick="Onboarding.skip()">Skip</button>
+    <div class="ob-step" id="obStep"></div>
+    <h3 class="ob-title" id="obTitle"></h3>
+    <p class="ob-text" id="obText"></p>
+    <div class="ob-tip-foot">
+      <div class="ob-dots" id="obDots"></div>
+      <div class="ob-nav">
+        <button class="ob-btn ob-ghost" id="obBack" onclick="Onboarding.prev()">Back</button>
+        <button class="ob-btn ob-primary" id="obNext" onclick="Onboarding.next()">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
 'use strict';
 // == constants.js ==
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.8';
+const APP_VERSION = 'V5.17';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -2000,6 +2204,7 @@ const defaultState = {
   palette:0, intensity:1, wheelView:'major', lang:'en',
   history:[], mood:'balanced', bpm:100,
   sevenths:false, countIn:false, voicingOpen:false, metroSound:'woodblock',
+  onboarded:false,
 };
 
 
@@ -2034,6 +2239,13 @@ const I18N_EN = {
   'builder.empty':     'No chords yet — tap a degree or a suggestion bubble.',
   'suggestions.title': 'Quick harmonic ideas',
   'suggestions.subtitle': 'Generated from the selected key and mode.',
+  'suggest.title':     'Suggested next chords',
+  'suggest.strongest': 'Strongest from',
+  'suggest.hint':      'The bigger the bubble, the stronger the next move.',
+  'gravity.title':     'Harmonic gravity',
+  'mood.from':         'From',
+  'metro.tapHint':     'tap 4× to set tempo',
+  'metro.tapSet':      'tempo set · keep tapping',
   'drawers.piano':     'Piano',
   'drawers.guitar':    'Guitar / Fretboard',
   'production.instruments': 'Core instruments',
@@ -2100,6 +2312,13 @@ const I18N_ES = {
   'builder.empty':     'Sin acordes — toca un grado o una burbuja.',
   'suggestions.title': 'Ideas harmónicas',
   'suggestions.subtitle': 'Generadas desde la tonalidad y el modo seleccionados.',
+  'suggest.title':     'Acordes sugeridos',
+  'suggest.strongest': 'Lo más fuerte desde',
+  'suggest.hint':      'Cuanto más grande la burbuja, más fuerte es el siguiente movimiento.',
+  'gravity.title':     'Gravedad armónica',
+  'mood.from':         'Desde',
+  'metro.tapHint':     'toca 4× para marcar el tempo',
+  'metro.tapSet':      'tempo fijado · sigue tocando',
   'drawers.piano':     'Piano',
   'drawers.guitar':    'Guitarra / Trastera',
   'production.instruments': 'Instrumentos principales',
@@ -2157,6 +2376,14 @@ function setLanguage(lang) {
   st.lang = I18N[lang] ? lang : 'en';
   saveState();
   applyI18n();
+  // Re-render the panels whose text is generated in JS (not via data-i18n), so a
+  // language switch also updates suggestions, the builder meta, the lock hint, etc.
+  try {
+    if (typeof renderSuggestions === 'function') renderSuggestions();
+    if (typeof HistoryEngine === 'object' && HistoryEngine.render) HistoryEngine.render();
+    if (typeof updateWheelLockUI === 'function') updateWheelLockUI();
+    if (typeof Metronome === 'object' && Metronome.syncTapHint) Metronome.syncTapHint();
+  } catch (_) {}
 }
 
 
@@ -2374,6 +2601,11 @@ const gs  = ()  => { const r = ni(st.key); return wmObj().intervals.map(i => dn(
 const modeScale = () => { const r = ni(st.key); return gm().intervals.map(i => dn(na(r + i))); };
 const gr  = ()  => { const r = ni(st.key); return gm().intervals.map(i => na(r + i)); };
 const gc  = ()  => { const s = modeScale(), m = gm(); return s.map((n, i) => ({ degree: m.degrees[i], note: n, quality: m.qualities[i], chord: n + (m.qualities[i] === 'Min' ? 'm' : m.qualities[i] === 'Dim' ? '°' : '') })); };
+
+// Diatonic triads of the Major/Minor wheel scale (qualities from ionian/aeolian).
+// Drives the chord-lock highlight: which pitch classes are I/IV/V (Maj), ii/iii/vi
+// (Min) and vii°/ii° (Dim). Returns [{pc, quality}] for the 7 scale degrees.
+const wheelDiatonicChords = () => { const m = wmObj(), notes = gs(); return notes.map((n, i) => ({ pc: ni(n), quality: m.qualities[i] })); };
 
 // The relative key shown on the side card: relative MAJOR when minor, relative
 // MINOR when major — derived from the sector (always Major/Minor, not the mode).
@@ -2677,8 +2909,7 @@ const AudioEngine = {
     if (!this.resume()) return;
     const t0 = when != null ? when : this.ctx.currentTime;
     const snd = (typeof st === 'object' && st.metroSound) || 'woodblock';
-    if      (snd === 'cowbell')    this._metroCowbell(t0, accent);
-    else if (snd === 'rimshot')    this._metroRim(t0, accent);
+    if      (snd === 'rimshot')    this._metroRim(t0, accent);
     else if (snd === 'electronic') this._metroElectronic(t0, accent);
     else                           this._metroWoodblock(t0, accent);
   },
@@ -2744,42 +2975,82 @@ const AudioEngine = {
     o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + 0.05);
   },
 
-  // ── Karplus-Strong plucked-string voice ───────────────
-  // Physical-model synthesis: a noise burst excites a feedback delay loop
-  // whose period equals 1/freq. A lowpass filter in the loop damps higher
-  // harmonics each cycle, producing the warm, decaying timbre of a plucked
-  // guitar string. Only used by playGuitarNote — chord previews use Rhodes.
+  // ── Classical / nylon plucked-string voice (extended Karplus-Strong) ──
+  // A faithful physical model of a nylon-string guitar, computed sample-by-sample
+  // in JS then played back as an AudioBuffer (Web Audio's DelayNode adds a
+  // render-quantum latency that detunes high notes, so we can't loop in the graph).
+  // Model: pick-position comb + soft excitation → string loop with fractional-delay
+  // tuning + one-pole loop damping → body-resonance EQ on output.
   _guitarVoice(freq, t0, gainScale) {
-    const ctx = this.ctx, out = this.voiceBus || this.master;
-    // One-period noise buffer (Karplus-Strong excitation)
-    const noiseLen = Math.max(2, Math.ceil(ctx.sampleRate / freq));
-    const buf = ctx.createBuffer(1, noiseLen, ctx.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < noiseLen; i++) d[i] = Math.random() * 2 - 1;
-    const src = ctx.createBufferSource(); src.buffer = buf; src.loop = false;
-    // Delay line tuned to fundamental period
-    const delay = ctx.createDelay(0.06);
-    delay.delayTime.value = 1 / freq;
-    // Averaging lowpass in the feedback loop — the string's "stiffness"
-    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
-    lp.frequency.value = Math.min(freq * 5, ctx.sampleRate * 0.4);
-    lp.Q.value = 0.4;
-    // Feedback gain controls sustain (< 1 to prevent runaway)
-    const fb = ctx.createGain(); fb.gain.value = 0.994;
-    // Output amp with natural decay envelope
-    const decaySec = Math.max(1.2, 3.8 - freq / 500);   // lower notes sustain longer
+    const ctx = this.ctx, sr = ctx.sampleRate;
+
+    // Loop delay for this pitch. The one-zero loop filter contributes ~0.5 sample
+    // of group delay, so target slightly short and make up the rest fractionally.
+    const loopD = sr / freq - 0.5;
+    const Di = Math.max(2, Math.floor(loopD));
+    const frac = loopD - Di;
+    const L = Di + 2;                    // circular delay-line length
+
+    // Note length: trebles fade in ~1s, basses ring up to ~2.4s.
+    const dur = Math.min(2.4, Math.max(0.5, 2.8 - freq / 200));
+    const len = Math.floor(sr * dur);
+    const out = new Float32Array(len);
+
+    // ── Excitation: one period of softened noise + pick-position comb ──
+    // Soft (lowpassed) noise = nylon's rounded attack; the comb subtracts a copy
+    // delayed by the pluck point (~1/5 of the string) → the hollow, woody timbre.
+    const dl = new Float32Array(L);
+    const nz = new Float32Array(L);
+    for (let i = 0; i < L; i++) nz[i] = Math.random() * 2 - 1;
+    for (let i = 1; i < L; i++) nz[i] = (nz[i] + nz[i - 1]) * 0.5;
+    const pp = Math.max(1, Math.round(0.2 * L));
+    for (let i = 0; i < L; i++) dl[i] = nz[i] - (i >= pp ? nz[i - pp] : 0);
+
+    // ── String loop: fractional-delay read + one-zero loop filter + loop gain ──
+    // S = loop-filter mix (0.5 = classic averaging). rho = per-sample loop gain
+    // tuned so T60 ≈ 1.5s low → ~0.9s high (slightly faster decay up the neck).
+    const S = 0.5;
+    const rho = Math.min(0.99992, Math.max(0.9996, 0.99992 - freq * 2.5e-7));
+    let widx = 0, ydPrev = 0;
+    for (let n = 0; n < len; n++) {
+      const r0 = (widx - Di + L * 2) % L;
+      const r1 = (widx - Di - 1 + L * 2) % L;
+      const yd = dl[r0] * (1 - frac) + dl[r1] * frac;   // fractional-delay tuning
+      const lf = (1 - S) * yd + S * ydPrev;             // one-zero damping filter
+      ydPrev = yd;
+      const y = rho * lf;
+      out[n] = y;
+      dl[widx] = y;
+      widx = (widx + 1) % L;
+    }
+
+    // Normalize — guarantees no clipping at any pitch.
+    let peak = 0;
+    for (let n = 0; n < len; n++) { const a = Math.abs(out[n]); if (a > peak) peak = a; }
+    if (peak > 1e-4) { const g = (gainScale * 0.5) / peak; for (let n = 0; n < len; n++) out[n] *= g; }
+
+    const audioBuf = ctx.createBuffer(1, len, sr);
+    audioBuf.copyToChannel(out, 0);
+    const src = ctx.createBufferSource(); src.buffer = audioBuf;
+
+    // ── Body resonance EQ — the hollow wooden character of the guitar body ──
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 75;
+    const b1 = ctx.createBiquadFilter(); b1.type = 'peaking'; b1.frequency.value = 100; b1.Q.value = 1.1; b1.gain.value = 3.5; // Helmholtz air
+    const b2 = ctx.createBiquadFilter(); b2.type = 'peaking'; b2.frequency.value = 215; b2.Q.value = 1.4; b2.gain.value = 2.5; // top plate
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(freq * 6, 4200); lp.Q.value = 0.5;
+
     const amp = ctx.createGain();
-    amp.gain.setValueAtTime(gainScale * 0.9, t0);
-    amp.gain.exponentialRampToValueAtTime(0.0001, t0 + decaySec);
-    // Routing: src → delay ⟷ (lp → fb) loop; delay also feeds output
-    src.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay);
-    delay.connect(amp); amp.connect(out);
-    src.start(t0); src.stop(t0 + 0.04);   // brief noise burst
+    amp.gain.setValueAtTime(0.0001, t0);
+    amp.gain.linearRampToValueAtTime(1, t0 + 0.006);                       // soft pluck attack
+    amp.gain.setValueAtTime(1, t0 + Math.max(0.05, dur - 0.06));
+    amp.gain.linearRampToValueAtTime(0.0001, t0 + dur);                    // clean release
+
+    src.connect(hp); hp.connect(b1); b1.connect(b2); b2.connect(lp); lp.connect(amp); amp.connect(this.master);
+    src.start(t0);
     if (this._active) {
       const entry = { oscs: [src], amp };
       this._active.add(entry);
-      const wallMs = Math.max(100, (t0 - ctx.currentTime + decaySec) * 1000);
-      setTimeout(() => { if (this._active) this._active.delete(entry); }, wallMs);
+      src.onended = () => { if (this._active) this._active.delete(entry); };
     }
   },
 
@@ -3178,6 +3449,19 @@ const MOOD_PROFILES = {
   floating: {label:'Floating', desc:'Open space, fewer hard cadences.',            prefer:[3,1,6], avoid:[4]},
 };
 
+// Spanish copy for the mood lens (label + description). EN stays in MOOD_PROFILES.
+const MOOD_ES = {
+  balanced: ['Equilibrado', 'Movimiento neutro: hogar, lift y tensión.'],
+  dreamy:   ['Soñador',     'Color suave, movimiento suspendido.'],
+  uplift:   ['Elevado',     'Rutas más brillantes, energía hacia delante.'],
+  dark:     ['Oscuro',      'Elecciones sombrías, caídas cinematográficas.'],
+  soul:     ['Soul',        'Voice-leading suave, amigable al groove.'],
+  tension:  ['Tensión',     'Más pull antes de resolver.'],
+  floating: ['Flotante',    'Espacio abierto, menos cadencias duras.'],
+};
+function moodLabel(id) { const p = MOOD_PROFILES[id]; if (!p) return id; return st.lang === 'es' ? (MOOD_ES[id]?.[0] || p.label) : p.label; }
+function moodDesc(id)  { const p = MOOD_PROFILES[id]; if (!p) return ''; return st.lang === 'es' ? (MOOD_ES[id]?.[1] || p.desc) : p.desc; }
+
 const GRAVITY_ARCHETYPES = [
   {name:'Resolution', tension:18, stability:96, brightness:72, darkness:18, movement:26, resolution:96, surprise:12},
   {name:'Prepare',    tension:48, stability:58, brightness:52, darkness:42, movement:68, resolution:50, surprise:35},
@@ -3331,14 +3615,14 @@ function categoryClass(category) {
 }
 
 function friendlyCategory(cat) {
-  if (!cat) return 'Motion';
-  const c = String(cat).toLowerCase();
-  if (c.includes('resolve'))  return 'Resolve';
-  if (c.includes('lift'))     return 'Lift';
-  if (c.includes('dark'))     return 'Darken';
-  if (c.includes('surprise')) return 'Surprise';
-  if (c.includes('float'))    return 'Float';
-  return 'Motion';
+  const es = st.lang === 'es';
+  const c = String(cat || '').toLowerCase();
+  if (c.includes('resolve'))  return es ? 'Resuelve'   : 'Resolve';
+  if (c.includes('lift'))     return es ? 'Lift'       : 'Lift';
+  if (c.includes('dark'))     return es ? 'Oscurece'   : 'Darken';
+  if (c.includes('surprise')) return es ? 'Sorpresa'   : 'Surprise';
+  if (c.includes('float'))    return es ? 'Flota'      : 'Float';
+  return es ? 'Movimiento' : 'Motion';
 }
 
 const HarmonyEngine = {
@@ -3422,38 +3706,65 @@ function progressionContext(fromIdx) {
   // Cadence-in-progress: what is the harmony pulling toward next?
   let expect = null, expectWhy = '';
   if (coherent) {
-    if      (prev === 1 && last === 4)                                              { expect = 0; expectWhy = 'Completes ii–V–I'; }
-    else if (prev === 3 && last === 4)                                              { expect = 0; expectWhy = 'Completes IV–V–I'; }
-    else if (prev === 5 && last === 6 && ['aeolian','dorian','phrygian'].includes(mode)) { expect = 0; expectWhy = 'Completes ♭VI–♭VII–i'; }
-    else if (last === 4)                                                            { expect = 0; expectWhy = 'V pulls home to I'; }
-    else if (last === 6 && mode === 'mixolydian')                                   { expect = 0; expectWhy = '♭VII resolves to I'; }
-    else if (last === 6)                                                            { expect = 0; expectWhy = 'vii° pulls to I'; }
-    else if (last === 1)                                                            { expect = 4; expectWhy = 'ii sets up V'; }
+    if      (prev === 1 && last === 4)                                              { expect = 0; expectWhy = R('exp_iiVI'); }
+    else if (prev === 3 && last === 4)                                              { expect = 0; expectWhy = R('exp_IVVI'); }
+    else if (prev === 5 && last === 6 && ['aeolian','dorian','phrygian'].includes(mode)) { expect = 0; expectWhy = R('exp_bVI'); }
+    else if (last === 4)                                                            { expect = 0; expectWhy = R('exp_Vhome'); }
+    else if (last === 6 && mode === 'mixolydian')                                   { expect = 0; expectWhy = R('exp_bVIIres'); }
+    else if (last === 6)                                                            { expect = 0; expectWhy = R('exp_viiPull'); }
+    else if (last === 1)                                                            { expect = 4; expectWhy = R('exp_iiSetsV'); }
   }
 
   return { length: h.length, tail, last, prev, repeat, isVamp, expect, expectWhy, coherent };
 }
+
+// Bilingual reason phrases. The EN values are kept verbatim so the dev-test
+// regexes (resol / ii–V–I / loop) still match; ES preserves those substrings too.
+const SUGG_REASONS = {
+  exp_iiVI:    { en: 'Completes ii–V–I',       es: 'Completa ii–V–I' },
+  exp_IVVI:    { en: 'Completes IV–V–I',       es: 'Completa IV–V–I' },
+  exp_bVI:     { en: 'Completes ♭VI–♭VII–i',   es: 'Completa ♭VI–♭VII–i' },
+  exp_Vhome:   { en: 'V pulls home to I',      es: 'La V tira a casa (I)' },
+  exp_bVIIres: { en: '♭VII resolves to I',     es: '♭VII resuelve en I' },
+  exp_viiPull: { en: 'vii° pulls to I',        es: 'vii° tira hacia I' },
+  exp_iiSetsV: { en: 'ii sets up V',           es: 'ii prepara la V' },
+  loopOpen:    { en: 'Keeps the loop open',    es: 'Mantiene el loop abierto' },
+  loopHome:    { en: 'Lands the loop home',    es: 'Cierra el loop en casa' },
+  loopLift:    { en: 'Lifts out of the loop',  es: 'Sale del loop con lift' },
+  strongRes:   { en: 'Strong resolution',      es: 'Resolución fuerte' },
+  setsCad:     { en: 'Sets up the cadence',    es: 'Prepara la cadencia' },
+  mixoLift:    { en: 'Mixolydian ♭VII lift',   es: 'Lift mixolidio de ♭VII' },
+  dorIV:       { en: 'Dorian major-IV colour', es: 'Color de IV mayor dórico' },
+  lydII:       { en: 'Lydian raised-II colour',es: 'Color de II elevada lidio' },
+  phryII:      { en: 'Phrygian ♭II colour',    es: 'Color de ♭II frigio' },
+  darker:      { en: 'Adds darker colour',     es: 'Añade color más oscuro' },
+  home:        { en: 'Returns home',           es: 'Vuelve a casa' },
+  warm:        { en: 'Warm colour shift',      es: 'Giro de color cálido' },
+  sharpModal:  { en: 'Sharper modal colour',   es: 'Color modal más marcado' },
+  moving:      { en: 'Keeps it moving',        es: 'Mantiene el movimiento' },
+};
+function R(key) { const o = SUGG_REASONS[key]; return o ? (o[st?.lang || 'en'] || o.en) : ''; }
 
 // Short, honest, musical reason for a single move. Audit §6 wants the engine to
 // "explain itself simply": Strong resolution / Keeps the loop open / etc.
 function suggestionReason(fromIdx, to, ctx, mode) {
   if (ctx.expect === to && ctx.expectWhy)        return ctx.expectWhy;
   if (ctx.isVamp) {
-    if (to === ctx.last)                         return 'Keeps the loop open';
-    if (to === 0)                                return 'Lands the loop home';
-    if ([3,4,5].includes(to))                    return 'Lifts out of the loop';
+    if (to === ctx.last)                         return R('loopOpen');
+    if (to === 0)                                return R('loopHome');
+    if ([3,4,5].includes(to))                    return R('loopLift');
   }
-  if (fromIdx === 4 && to === 0)                 return 'Strong resolution';
-  if (fromIdx === 1 && to === 4)                 return 'Sets up the cadence';
-  if (mode === 'mixolydian' && to === 6)         return 'Mixolydian ♭VII lift';
-  if (mode === 'dorian'     && to === 3)         return 'Dorian major-IV colour';
-  if (mode === 'lydian'     && to === 1)         return 'Lydian raised-II colour';
-  if (mode === 'phrygian'   && to === 1)         return 'Phrygian ♭II colour';
-  if (['aeolian','phrygian','dorian'].includes(mode) && to === 5) return 'Adds darker colour';
-  if (to === 0)                                  return 'Returns home';
-  if ([3,5].includes(to))                        return 'Warm colour shift';
-  if ([6,1].includes(to))                        return 'Sharper modal colour';
-  return 'Keeps it moving';
+  if (fromIdx === 4 && to === 0)                 return R('strongRes');
+  if (fromIdx === 1 && to === 4)                 return R('setsCad');
+  if (mode === 'mixolydian' && to === 6)         return R('mixoLift');
+  if (mode === 'dorian'     && to === 3)         return R('dorIV');
+  if (mode === 'lydian'     && to === 1)         return R('lydII');
+  if (mode === 'phrygian'   && to === 1)         return R('phryII');
+  if (['aeolian','phrygian','dorian'].includes(mode) && to === 5) return R('darker');
+  if (to === 0)                                  return R('home');
+  if ([3,5].includes(to))                        return R('warm');
+  if ([6,1].includes(to))                        return R('sharpModal');
+  return R('moving');
 }
 
 const SuggestionEngine = {
@@ -3932,9 +4243,31 @@ function renderWheel() {
   const scalePCs = new Set(gs().map(n => ni(n)));
   const baRgb = getComputedStyle(document.documentElement).getPropertyValue('--ba-rgb').trim() || '232,68,26';
 
+  // ── Chord-lock highlight (V5.13) ──────────────────────
+  // While the key is locked, light the EXACT diatonic chords: major chords
+  // (I/IV/V) on the outer ring, relative minors (ii/iii/vi) on the inner ring,
+  // and the vii° dim a touch fainter — turning the lock into a teaching view.
+  const locked = (typeof wheelLocked !== 'undefined' && wheelLocked);
+  let majPCs, minPCs, dimPCs;
+  if (locked) {
+    const dc = wheelDiatonicChords();
+    majPCs = new Set(dc.filter(c => c.quality === 'Maj').map(c => c.pc));
+    minPCs = new Set(dc.filter(c => c.quality === 'Min').map(c => c.pc));
+    dimPCs = new Set(dc.filter(c => c.quality === 'Dim').map(c => c.pc));
+  }
+
   FIFTHS.forEach((k, i) => {
     const isActive  = k === aKey;
     const isDiatonic = scalePCs.has(ni(k));
+    const relMinName = relativeMinor(k);
+    const innerPC    = relMinName ? ni(stripMinorSuffix(relMinName)) : -1;
+    // Lit state: precise diatonic chords when locked, legacy root-in-scale otherwise.
+    const outerLit = locked ? majPCs.has(ni(k)) : isDiatonic;
+    let innerLit = false, innerDim = false;
+    if (locked) {
+      if (minPCs.has(innerPC)) innerLit = true;
+      else if (dimPCs.has(innerPC)) { innerLit = true; innerDim = true; }
+    }
     const sa = i * 30, a1 = sa - 15, a2 = sa + 15;
 
     // Outer sector r: 194–286
@@ -3944,16 +4277,16 @@ function renderWheel() {
     const og = se('g', { cursor:'pointer' });
     const op = se('path', {
       d: od,
-      fill:   isActive   ? (isLight ? 'rgba(232,68,26,.88)' : 'rgba(232,68,26,.82)')
-            : isDiatonic ? (isLight ? `rgba(${baRgb},.14)` : `rgba(${baRgb},.09)`)
-            :               (isLight ? 'rgba(255,255,255,.38)' : 'rgba(255,255,255,.032)'),
-      stroke: isActive   ? 'rgba(255,120,80,.4)'
-            : isDiatonic ? `rgba(${baRgb},.36)`
-            :               (isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)'),
-      'stroke-width': isActive ? '1.8' : isDiatonic ? '1.4' : '0.8',
+      fill:   isActive  ? (isLight ? 'rgba(232,68,26,.88)' : 'rgba(232,68,26,.82)')
+            : outerLit  ? (isLight ? `rgba(${baRgb},.14)` : `rgba(${baRgb},.09)`)
+            :             (isLight ? 'rgba(255,255,255,.38)' : 'rgba(255,255,255,.032)'),
+      stroke: isActive  ? 'rgba(255,120,80,.4)'
+            : outerLit  ? `rgba(${baRgb},.36)`
+            :             (isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)'),
+      'stroke-width': isActive ? '1.8' : outerLit ? '1.4' : '0.8',
     });
     if (isActive) { op.setAttribute('filter', 'url(#fGlow)'); op.setAttribute('class', 'active-sector'); }
-    if (!isActive && !isDiatonic) og.setAttribute('opacity', '0.22');
+    if (!isActive && !outerLit) og.setAttribute('opacity', '0.22');
     og.appendChild(op);
 
     // Primary label (major/minor view)
@@ -3983,7 +4316,7 @@ function renderWheel() {
     at.textContent = ACC[i] === '0' ? '♮' : ACC[i];
     og.appendChild(at);
     // Small accent pip at outer rim for diatonic non-active sectors
-    if (!isActive && isDiatonic) {
+    if (!isActive && outerLit) {
       const [px, py] = polar(281, sa);
       og.appendChild(se('circle', { cx: String(px), cy: String(py), r: '2.8', fill: `rgba(${baRgb},.65)`, class: 'diatonic-pip' }));
     }
@@ -3994,6 +4327,7 @@ function renderWheel() {
         const root = ni(k);
         AudioEngine.playChord([root, root + 4, root + 7]);
       }
+      if (typeof wheelLocked !== 'undefined' && wheelLocked) auditionFlash(op);
       selectWheelKey(k);
     });
     grp.appendChild(og);
@@ -4003,11 +4337,21 @@ function renderWheel() {
     const [ix3,iy3] = polar(150,a2), [ix4,iy4] = polar(150,a1);
     const id2 = `M${ix1} ${iy1} A194 194 0 0 1 ${ix2} ${iy2} L${ix3} ${iy3} A150 150 0 0 0 ${ix4} ${iy4}Z`;
     const ig  = se('g', { cursor:'pointer' });
-    if (!isActive && !isDiatonic) ig.setAttribute('opacity', '0.22');
+    // Dim non-diatonic inner sectors. When locked, base it on the inner CHORD so
+    // the relative minors light up; unlocked keeps the legacy (outer-root) dim.
+    const innerDimmed = locked ? (!isActive && !innerLit) : (!isActive && !isDiatonic);
+    if (innerDimmed) ig.setAttribute('opacity', '0.22');
+    const innerFill =
+        isActive            ? (isLight ? 'rgba(232,68,26,.30)' : 'rgba(160,40,10,.46)')
+      : (locked && innerLit) ? (innerDim ? `rgba(${baRgb},.07)` : `rgba(${baRgb},.17)`)
+      :                        (isLight ? 'rgba(255,255,255,.34)' : 'rgba(255,255,255,.04)');
+    const innerStroke = (locked && innerLit && !isActive)
+      ? `rgba(${baRgb},${innerDim ? '.30' : '.44'})`
+      : (isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)');
     const ip  = se('path', {
       d: id2,
-      fill:   isActive ? (isLight ? 'rgba(232,68,26,.30)' : 'rgba(160,40,10,.46)') : (isLight ? 'rgba(255,255,255,.34)' : 'rgba(255,255,255,.04)'),
-      stroke: isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)', 'stroke-width':'0.6',
+      fill:   innerFill,
+      stroke: innerStroke, 'stroke-width': (locked && innerLit && !isActive) ? '1.3' : '0.6',
     });
     ig.appendChild(ip);
 
@@ -4032,6 +4376,7 @@ function renderWheel() {
           AudioEngine.playChord([root, root + 3, root + 7]);
         }
       }
+      if (typeof wheelLocked !== 'undefined' && wheelLocked) auditionFlash(ip);
       selectWheelKey(k);
     });
     grp.appendChild(ig);
@@ -4224,6 +4569,14 @@ OverlayManager.register('instr-zoom', {
   isOpen:   () => !!(typeof InstrumentZoom === 'object' && InstrumentZoom.open),
   close:    () => { if (typeof InstrumentZoom === 'object' && InstrumentZoom.open) InstrumentZoom.close(); },
   contains: (t) => !!(t.closest('#instrZoomPanel') || t.closest('[data-zoom-trigger]')),
+});
+OverlayManager.register('guitar-shapes', {
+  isOpen:   () => !!document.getElementById('guitarShapeStrip')?.classList.contains('gss-on'),
+  close:    () => { if (typeof GuitarShapes === 'object') GuitarShapes.close(); },
+  // The strip lives in the guitar drawer beside the fretboard — playing a fret
+  // note (inside #guitar / .fretboard-wrap) must NOT dismiss it.
+  contains: (t) => !!(t.closest('#guitarShapeStrip') || t.closest('.gss-btn') ||
+                      t.closest('#guitar') || t.closest('.fretboard-wrap') || t.closest('#instrZoomBody')),
 });
 OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),
@@ -4779,7 +5132,8 @@ const BuilderEngine = {
     const h  = Array.isArray(st.history) ? st.history : [];
     if (!h.length) { el.innerHTML = ''; return; }
     const unique = new Set(h.map(x => x.degreeIndex));
-    el.innerHTML = `<span>${h.length} chord${h.length > 1 ? 's' : ''}</span>
+    const count = st.lang === 'es' ? `${h.length} acorde${h.length > 1 ? 's' : ''}` : `${h.length} chord${h.length > 1 ? 's' : ''}`;
+    el.innerHTML = `<span>${count}</span>
       <b>${progressionNarrative()}</b>`;
   },
 
@@ -4993,17 +5347,18 @@ function renderMeter(label, value) {
 
 function moodButtons() {
   const root = document.getElementById('moodLens'); if (!root) return;
-  root.innerHTML = Object.entries(MOOD_PROFILES).map(([id, p]) =>
-    `<button class="mood-btn${(st.mood || 'balanced') === id ? ' active' : ''}" onclick="AppActions.setMood('${id}')">${p.label}</button>`
+  root.innerHTML = Object.keys(MOOD_PROFILES).map(id =>
+    `<button class="mood-btn${(st.mood || 'balanced') === id ? ' active' : ''}" onclick="AppActions.setMood('${id}')">${moodLabel(id)}</button>`
   ).join('');
 }
 
 function renderMoodStatus() {
   const el = document.getElementById('moodStatus'); if (!el) return;
-  const p    = MOOD_PROFILES[st.mood || 'balanced'] || MOOD_PROFILES.balanced;
+  const id   = st.mood || 'balanced';
   const from = curDeg >= 0 ? gc()[curDeg] : gc()[0];
-  el.innerHTML = `<div class="mood-copy"><b>${p.label}</b> lens · ${p.desc}</div>
-    <div class="mood-weight">From ${from.degree} · ${from.chord}</div>`;
+  const lens = st.lang === 'es' ? `<b>${moodLabel(id)}</b> · ${moodDesc(id)}` : `<b>${moodLabel(id)}</b> lens · ${moodDesc(id)}`;
+  el.innerHTML = `<div class="mood-copy">${lens}</div>
+    <div class="mood-weight">${t('mood.from')} ${from.degree} · ${from.chord}</div>`;
 }
 
 function renderGravityStatus() {
@@ -5013,7 +5368,7 @@ function renderGravityStatus() {
   el.innerHTML = `
     <div class="gravity-card">
       <div class="g-main">
-        <span class="g-label">Harmonic gravity</span>
+        <span class="g-label">${t('gravity.title')}</span>
         <span class="g-value">${c.chord}</span>
         <span class="g-sub">${c.degree} · ${g.name} · ${g.role}</span>
       </div>
@@ -5041,6 +5396,7 @@ function _buildBubblesHTML() {
   };
   const bestTo  = all[0]?.to;
   const byDegree = [...all].sort((a, b) => a.to - b.to);
+  const es = st.lang === 'es';
 
   const bubbles = byDegree.map((it, i) => {
     const t   = tier(it.fit);
@@ -5056,8 +5412,8 @@ function _buildBubblesHTML() {
     return `<button class="next-bubble ${it.to === bestTo ? 'best' : ''}"
         style="--fit:${it.fit};--d:${d}px;--tier:${t};animation:nbEnter .55s cubic-bezier(.34,1.56,.5,1) ${enter}s both"
         data-to="${it.to}" data-best="${it.to === bestTo ? 1 : 0}"
-        aria-label="Add ${it.chord.chord} (${it.chord.degree}), ${it.fit}% fit. Drag onto the timeline to place it."
-        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% fit · tap to add, drag to place">
+        aria-label="${es ? `Añadir ${it.chord.chord} (${it.chord.degree}), ${it.fit}% de encaje. Arrástrala a la timeline para colocarla.` : `Add ${it.chord.chord} (${it.chord.degree}), ${it.fit}% fit. Drag onto the timeline to place it.`}"
+        title="${it.chord.degree} · ${it.chord.chord} — ${it.reason || cat} · ${it.fit}% ${es ? 'encaje · toca para añadir, arrastra para colocar' : 'fit · tap to add, drag to place'}">
       <span class="nb-glow"></span>
       <span class="nb-float" style="animation:${flN} ${flD}s ease-in-out ${flDelay}s infinite">
         <span class="nb-body">
@@ -5073,12 +5429,12 @@ function _buildBubblesHTML() {
 
   const best = all[0];
   const hint = best
-    ? `Strongest from <b>${current.chord}</b>: <b>${best.chord.chord}</b> — ${best.reason || friendlyCategory(best.transition?.category)}`
-    : `The larger the circle, the stronger the next move from ${current.chord}.`;
+    ? `${t('suggest.strongest')} <b>${current.chord}</b>: <b>${best.chord.chord}</b> — ${best.reason || friendlyCategory(best.transition?.category)}`
+    : t('suggest.hint');
 
   return `<div class="builder-next-top">
     <div>
-      <div class="builder-next-title">Suggested next chords</div>
+      <div class="builder-next-title">${t('suggest.title')}</div>
       <div class="builder-next-hint">${hint}</div>
     </div>
   </div>
@@ -5449,6 +5805,8 @@ const ChordVariants = {
     requestAnimationFrame(() => el.classList.add('open'));
     // Light up the current chord's notes on the piano/fretboard (build-a-chord guide).
     this._light(ctx.current);
+    // Update chord shape strip if it's currently visible
+    if (typeof GuitarShapes === 'object') GuitarShapes.hint(ctx.root, ctx.quality);
     // Escape + click-outside handled centrally by OverlayManager ('chord-variants').
     if (typeof OverlayManager === 'object') OverlayManager.opened('chord-variants');
   },
@@ -5632,6 +5990,215 @@ const Library = {
 };
 
 
+// == guitar-shapes.js ==
+// ── GUITAR SHAPES ─────────────────────────────────────
+// Box-notation chord diagrams for the guitar fretboard, shown in a scroll strip
+// below the fretboard. Two views: full chord voicings (open / barre / high) and
+// compact triads on the top-3 strings (root / 1st / 2nd inversion).
+const GuitarShapes = (() => {
+  const ENH = {Db:'C#',Eb:'D#',Gb:'F#',Ab:'G#',Bb:'A#'};
+  const NI  = {C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
+  // Open-string pitch classes, low→high: E A D G B e
+  const TUNE = [4, 9, 2, 7, 11, 4];
+
+  // Barre shape generators → [e6, a5, d4, g3, b2, e1] fret positions.
+  const eM = f => [f,  f+2, f+2, f+1, f,   f  ];  // E-shape major
+  const aM = f => [-1, f,   f+2, f+2, f+2, f  ];  // A-shape major
+  const em = f => [f,  f+2, f+2, f,   f,   f  ];  // E-shape minor
+  const am = f => [-1, f,   f+2, f+2, f+1, f  ];  // A-shape minor
+
+  const EF = r => (NI[r] - 4 + 12) % 12;   // root fret on low-E string
+  const AF = r => (NI[r] - 9 + 12) % 12;   // root fret on A string
+
+  // Idiomatic open voicings (differ from the pure barre formula).
+  const SPEC = {
+    'C:maj':[-1,3,2,0,1,0], 'A:maj':[-1,0,2,2,2,0], 'G:maj':[3,2,0,0,0,3],
+    'E:maj':[0,2,2,1,0,0],  'D:maj':[-1,-1,0,2,3,2],
+    'A:min':[-1,0,2,2,1,0], 'E:min':[0,2,2,0,0,0],  'D:min':[-1,-1,0,2,3,1],
+  };
+
+  const keyOf = fr => fr.join(',');
+
+  // ── Full chord voicings ───────────────────────────
+  function chordVoicings(root, qual) {
+    const r = ENH[root] || root;
+    const out = [], seen = new Set();
+    const add = (fr, label) => {
+      if (!fr || Math.max(...fr) > 16) return;
+      const k = keyOf(fr); if (seen.has(k)) return;
+      seen.add(k); out.push({ frets: fr, label });
+    };
+    if (SPEC[`${r}:${qual}`]) add(SPEC[`${r}:${qual}`], 'Abierto');
+    const ef = EF(r), af = AF(r);
+    const sE = qual === 'min' ? em : eM, sA = qual === 'min' ? am : aM;
+    add(sE(ef === 0 ? 12 : ef), 'Cejilla Mi');
+    add(sA(af === 0 ? 12 : af), 'Cejilla La');
+    if (af + 12 <= 14) add(sA(af + 12), 'Aguda');
+    else if (ef + 12 <= 14) add(sE(ef + 12), 'Aguda');
+    return out.slice(0, 4);
+  }
+
+  // ── Triads on the top-3 strings (G, B, e) ─────────
+  function triadVoicings(root, qual) {
+    const r = ENH[root] || root, rootPC = NI[r];
+    const iv = qual === 'min' ? [0, 3, 7] : [0, 4, 7];
+    const triad = new Set(iv.map(x => (rootPC + x) % 12));
+    const S = [3, 4, 5];                              // string indices g, b, e
+    const found = [], seen = new Set();
+    for (let pos = 0; pos <= 13; pos++) {
+      const opts = S.map(si => {
+        const o = [];
+        for (let f = pos; f < pos + 4 && f <= 16; f++)
+          if (triad.has((TUNE[si] + f) % 12)) o.push(f);
+        return o;
+      });
+      if (opts.some(o => !o.length)) continue;
+      for (const fg of opts[0]) for (const fb of opts[1]) for (const fe of opts[2]) {
+        const pcs = new Set([(TUNE[3]+fg)%12, (TUNE[4]+fb)%12, (TUNE[5]+fe)%12]);
+        if (pcs.size !== 3) continue;                 // need all three distinct tones
+        if (Math.max(fg, fb, fe) - Math.min(fg, fb, fe) > 3) continue;
+        const fr = [-1, -1, -1, fg, fb, fe];
+        const k = keyOf(fr); if (seen.has(k)) continue;
+        seen.add(k);
+        // Inversion from the lowest-sounding note (G string).
+        const lowPC = (TUNE[3] + fg) % 12;
+        const lbl = lowPC === rootPC ? 'Fund.'
+                  : lowPC === (rootPC + iv[1]) % 12 ? '1ª inv' : '2ª inv';
+        found.push({ frets: fr, label: lbl, _min: Math.min(fg, fb, fe) });
+      }
+    }
+    found.sort((a, b) => a._min - b._min);
+    return found.slice(0, 4);
+  }
+
+  // ── SVG box diagram (grid + dots; root marked with a hollow centre) ──
+  function drawSVG(frets, rootPC) {
+    const W = 62, H = 70, X0 = 9, X1 = 53, Y0 = 9, Y1 = 60, FR = 4, NS = 6;
+    const sx = i => X0 + (X1 - X0) * i / (NS - 1);
+    const fy = f => Y0 + (Y1 - Y0) * f / FR;
+    const active = frets.filter(f => f > 0);
+    const minF = active.length ? Math.min(...active) : 0;
+    const base = minF <= 1 ? 0 : minF - 1;
+    const nut = base === 0;
+    const fg = 'var(--fg)';
+    let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+    if (!nut)
+      s += `<text x="2" y="${fy(0.95)}" font-size="7" fill="var(--muted)" font-family="DM Mono,monospace">${base + 1}</text>`;
+    // Nut or top boundary
+    s += nut
+      ? `<line x1="${sx(0)}" y1="${fy(0)}" x2="${sx(NS-1)}" y2="${fy(0)}" stroke="${fg}" stroke-width="2.4" stroke-linecap="round"/>`
+      : `<line x1="${sx(0)}" y1="${fy(0)}" x2="${sx(NS-1)}" y2="${fy(0)}" stroke="${fg}" stroke-opacity="0.22" stroke-width="0.7"/>`;
+    for (let f = 1; f <= FR; f++)
+      s += `<line x1="${sx(0)}" y1="${fy(f)}" x2="${sx(NS-1)}" y2="${fy(f)}" stroke="${fg}" stroke-opacity="0.16" stroke-width="0.6"/>`;
+    for (let i = 0; i < NS; i++)
+      s += `<line x1="${sx(i)}" y1="${fy(0)}" x2="${sx(i)}" y2="${fy(FR)}" stroke="${fg}" stroke-opacity="${0.16 + (NS-1-i)*0.03}" stroke-width="${0.5 + (NS-1-i)*0.13}"/>`;
+    // Open / muted indicators above the nut
+    frets.forEach((f, i) => {
+      const x = sx(i);
+      if (f === -1)
+        s += `<text x="${x}" y="${fy(0)-3}" text-anchor="middle" font-size="7.5" fill="var(--muted)">×</text>`;
+      else if (f === 0)
+        s += `<circle cx="${x}" cy="${fy(0)-5.5}" r="2.6" fill="none" stroke="var(--accent)" stroke-width="1.2"/>`;
+    });
+    // Fingered dots — root gets a hollow centre to stand out.
+    frets.forEach((f, i) => {
+      if (f <= 0) return;
+      const df = f - base;
+      if (df < 1 || df > FR) return;
+      const cx = sx(i), cy = fy(df - 0.5);
+      const isRoot = ((TUNE[i] + f) % 12) === rootPC;
+      s += `<circle cx="${cx}" cy="${cy}" r="4.4" fill="var(--accent)"/>`;
+      if (isRoot) s += `<circle cx="${cx}" cy="${cy}" r="1.7" fill="#fff"/>`;
+    });
+    s += '</svg>';
+    return s;
+  }
+
+  // ── State ─────────────────────────────────────────
+  let _root = null, _qual = 'maj', _view = 'chords', _idx = 0, _shapes = [];
+
+  function _build() {
+    _shapes = _view === 'triads' ? triadVoicings(_root, _qual) : chordVoicings(_root, _qual);
+    _idx = 0;
+  }
+
+  function _render() {
+    const el = document.getElementById('guitarShapeStrip'); if (!el) return;
+    if (!_root) { el.classList.remove('gss-on'); return; }
+    const name = _root + (_qual === 'min' ? 'm' : '');
+    const rootPC = NI[ENH[_root] || _root];
+    el.innerHTML = `
+      <div class="gss-head">
+        <span class="gss-title">${name}</span>
+        <div class="gss-seg" role="tablist">
+          <button class="${_view==='chords'?'on':''}" role="tab" onclick="GuitarShapes.view('chords')">Acordes</button>
+          <button class="${_view==='triads'?'on':''}" role="tab" onclick="GuitarShapes.view('triads')">Tríadas</button>
+        </div>
+        <button class="gss-x" onclick="GuitarShapes.close()" aria-label="Cerrar">×</button>
+      </div>
+      <div class="gss-scroll">
+        ${_shapes.length ? _shapes.map((sh, i) => `
+          <div class="gss-card${i===_idx?' gss-active':''}" role="button"
+               onclick="GuitarShapes.pick(${i})" aria-label="${name} ${sh.label}">
+            ${drawSVG(sh.frets, rootPC)}
+            <div class="gss-cap">${sh.label}</div>
+          </div>`).join('')
+        : '<div class="gss-empty">—</div>'}
+      </div>`;
+    el.classList.add('gss-on');
+  }
+
+  function _highlight() {
+    if (typeof highlightGuitarShape !== 'function') return;
+    highlightGuitarShape(_shapes[_idx] ? _shapes[_idx].frets : null);
+  }
+
+  return {
+    toggle() {
+      const el = document.getElementById('guitarShapeStrip');
+      if (el && el.classList.contains('gss-on')) { this.close(); return; }
+      let root = null, qual = 'maj';
+      if (typeof ChordVariants === 'object' && ChordVariants.ctx && ChordVariants.ctx.root) {
+        root = ChordVariants.ctx.root;
+        qual = ChordVariants.ctx.quality === 'min' ? 'min' : 'maj';
+      } else {
+        root = st.key;
+        qual = (typeof modeIsMinor === 'function' && modeIsMinor(st.mode)) ? 'min' : 'maj';
+      }
+      _root = root; _qual = qual; _view = 'chords';
+      _build(); _render(); _highlight();
+      if (typeof OverlayManager === 'object') OverlayManager.opened('guitar-shapes');
+    },
+
+    // Switch between chord voicings and triads.
+    view(v) {
+      if (v === _view) return;
+      _view = v; _build(); _render(); _highlight();
+    },
+
+    // Auto-update the strip when a builder bar's chord changes (only if visible).
+    hint(root, qual) {
+      if (!document.getElementById('guitarShapeStrip')?.classList.contains('gss-on')) return;
+      if (!root) return;
+      _root = root; _qual = qual === 'min' ? 'min' : 'maj';
+      _build(); _render(); _highlight();
+    },
+
+    pick(idx) {
+      _idx = idx;
+      document.querySelectorAll('.gss-card').forEach((c, i) => c.classList.toggle('gss-active', i === idx));
+      _highlight();
+    },
+
+    close() {
+      _root = null; _shapes = [];
+      document.getElementById('guitarShapeStrip')?.classList.remove('gss-on');
+      if (typeof highlightGuitarShape === 'function') highlightGuitarShape(null);
+    },
+  };
+})();
+
+
 // == instruments-renderer.js ==
 // ── INSTRUMENTS RENDERER ──────────────────────────────
 // The chord whose tones light up on the piano / fretboard. An explicitly set
@@ -5642,6 +6209,14 @@ let _activeChordPcs = null;
 function setActiveChord(pitches) {
   _activeChordPcs = (pitches && pitches.length) ? pitches.map(p => ((p % 12) + 12) % 12) : null;
   renderPiano(); renderGuitar();
+}
+
+// When a specific chord shape is selected in GuitarShapes, highlight only those 6 fret positions.
+// shape = [e6, a5, d4, g3, b2, e1] fret array; null = revert to full chord-tone display.
+let _activeShape = null;
+function highlightGuitarShape(shape) {
+  _activeShape = shape;
+  renderGuitar();
 }
 function _chordPcSet() {
   if (_activeChordPcs) return new Set(_activeChordPcs);
@@ -5699,7 +6274,7 @@ const InstrumentZoom = {
     if (!el) return;
     this.which = which; this._el = el; this._parent = el.parentElement;
     const title = document.getElementById('instrZoomTitle');
-    if (title) title.textContent = which === 'piano' ? 'Piano' : 'Guitar / Fretboard';
+    if (title) title.textContent = which === 'piano' ? t('drawers.piano') : t('drawers.guitar');
     const body = document.getElementById('instrZoomBody'); body.innerHTML = ''; body.appendChild(el);
     el.classList.add('zoom');
     ov.classList.add('open'); this.open = true;
@@ -5751,7 +6326,9 @@ function renderGuitar() {
   root.appendChild(nR);
 
   const inChord = pc => chord && chord.has(((pc % 12) + 12) % 12);
-  tuning.forEach(([name, start, base]) => {
+  // _activeShape = [e6, a5, d4, g3, b2, e1]; tuning[0]=high-e → shape[5], tuning[5]=low-E → shape[0]
+  tuning.forEach(([name, start, base], ti) => {
+    const shapeFret = _activeShape ? _activeShape[5 - ti] : null; // fret for this string in active shape
     const row = document.createElement('div');
     row.style.cssText = `display:grid;grid-template-columns:${cols};align-items:center;border-top:1px solid rgba(255,255,255,.05);position:relative`;
     const sl = document.createElement('div');
@@ -5761,9 +6338,23 @@ function renderGuitar() {
     nc.style.cssText = 'width:40px;display:flex;align-items:center;justify-content:center;height:32px;border-right:2px solid rgba(255,255,255,.2);position:relative;z-index:1';
     const on = na(start), isOn = sc.has(on), isRoot = on === rootNote, isCh = inChord(start);
     const od = document.createElement('div');
-    od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
-    od.textContent = isOn ? dn(on) : name;
-    if (!isOn && !isCh) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
+    if (_activeShape) {
+      // Shape mode: nut column shows muted (×) or open-string indicator
+      if (shapeFret === -1) {
+        od.className = 'fret-note'; od.textContent = '×';
+        od.style.cssText = 'background:transparent;color:rgba(255,255,255,.35);font-size:11px;width:20px;height:20px';
+      } else if (shapeFret === 0) {
+        od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
+        od.textContent = dn(on);
+      } else {
+        od.className = 'fret-note'; od.textContent = name;
+        od.style.cssText = 'background:transparent;color:rgba(255,255,255,.15);font-size:9px;width:20px;height:20px';
+      }
+    } else {
+      od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
+      od.textContent = isOn ? dn(on) : name;
+      if (!isOn && !isCh) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
+    }
     od.onclick = () => _hearGuitar(base);
     nc.appendChild(od);
     row.appendChild(nc);
@@ -5771,7 +6362,16 @@ function renderGuitar() {
       const n = na(start + f); const isO = sc.has(n); const isR = n === rootNote; const isC = inChord(start + f);
       const cell = document.createElement('div');
       cell.className = 'fret-cell';
-      if (isO || isC) {
+      if (_activeShape) {
+        // Shape mode: only show the specific fret dot for this string
+        if (shapeFret === f) {
+          const dot = document.createElement('div');
+          dot.className = 'fret-note chord shape-dot';
+          dot.textContent = dn(n);
+          dot.onclick = () => _hearGuitar(base + f);
+          cell.appendChild(dot);
+        }
+      } else if (isO || isC) {
         const dot = document.createElement('div');
         dot.className = 'fret-note' + (isC ? ' chord' : isR ? ' root' : ' on');
         dot.textContent = dn(n);
@@ -5880,8 +6480,9 @@ const Metronome = {
     if (el) { el.classList.remove('beat'); void el.offsetWidth; el.classList.add('beat'); }
     if (typeof AudioEngine === 'object') AudioEngine.tick(300, 0.08);
 
+    const es = st.lang === 'es';
     const hint = document.getElementById('metroTapHint');
-    if (this._taps.length < 4) { if (hint) hint.textContent = `keep tapping… ${this._taps.length}/4`; }
+    if (this._taps.length < 4) { if (hint) hint.textContent = (es ? `sigue tocando… ${this._taps.length}/4` : `keep tapping… ${this._taps.length}/4`); }
     if (this._taps.length < 2) return;
 
     const ivs = [];
@@ -5890,8 +6491,14 @@ const Metronome = {
     const bpm = 60000 / avg;
     if (bpm >= this.MIN - 6 && bpm <= this.MAX + 6) {
       this.setBpm(bpm);
-      if (hint && this._taps.length >= 4) hint.textContent = 'tempo set · keep tapping';
+      if (hint && this._taps.length >= 4) hint.textContent = (es ? 'tempo fijado · sigue tocando' : 'tempo set · keep tapping');
     }
+  },
+
+  // Reset the tap hint to its idle prompt in the current language.
+  syncTapHint() {
+    const hint = document.getElementById('metroTapHint');
+    if (hint && (!this._taps || this._taps.length < 2)) hint.textContent = t('metro.tapHint');
   },
 
   // ── Dial geometry (from-top, clockwise) ──────────────
@@ -5936,6 +6543,157 @@ const Metronome = {
     window.addEventListener('pointerup', () => { dragging = false; });
   },
 };
+
+
+// == onboarding.js ==
+// ── ONBOARDING / GUIDED SPOTLIGHT TOUR ────────────────
+// A guided first-run tour that dims the whole page and spotlights each real UI
+// element in place — the wheel, the chords below it, the builder, the
+// suggestions, the instruments and production — with a tooltip explaining what
+// each does. Shown once (st.onboarded); re-openable from the header "?" button.
+// Bilingual EN/ES inside the module (no i18n-file churn).
+const Onboarding = (() => {
+  const L = o => (o && (o[st.lang] || o.en)) || '';
+  const es = () => st.lang === 'es';
+
+  // Each step spotlights a real element. `sel` = target, `pad` = halo padding,
+  // `radius` = spotlight corner radius, `place` = preferred tooltip side.
+  const steps = [
+    { sel: '#wheelSvg', pad: 6, radius: '50%',
+      title: { en: 'Start with the wheel', es: 'Empieza por el círculo' },
+      body:  { en: 'Welcome! This is the circle of fifths. Spin it to choose your key, tap any chord to hear it, and tap the centre to lock the key — every chord that belongs to it lights up.',
+               es: '¡Bienvenido! Esto es el círculo de quintas. Gíralo para elegir tu tonalidad, toca cualquier acorde para escucharlo y toca el centro para bloquear el key — se iluminan todos los acordes que le pertenecen.' } },
+    { sel: '#degrees', pad: 8,
+      title: { en: 'The chords in your key', es: 'Los acordes de tu tonalidad' },
+      body:  { en: 'Right below the wheel are your diatonic chords — the degrees I to vii°. Tap any one to add it to your progression.',
+               es: 'Justo debajo de la rueda están tus acordes diatónicos — los grados I a vii°. Toca cualquiera para añadirlo a tu progresión.' } },
+    { sel: '#progressionBuilder', pad: 8,
+      title: { en: 'Build your progression', es: 'Construye tu progresión' },
+      body:  { en: 'Your chords land here. Drag bars to reorder, set each chord’s length, then hit Play. Export to MIDI, share a link or save it to your library.',
+               es: 'Tus acordes aparecen aquí. Arrastra para reordenar, ajusta la duración de cada acorde y pulsa Play. Exporta a MIDI, comparte un link o guárdalo en tu biblioteca.' } },
+    { sel: '#progressionStory', pad: 8,
+      title: { en: 'Let it guide you', es: 'Deja que te guíe' },
+      body:  { en: 'Not sure what comes next? These bubbles suggest the strongest moves for your genre and mood — the biggest bubble is the best one.',
+               es: '¿No sabes qué sigue? Estas burbujas sugieren los movimientos más fuertes según tu género y mood — la burbuja más grande es la mejor.' } },
+    { sel: '.drawers', pad: 8,
+      title: { en: 'See it on real instruments', es: 'Míralo en instrumentos reales' },
+      body:  { en: 'Every chord lights up on the piano and the nylon guitar, so you see exactly how to play it — with chord shapes and triads right on the fretboard.',
+               es: 'Cada acorde se ilumina en el piano y en la guitarra de nylon, así ves cómo tocarlo — con diagramas de acordes y tríadas en el mástil.' } },
+    { sel: '.tabs', pad: 8, place: 'below',
+      title: { en: 'Produce & export', es: 'Produce y exporta' },
+      body:  { en: 'Switch to Production for 808/909 drums and a groove synced to your tempo. Then take your idea anywhere. You’re ready — start creating!',
+               es: 'Cambia a Producción para batería 808/909 y un groove sincronizado a tu tempo. Luego llévate tu idea a donde quieras. ¡Listo — a crear!' } },
+  ];
+
+  let idx = 0, _reflowRAF = 0, _scrollT = 0;
+
+  function shouldShow() { return !st.onboarded; }
+  function markSeen() { if (!st.onboarded) { st.onboarded = true; if (typeof saveState === 'function') saveState(); } }
+  const $ = id => document.getElementById(id);
+
+  function open(force) {
+    if (!force && !shouldShow()) return;
+    const ov = $('onboarding'); if (!ov) return;
+    // The tour points at Theory-panel elements — make sure that tab is showing.
+    const theoryBtn = document.querySelector('.tabs .tab-btn');
+    if (theoryBtn && !theoryBtn.classList.contains('active')) theoryBtn.click();
+    idx = 0;
+    ov.hidden = false;
+    requestAnimationFrame(() => ov.classList.add('ob-on'));
+    document.addEventListener('keydown', _key, true);
+    window.addEventListener('resize', _reflow, true);
+    window.addEventListener('scroll', _reflow, true);
+    go(0);
+  }
+  function close() {
+    const ov = $('onboarding'); if (!ov) return;
+    ov.classList.remove('ob-on');
+    document.removeEventListener('keydown', _key, true);
+    window.removeEventListener('resize', _reflow, true);
+    window.removeEventListener('scroll', _reflow, true);
+    setTimeout(() => { ov.hidden = true; }, 300);
+  }
+  function skip()   { markSeen(); close(); }
+  function finish() { markSeen(); close(); }
+  function next()   { if (idx >= steps.length - 1) return finish(); go(idx + 1); }
+  function prev()   { if (idx > 0) go(idx - 1); }
+  function go(i) {
+    idx = Math.max(0, Math.min(steps.length - 1, i));
+    render();
+    const el = document.querySelector(steps[idx].sel);
+    if (el) {
+      try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) { el.scrollIntoView(); }
+      requestAnimationFrame(position);
+      clearTimeout(_scrollT); _scrollT = setTimeout(position, 400);
+    } else { position(); }
+  }
+
+  function _key(e) {
+    if (e.key === 'Escape')          { e.stopPropagation(); skip(); }
+    else if (e.key === 'ArrowRight') { e.stopPropagation(); next(); }
+    else if (e.key === 'ArrowLeft')  { e.stopPropagation(); prev(); }
+  }
+  function _reflow() {
+    if (_reflowRAF) return;
+    _reflowRAF = requestAnimationFrame(() => { _reflowRAF = 0; position(); });
+  }
+
+  function render() {
+    const s = steps[idx], n = steps.length;
+    if ($('obStep'))  $('obStep').textContent = `${String(idx + 1).padStart(2, '0')} · ${String(n).padStart(2, '0')}`;
+    if ($('obTitle')) $('obTitle').textContent = L(s.title);
+    if ($('obText'))  $('obText').textContent = L(s.body);
+    const tip = $('obTip');
+    if (tip) { tip.classList.remove('ob-fade'); void tip.offsetWidth; tip.classList.add('ob-fade'); }
+    if ($('obDots')) $('obDots').innerHTML = steps.map((_, i) =>
+      `<button class="ob-dot${i === idx ? ' on' : ''}" aria-label="Step ${i + 1}" onclick="Onboarding.go(${i})"></button>`).join('');
+    const back = $('obBack'), nextB = $('obNext'), skipB = $('obSkip');
+    if (back)  { back.style.visibility = idx === 0 ? 'hidden' : 'visible'; back.textContent = es() ? 'Atrás' : 'Back'; }
+    if (skipB) skipB.textContent = es() ? 'Saltar' : 'Skip';
+    if (nextB) nextB.textContent = idx === n - 1 ? (es() ? 'Empezar a crear' : 'Start creating') : (es() ? 'Siguiente' : 'Next');
+  }
+
+  function position() {
+    const s = steps[idx];
+    const el = document.querySelector(s.sel);
+    const spot = $('obSpot'), tip = $('obTip');
+    if (!spot || !tip) return;
+    const r = el && el.getBoundingClientRect();
+    // No (or zero-size) target → no spotlight, centre the tooltip.
+    if (!r || r.width < 2 || r.height < 2) {
+      spot.classList.add('ob-spot-hidden');
+      const tw = tip.offsetWidth, th = tip.offsetHeight;
+      tip.style.left = Math.max(10, (innerWidth - tw) / 2) + 'px';
+      tip.style.top  = Math.max(10, (innerHeight - th) / 2) + 'px';
+      return;
+    }
+    spot.classList.remove('ob-spot-hidden');
+    const pad = s.pad ?? 8;
+    let x = r.left - pad, y = r.top - pad, w = r.width + pad * 2, h = r.height + pad * 2;
+    // Clamp to viewport so the halo never bleeds off-screen.
+    x = Math.max(6, x); y = Math.max(6, y);
+    w = Math.min(w, innerWidth - x - 6); h = Math.min(h, innerHeight - y - 6);
+    spot.style.left = x + 'px'; spot.style.top = y + 'px';
+    spot.style.width = w + 'px'; spot.style.height = h + 'px';
+    spot.style.borderRadius = s.radius || '16px';
+
+    // Place the tooltip on the side with the most room.
+    const tw = Math.min(340, innerWidth - 24), th = tip.offsetHeight, gap = 14;
+    tip.style.width = tw + 'px';
+    let top;
+    const below = y + h + gap, above = y - gap - th;
+    if (s.place === 'below' && below + th + 6 <= innerHeight) top = below;
+    else if (below + th + 6 <= innerHeight) top = below;
+    else if (above >= 6) top = above;
+    else top = Math.max(6, innerHeight - th - 12);
+    let left = x + w / 2 - tw / 2;
+    left = Math.max(10, Math.min(left, innerWidth - tw - 10));
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }
+
+  return { open, close, skip, next, prev, go, shouldShow };
+})();
 
 
 // == tabs.js ==
@@ -6113,8 +6871,63 @@ let spinAnim = null;
 let wheelDrag = null;
 let suppressWheelClick = false;
 let _lastTopIdx = -1, _lastTickT = 0;
+let wheelLocked = false;            // when true, tapping sectors auditions only — the key stays put
 
 function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {} }
+
+// ── Chord lock (V5.12) ─────────────────────────────────
+// Tap the wheel centre (the tonic) to lock the current key. While locked, tapping
+// any sector only plays its chord (audition) with a quick flash — the key, scale,
+// degrees and suggestions stay frozen, so you can explore sounds without losing
+// your place. Spinning the wheel is a deliberate move and releases the lock.
+function setWheelLock(on) {
+  if (wheelLocked === on) return;
+  wheelLocked = on;
+  haptic(on ? 14 : 8);
+  if (typeof renderWheel === 'function') renderWheel();   // re-light the diatonic chords
+  updateWheelLockUI();
+}
+function toggleWheelLock() { setWheelLock(!wheelLocked); }
+
+function updateWheelLockUI() {
+  const wrap = document.querySelector('.circle-wrap');
+  if (wrap) wrap.classList.toggle('wheel-locked', wheelLocked);
+  const ring  = document.getElementById('wheelLockRing');
+  const badge = document.getElementById('wheelLockBadge');
+  if (ring)  ring.setAttribute('opacity', wheelLocked ? '0.9' : '0');
+  if (badge) badge.setAttribute('opacity', wheelLocked ? '1' : '0');
+  const hint = document.getElementById('wheelLockHint');
+  if (hint) {
+    hint.hidden = !wheelLocked;
+    hint.textContent = (st.lang === 'es')
+      ? 'Tonalidad fija · escucha acordes sin cambiar · toca el centro para soltar'
+      : 'Key locked · audition chords freely · tap the centre to release';
+  }
+}
+
+// Brief highlight pulse on a sector tapped while locked — shows "you're hearing
+// this, not selecting it".
+function auditionFlash(el) {
+  if (!el) return;
+  el.classList.remove('sector-audition');
+  void el.getBoundingClientRect();
+  el.classList.add('sector-audition');
+  setTimeout(() => el.classList.remove('sector-audition'), 440);
+}
+
+// Wire the centre of the wheel to toggle the lock. Idempotent — safe to call once.
+function initWheelLock() {
+  ['centerGloss', 'cKey', 'cRel', 'centerDisc'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el._lockWired) return;
+    el._lockWired = true;
+    el.addEventListener('click', e => {
+      if (suppressWheelClick) return;
+      e.stopPropagation();
+      toggleWheelLock();
+    });
+  });
+}
 
 function wheelPointerAngle(e) {
   const svg   = document.getElementById('wheelSvg');
@@ -6190,6 +7003,7 @@ function settleWheelFrom(rot, velocity) {
 }
 
 function selectWheelKey(majorKey) {
+  if (wheelLocked) return;          // audition mode: the chord already sounded, don't move the key
   AppActions.setKey(majorKey);
 }
 
@@ -6230,6 +7044,7 @@ function initWheelRoulette() {
     if (Math.abs(shortestDelta(angle, startAngle)) > MIN_DRAG_DEG) {
       wheelDrag.moved    = true;
       suppressWheelClick = true;
+      if (wheelLocked) setWheelLock(false);   // a deliberate spin releases the lock
     }
   }
 
@@ -6628,6 +7443,7 @@ function toggleTheme() {
   );
 
   initWheelRoulette();
+  if (typeof initWheelLock === 'function') initWheelLock();
   WheelDirectionGuide.addInfoButton();
   if (typeof Metronome === 'object') Metronome.init();
   if (typeof initPlayOpts === 'function') initPlayOpts();
@@ -6635,6 +7451,11 @@ function toggleTheme() {
   normalizeKeyState();
   RenderEngine.full();
   applyI18n();
+
+  // First-run welcome tour (once; re-openable from the header "?" button).
+  if (typeof Onboarding === 'object' && Onboarding.shouldShow()) {
+    setTimeout(() => Onboarding.open(), 520);
+  }
 })();
 
 
