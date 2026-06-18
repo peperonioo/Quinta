@@ -1,64 +1,59 @@
-/* ── ONBOARDING / WELCOME TOUR ──────────────────────── */
-.ob {
-  position: fixed; inset: 0; z-index: 10050;
-  display: flex; align-items: center; justify-content: center; padding: 18px;
-  padding-bottom: calc(18px + var(--mobile-safe-bottom));
-  background: rgba(0,0,0,.55); backdrop-filter: blur(9px) saturate(1.1);
-  opacity: 0; pointer-events: none; transition: opacity .3s var(--ease);
-}
-body.light .ob { background: rgba(30,24,20,.4); }
-.ob.ob-on { opacity: 1; pointer-events: auto; }
+/* ── ONBOARDING / GUIDED SPOTLIGHT TOUR ─────────────── */
+.ob { position: fixed; inset: 0; z-index: 10050; pointer-events: none; opacity: 0; transition: opacity .3s var(--ease); }
+.ob.ob-on { opacity: 1; }
 .ob[hidden] { display: none; }
 
-.ob-card {
-  width: min(440px, 93vw); max-height: 92vh; overflow: hidden;
-  display: flex; flex-direction: column;
-  background: linear-gradient(180deg, var(--ui-surface-strong), var(--ui-surface));
-  border: 1px solid var(--ui-border-strong); border-radius: 24px;
-  box-shadow: var(--shadow-lift); color: var(--ink);
-  transform: translateY(16px) scale(.96); opacity: 0;
-  transition: transform .44s var(--ease), opacity .44s var(--ease);
-}
-.ob.ob-on .ob-card { transform: none; opacity: 1; }
+/* Click-catcher: dims interaction with the rest of the page during the tour. */
+.ob-catch { position: fixed; inset: 0; pointer-events: auto; }
 
-.ob-art {
-  position: relative; height: 196px; flex: 0 0 auto; overflow: hidden;
-  background: radial-gradient(120% 92% at 50% 28%, rgba(var(--ba-rgb),.18), transparent 70%);
-  border-bottom: 1px solid var(--ui-border);
+/* Spotlight: a transparent rect whose huge box-shadow darkens everything else,
+   ringed in accent. Moves smoothly between targets. */
+.ob-spot {
+  position: fixed; z-index: 1; pointer-events: none; border-radius: 16px; left: 0; top: 0; width: 0; height: 0;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.68), 0 0 0 2px var(--accent), 0 0 16px 3px rgba(232,68,26,.4);
+  transition: left .42s var(--ease), top .42s var(--ease), width .42s var(--ease), height .42s var(--ease), border-radius .42s var(--ease);
+  animation: obSpotPulse 2.2s ease-in-out infinite;
 }
-.ob-svg { width: 100%; height: 100%; display: block; }
+@keyframes obSpotPulse {
+  0%,100% { box-shadow: 0 0 0 9999px rgba(0,0,0,.68), 0 0 0 2px var(--accent),  0 0 16px 3px rgba(232,68,26,.38); }
+  50%     { box-shadow: 0 0 0 9999px rgba(0,0,0,.68), 0 0 0 2.5px var(--accent2), 0 0 30px 7px rgba(232,68,26,.62); }
+}
+.ob-spot.ob-spot-hidden { box-shadow: 0 0 0 9999px rgba(0,0,0,.68); animation: none; width: 0; height: 0; }
+
+/* Tooltip card */
+.ob-tip {
+  position: fixed; z-index: 2; pointer-events: auto; width: 340px; max-width: calc(100vw - 24px);
+  background: linear-gradient(180deg, var(--ui-surface-strong), var(--ui-surface));
+  border: 1px solid var(--ui-border-strong); border-radius: 18px; box-shadow: var(--shadow-lift);
+  color: var(--ink); padding: 18px 18px 14px;
+  transition: left .4s var(--ease), top .4s var(--ease);
+}
+.ob-fade { animation: obFade .42s var(--ease); }
+@keyframes obFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 .ob-skip {
-  position: absolute; top: 12px; right: 12px; z-index: 2; cursor: pointer;
-  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .04em; color: var(--muted);
-  background: rgba(0,0,0,.28); border: 1px solid var(--ui-border); border-radius: 999px; padding: 5px 12px;
-  transition: color .15s, background .15s;
+  position: absolute; top: 12px; right: 14px; border: 0; background: none; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .04em; color: var(--muted); padding: 2px 4px;
 }
-body.light .ob-skip { background: rgba(255,255,255,.5); }
 .ob-skip:hover { color: var(--ink); }
+.ob-step { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .2em; color: var(--accent2); margin-bottom: 7px; }
+.ob-title { font-family: 'DM Serif Display', Georgia, serif; font-weight: 600; font-size: 19px; line-height: 1.2; margin: 0 0 7px; color: var(--ink); padding-right: 36px; }
+.ob-text { font-size: 13px; line-height: 1.5; color: var(--muted); margin: 0; }
 
-.ob-body { padding: 20px 24px 4px; }
-.ob-step { font-family: 'DM Mono', monospace; font-size: 10.5px; letter-spacing: .2em; color: var(--accent2); margin-bottom: 9px; }
-.ob-title { font-family: 'DM Serif Display', Georgia, serif; font-weight: 600; font-size: 23px; line-height: 1.16; margin: 0 0 9px; color: var(--ink); }
-.ob-text { font-size: 13.5px; line-height: 1.55; color: var(--muted); margin: 0; min-height: 66px; }
-
-.ob-dots { display: flex; gap: 7px; justify-content: center; padding: 12px 0 2px; }
-.ob-dot {
-  width: 7px; height: 7px; border-radius: 999px; border: 0; padding: 0; cursor: pointer;
-  background: var(--ui-border-strong); transition: width .3s var(--ease), background .3s;
-}
-.ob-dot.on { width: 22px; background: var(--accent); }
-
-.ob-foot { display: flex; align-items: center; gap: 10px; padding: 12px 22px 20px; }
+.ob-tip-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; }
+.ob-dots { display: flex; gap: 6px; }
+.ob-dot { width: 6px; height: 6px; border-radius: 999px; border: 0; padding: 0; cursor: pointer; background: var(--ui-border-strong); transition: width .3s var(--ease), background .3s; }
+.ob-dot.on { width: 18px; background: var(--accent); }
+.ob-nav { display: flex; gap: 8px; }
 .ob-btn {
-  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
-  border-radius: 999px; padding: 10px 20px; border: 1px solid transparent;
+  font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  border-radius: 999px; padding: 8px 16px; border: 1px solid transparent;
   transition: transform .12s var(--ease), filter .15s, background .15s, color .15s;
 }
 .ob-btn:active { transform: scale(.97); }
 .ob-ghost { background: transparent; color: var(--muted); border-color: var(--ui-border); }
 .ob-ghost:hover { color: var(--ink); border-color: var(--ui-border-strong); }
-.ob-primary { background: var(--accent); color: #fff; box-shadow: 0 6px 18px rgba(232,68,26,.3); margin-left: auto; }
+.ob-primary { background: var(--accent); color: #fff; box-shadow: 0 5px 16px rgba(232,68,26,.3); }
 .ob-primary:hover { filter: brightness(1.07); }
 
 /* Header "?" replay button */
@@ -70,31 +65,9 @@ body.light .ob-skip { background: rgba(255,255,255,.5); }
 }
 .help-btn:hover { color: var(--accent2); border-color: rgba(232,68,26,.4); transform: scale(1.06); }
 
-/* Content swap + SVG animation utilities */
-.ob-fade { animation: obFade .44s var(--ease); }
-@keyframes obFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.ob-c { transform-box: fill-box; transform-origin: center; }
-.ob-spin { animation: obSpin 15s linear infinite; }
-.ob-spin-slow { animation: obSpin 24s linear infinite; }
-@keyframes obSpin { to { transform: rotate(360deg); } }
-.ob-pulse { animation: obPulse 2.4s var(--ease) infinite; }
-@keyframes obPulse { 0%,100% { opacity: .55; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.05); } }
-.ob-glow { animation: obGlowA 3.2s ease-in-out infinite; }
-@keyframes obGlowA { 0%,100% { opacity: .3; } 50% { opacity: .62; } }
-.ob-rise { animation: obRise .6s var(--ease) both; }
-@keyframes obRise { 0% { opacity: 0; transform: translateY(-16px); } 100% { opacity: 1; transform: translateY(0); } }
-.ob-pop { animation: obPop .52s var(--ease) both; }
-@keyframes obPop { 0% { opacity: 0; transform: scale(.55); } 70% { opacity: 1; transform: scale(1.08); } 100% { transform: scale(1); } }
-.ob-blink { animation: obBlink 1.7s ease-in-out infinite; }
-@keyframes obBlink { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
-
-@media (max-width: 480px) {
-  .ob-art { height: 158px; }
-  .ob-title { font-size: 20px; }
-  .ob-text { font-size: 13px; min-height: 78px; }
-  .ob-body { padding: 16px 18px 4px; }
-  .ob-foot { padding: 10px 16px 18px; }
-}
+@media (max-width: 480px) { .ob-tip { width: calc(100vw - 20px); } }
 @media (prefers-reduced-motion: reduce) {
-  .ob-spin, .ob-spin-slow, .ob-pulse, .ob-glow, .ob-rise, .ob-pop, .ob-blink, .ob-fade, .ob-card { animation: none; }
+  .ob-spot { animation: none; transition: none; }
+  .ob-tip { transition: none; }
+  .ob-fade { animation: none; }
 }
