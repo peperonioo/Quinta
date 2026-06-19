@@ -2,6 +2,11 @@
    One recipe per job. Loaded late so the ~13 drifted control
    recipes converge onto these without touching every call site.   */
 
+/* ── Icons — one line family, currentColor ─────────────────*/
+.ico { display: block; flex: none; }
+[data-ico] { display: inline-flex; align-items: center; gap: 7px; }
+.theme-btn, .help-btn { gap: 0; }
+
 /* ── Segmented control ─────────────────────────────────────
    Tabs · Major/Minor · Chords|Triads · metronome sounds = one part. */
 .tabs,

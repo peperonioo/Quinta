@@ -106,7 +106,7 @@ function startPlay() {
   if (typeof AudioEngine !== 'object' || !AudioEngine.resume()) return;
   playing = true; _prodStep = 0; _prodBar = 0; _prodPrevUpper = null; _prodVoicing = null;
   const playBtn = document.getElementById('playBtn');
-  if (playBtn) { playBtn.classList.add('playing'); playBtn.textContent = t('play.stop'); }
+  if (playBtn) { playBtn.classList.add('playing'); const l = playBtn.querySelector('span'); if (l) l.textContent = t('play.stop'); if (typeof setIcon === 'function') setIcon(playBtn, 'stop'); }
   _prodNext = AudioEngine.now() + 0.08;
   pInterval = setInterval(_prodSchedule, 25);
 }
@@ -116,7 +116,7 @@ function stopPlay() {
   clearInterval(pInterval); pInterval = null;
   if (typeof AudioEngine === 'object') AudioEngine.killVoices();   // cut sustained chords/sub
   const playBtn = document.getElementById('playBtn');
-  if (playBtn) { playBtn.classList.remove('playing'); playBtn.textContent = t('play.play'); }
+  if (playBtn) { playBtn.classList.remove('playing'); const l = playBtn.querySelector('span'); if (l) l.textContent = t('play.play'); if (typeof setIcon === 'function') setIcon(playBtn, 'play'); }
   document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
 }
 

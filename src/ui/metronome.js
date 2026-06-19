@@ -75,7 +75,7 @@ const Metronome = {
   },
   _playBtn() {
     const b = document.getElementById('metroPlay');
-    if (b) b.textContent = this.playing ? '■' : '▶';
+    if (b && typeof setIcon === 'function') setIcon(b, this.playing ? 'stop' : 'play');
   },
 
   // ── Tap tempo ─────────────────────────────────────────

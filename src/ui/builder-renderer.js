@@ -322,8 +322,10 @@ const BarDrag = {
 let _progRAF = 0;
 function setProgBtn(playing) {
   const b = document.getElementById('playProgBtn'); if (!b) return;
-  b.textContent = playing ? t('play.stop') : t('builder.play');
+  const lbl = b.querySelector('span'); if (lbl) lbl.textContent = playing ? t('play.stop') : t('builder.play');
+  if (typeof setIcon === 'function') setIcon(b, playing ? 'stop' : 'play');
   b.classList.toggle('is-stop', playing);
+  b.classList.toggle('playing', playing);
 }
 function stopProgression() {
   cancelAnimationFrame(_progRAF); _progRAF = 0;

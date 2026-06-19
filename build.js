@@ -39,6 +39,7 @@ const JS_FILES = [
   'src/i18n/en.js',
   'src/i18n/es.js',
   'src/i18n/i18n.js',
+  'src/ui/icons.js',
   // More static data
   'src/theory/theory-data.js',
   // State — uses constants.js (defaultState, STORAGE_KEY)

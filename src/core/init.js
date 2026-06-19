@@ -148,7 +148,7 @@ function toggleTheme() {
     st.theme = isLight ? 'light' : 'dark';
     document.body.classList.toggle('light', isLight);
     const btn = document.getElementById('themeBtn');
-    if (btn) btn.textContent = isLight ? '☾' : '☀';
+    if (btn && typeof setIcon === 'function') setIcon(btn, isLight ? 'moon' : 'sun');
     saveState();
     renderWheel();
   };
@@ -174,7 +174,7 @@ function toggleTheme() {
   document.title = 'Easy Fifth Circle · ' + APP_VERSION;
   document.body.classList.toggle('light', isLight);
   const themeBtn = document.getElementById('themeBtn');
-  if (themeBtn) themeBtn.textContent = isLight ? '☾' : '☀';
+  if (themeBtn && typeof setIcon === 'function') setIcon(themeBtn, isLight ? 'moon' : 'sun');
 
   if (window._setPalActive) window._setPalActive(st.palette || 0);
 
@@ -221,6 +221,7 @@ function toggleTheme() {
   document.body.dataset.tab = 'theory';      // instrument dock shows on the theory tab
   RenderEngine.full();
   applyI18n();
+  if (typeof applyIcons === 'function') applyIcons();   // inject the line-SVG icon set
 
   // First-run welcome tour (once; re-openable from the header "?" button).
   if (typeof Onboarding === 'object' && Onboarding.shouldShow()) {
