@@ -133,8 +133,9 @@ const GuitarShapes = (() => {
   // ── Mini horizontal fretboard (matches the big board's orientation) ──
   // Strings as rows (high-e on top, low-E at bottom), frets left→right. Cleaner
   // and consistent with the real fretboard, so the small + big read the same.
+  const _noteName = pc => (typeof na === 'function') ? ((typeof dn === 'function') ? dn(na(pc)) : na(pc)) : '';
   function drawMiniFret(frets, rootPC) {
-    const W = 118, H = 58, x0 = 16, x1 = 112, y0 = 7, y1 = 51, NS = 6, NF = 5;
+    const W = 168, H = 96, x0 = 24, x1 = 160, y0 = 13, y1 = 85, NS = 6, NF = 5;
     const active = frets.filter(f => f > 0);
     const minF = active.length ? Math.min(...active) : 0;
     const base = minF <= 1 ? 0 : minF - 1;          // leftmost shown fret
@@ -143,22 +144,21 @@ const GuitarShapes = (() => {
     const fx = f => x0 + (x1 - x0) * f / NF;
     const fg = 'var(--fg)';
     let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
-    if (!nut) s += `<text x="2" y="${sy(5) + 3}" font-size="7" fill="var(--muted)" font-family="DM Mono,monospace">${base + 1}</text>`;
+    if (!nut) s += `<text x="3" y="${sy(5) + 4}" font-size="9.5" fill="var(--muted)" font-family="DM Mono,monospace">${base + 1}</text>`;
     for (let i = 0; i < NS; i++)                      // string rows (bass thicker)
-      s += `<line x1="${x0}" y1="${sy(i)}" x2="${x1}" y2="${sy(i)}" stroke="${fg}" stroke-opacity="0.3" stroke-width="${0.5 + i * 0.16}"/>`;
+      s += `<line x1="${x0}" y1="${sy(i)}" x2="${x1}" y2="${sy(i)}" stroke="${fg}" stroke-opacity="0.34" stroke-width="${0.7 + i * 0.26}"/>`;
     for (let f = 0; f <= NF; f++) {                   // fret columns (nut thick)
       const isNut = nut && f === 0;
-      s += `<line x1="${fx(f)}" y1="${sy(0)}" x2="${fx(f)}" y2="${sy(5)}" stroke="${fg}" stroke-opacity="${isNut ? 0.85 : 0.15}" stroke-width="${isNut ? 2.4 : 0.7}" stroke-linecap="round"/>`;
+      s += `<line x1="${fx(f)}" y1="${sy(0)}" x2="${fx(f)}" y2="${sy(5)}" stroke="${fg}" stroke-opacity="${isNut ? 0.9 : 0.16}" stroke-width="${isNut ? 3.4 : 1}" stroke-linecap="round"/>`;
     }
-    for (let i = 0; i < NS; i++) {                    // markers + dots
+    for (let i = 0; i < NS; i++) {                    // markers + dots (with note names)
       const f = frets[5 - i], y = sy(i);
-      if (f === -1) { s += `<text x="${x0 - 7}" y="${y + 2.6}" text-anchor="middle" font-size="7.5" fill="var(--muted)">×</text>`; continue; }
-      if (f === 0)  { s += `<circle cx="${x0 - 7}" cy="${y}" r="2.5" fill="none" stroke="var(--accent)" stroke-width="1.1"/>`; continue; }
+      if (f === -1) { s += `<text x="${x0 - 12}" y="${y + 4}" text-anchor="middle" font-size="11" fill="var(--muted)">×</text>`; continue; }
+      if (f === 0)  { s += `<circle cx="${x0 - 12}" cy="${y}" r="4.5" fill="none" stroke="var(--accent)" stroke-width="1.6"/><text x="${x0 - 12}" y="${y + 2.6}" text-anchor="middle" font-size="6.5" fill="var(--accent2)" font-family="DM Mono,monospace">${_noteName(TUNE[5 - i] % 12)}</text>`; continue; }
       const df = f - base; if (df < 1 || df > NF) continue;
-      const cx = fx(df - 0.5);
-      const isRoot = ((TUNE[5 - i] + f) % 12) === rootPC;
-      s += `<circle cx="${cx}" cy="${y}" r="4.2" fill="var(--accent)"/>`;
-      if (isRoot) s += `<circle cx="${cx}" cy="${y}" r="1.6" fill="#fff"/>`;
+      const cx = fx(df - 0.5), pc = (TUNE[5 - i] + f) % 12, isRoot = pc === rootPC;
+      s += `<circle cx="${cx}" cy="${y}" r="9" fill="var(--accent)"${isRoot ? ' stroke="#fff" stroke-width="1.8"' : ''}/>`;
+      s += `<text x="${cx}" y="${y + 3}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="DM Mono,monospace">${_noteName(pc)}</text>`;
     }
     s += '</svg>';
     return s;
@@ -201,15 +201,19 @@ const GuitarShapes = (() => {
   function _cardHTML(c, pos) {
     const vs = _voicingsFor(c);
     const sel = clampi(_sel[pos] || 0, Math.max(0, vs.length - 1));
-    const dots = vs.length > 1
-      ? `<div class="gsc-dots">${vs.map((_, i) => `<span class="gsc-dot${i === sel ? ' on' : ''}" onclick="event.stopPropagation();GuitarShapes.setVoicing(${pos},${i})"></span>`).join('')}</div>`
-      : `<div class="gsc-dots"></div>`;
+    const multi = vs.length > 1;
+    const ctl = multi
+      ? `<div class="gsc-ctl">
+           <button class="gsc-arrow" onclick="event.stopPropagation();GuitarShapes.step(${pos},-1)" aria-label="lower position">‹</button>
+           <div class="gsc-dots">${vs.map((_, i) => `<span class="gsc-dot${i === sel ? ' on' : ''}" onclick="event.stopPropagation();GuitarShapes.setVoicing(${pos},${i})"></span>`).join('')}</div>
+           <button class="gsc-arrow" onclick="event.stopPropagation();GuitarShapes.step(${pos},1)" aria-label="higher position">›</button>
+         </div>`
+      : `<div class="gsc-ctl gsc-ctl-solo"></div>`;
     const diag = vs.length ? drawMiniFret(vs[sel].frets, c.rootPC) : '<div class="gss-empty">—</div>';
-    return `<div class="gss-card${pos === _activePos ? ' gss-active' : ''}" data-pos="${pos}" role="button"
-              onpointerdown="GuitarShapes.cardDown(event,${pos})">
+    return `<div class="gss-card${pos === _activePos ? ' gss-active' : ''}" data-pos="${pos}" role="button">
         <div class="gsc-name">${c.name}</div>
-        ${dots}
-        <div class="gsc-diag">${diag}</div>
+        ${ctl}
+        <div class="gsc-diag" onpointerdown="GuitarShapes.cardDown(event,${pos})">${diag}</div>
         <div class="gsc-pos">${vs.length ? vs[sel].label : ''}</div>
       </div>`;
   }
@@ -262,23 +266,26 @@ const GuitarShapes = (() => {
 
     // Dots → pick a specific voicing for one chord.
     setVoicing(pos, i) { _sel[pos] = i; _updateCard(pos); _highlightCard(pos); },
+    // Arrows → step to the lower/higher position (clamped).
+    step(pos, dir) {
+      const vs = _voicingsFor(_chords[pos]); if (vs.length <= 1) return;
+      _sel[pos] = Math.max(0, Math.min(vs.length - 1, (_sel[pos] || 0) + dir));
+      _updateCard(pos); _highlightCard(pos);
+    },
 
-    // Pointer on a card: a sideways drag cycles that chord's voicings (low→high);
-    // a tap (no drag) lights the chord's current shape big on the fretboard.
+    // Pointer on a card's fretboard: a sideways drag slides voicings (low→high);
+    // a tap (no drag) lights that chord's current shape big on the real fretboard.
     cardDown(e, pos) {
       const startX = e.clientX;
+      const move = ev => { if (Math.abs(ev.clientX - startX) > 6 && ev.cancelable) ev.preventDefault(); };
       const up = ev => {
+        window.removeEventListener('pointermove', move);
         window.removeEventListener('pointerup', up);
         const dx = ev.clientX - startX;
-        const vs = _voicingsFor(_chords[pos]);
-        if (Math.abs(dx) > 24 && vs.length > 1) {
-          let sel = (_sel[pos] || 0) + (dx < 0 ? 1 : -1);
-          _sel[pos] = Math.max(0, Math.min(vs.length - 1, sel));
-          _updateCard(pos); _highlightCard(pos);
-        } else {
-          _highlightCard(pos);
-        }
+        if (Math.abs(dx) > 22) this.step(pos, dx < 0 ? 1 : -1);
+        else _highlightCard(pos);
       };
+      window.addEventListener('pointermove', move, { passive: false });
       window.addEventListener('pointerup', up);
     },
 

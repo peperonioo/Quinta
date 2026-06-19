@@ -1364,7 +1364,7 @@ body[data-tab="production"] .instr-dock { display: none; }
   max-height: 0; overflow: hidden;
   transition: max-height .4s cubic-bezier(.34,1.4,.4,1);
 }
-.gss-strip.gss-on { max-height: 184px; }
+.gss-strip.gss-on { max-height: 260px; }
 .gss-head {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 12px 3px;
@@ -1392,31 +1392,50 @@ body[data-tab="production"] .instr-dock { display: none; }
 .gss-x:hover { color: var(--fg); }
 .gss-empty { color: var(--muted); font-size: 11px; padding: 14px 4px; }
 .gss-scroll {
-  display: flex; gap: 10px; overflow-x: auto; padding: 8px 12px 12px;
-  scrollbar-width: none; align-items: flex-start;
+  display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
+  padding: 14px 14px 16px; scrollbar-width: thin; scrollbar-color: var(--muted) transparent;
+  align-items: stretch;
 }
-.gss-scroll::-webkit-scrollbar { display: none; }
+.gss-scroll::-webkit-scrollbar { height: 5px; }
+.gss-scroll::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
 
-/* De-duplicated chord cards — each shows a mini-fretboard + position dots. */
+/* De-duplicated chord cards — big, clear, interactive. */
 .gss-card {
-  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  cursor: pointer; border-radius: 14px; padding: 6px 9px 7px;
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 7px;
+  cursor: pointer; border-radius: 18px; padding: 12px 14px 13px;
   border: 1.5px solid var(--card-bd); background: var(--sel-bg);
-  transition: border-color .14s, background .14s, transform .12s var(--ease);
-  user-select: none; touch-action: pan-y;
+  transition: border-color .16s, background .16s, transform .2s var(--ease), box-shadow .2s;
+  user-select: none;
 }
-.gss-card:hover { border-color: var(--muted); transform: translateY(-1px); }
-.gss-card.gss-active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent); }
-.gsc-name { font-family: 'DM Serif Display', Georgia, serif; font-size: 15px; color: var(--fg); line-height: 1; }
+.gss-card:hover {
+  border-color: var(--muted); transform: scale(1.05) translateY(-3px);
+  box-shadow: var(--shadow-lift); z-index: 2;
+}
+.gss-card.gss-active {
+  border-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent);
+  transform: scale(1.05) translateY(-2px); box-shadow: 0 12px 32px rgba(232,68,26,.28); z-index: 2;
+}
+.gsc-name { font-family: 'DM Serif Display', Georgia, serif; font-size: 20px; color: var(--fg); line-height: 1; }
 .gss-card.gss-active .gsc-name { color: var(--accent2); }
-.gsc-dots { display: flex; gap: 5px; height: 7px; align-items: center; }
+.gsc-ctl { display: flex; align-items: center; gap: 9px; height: 22px; }
+.gsc-ctl-solo { height: 22px; }
+.gsc-arrow {
+  width: 22px; height: 22px; border-radius: 999px; border: 0; cursor: pointer;
+  background: var(--sel-bg); border: 1px solid var(--card-bd); color: var(--muted);
+  font-size: 14px; line-height: 1; display: grid; place-items: center;
+  transition: color .14s, background .14s, border-color .14s;
+}
+.gsc-arrow:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
+.gsc-dots { display: flex; gap: 7px; align-items: center; }
 .gsc-dot {
-  width: 5px; height: 5px; border-radius: 999px; cursor: pointer;
+  width: 9px; height: 9px; border-radius: 999px; cursor: pointer;
   background: var(--ui-border-strong); transition: background .15s, transform .15s;
 }
-.gsc-dot.on { background: var(--accent); transform: scale(1.3); }
-.gsc-diag { line-height: 0; pointer-events: none; }
-.gsc-pos { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: .03em; color: var(--muted); }
+.gsc-dot:hover { background: var(--muted); }
+.gsc-dot.on { background: var(--accent); transform: scale(1.4); }
+.gsc-diag { line-height: 0; touch-action: none; cursor: grab; }
+.gsc-diag:active { cursor: grabbing; }
+.gsc-pos { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .04em; color: var(--muted); }
 .gss-card.gss-active .gsc-pos { color: var(--accent2); }
 
 /* "Shapes" trigger button in guitar drawer summary */
@@ -2179,7 +2198,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.22';
+const APP_VERSION = 'V5.23';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -6182,8 +6201,9 @@ const GuitarShapes = (() => {
   // ── Mini horizontal fretboard (matches the big board's orientation) ──
   // Strings as rows (high-e on top, low-E at bottom), frets left→right. Cleaner
   // and consistent with the real fretboard, so the small + big read the same.
+  const _noteName = pc => (typeof na === 'function') ? ((typeof dn === 'function') ? dn(na(pc)) : na(pc)) : '';
   function drawMiniFret(frets, rootPC) {
-    const W = 118, H = 58, x0 = 16, x1 = 112, y0 = 7, y1 = 51, NS = 6, NF = 5;
+    const W = 168, H = 96, x0 = 24, x1 = 160, y0 = 13, y1 = 85, NS = 6, NF = 5;
     const active = frets.filter(f => f > 0);
     const minF = active.length ? Math.min(...active) : 0;
     const base = minF <= 1 ? 0 : minF - 1;          // leftmost shown fret
@@ -6192,22 +6212,21 @@ const GuitarShapes = (() => {
     const fx = f => x0 + (x1 - x0) * f / NF;
     const fg = 'var(--fg)';
     let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
-    if (!nut) s += `<text x="2" y="${sy(5) + 3}" font-size="7" fill="var(--muted)" font-family="DM Mono,monospace">${base + 1}</text>`;
+    if (!nut) s += `<text x="3" y="${sy(5) + 4}" font-size="9.5" fill="var(--muted)" font-family="DM Mono,monospace">${base + 1}</text>`;
     for (let i = 0; i < NS; i++)                      // string rows (bass thicker)
-      s += `<line x1="${x0}" y1="${sy(i)}" x2="${x1}" y2="${sy(i)}" stroke="${fg}" stroke-opacity="0.3" stroke-width="${0.5 + i * 0.16}"/>`;
+      s += `<line x1="${x0}" y1="${sy(i)}" x2="${x1}" y2="${sy(i)}" stroke="${fg}" stroke-opacity="0.34" stroke-width="${0.7 + i * 0.26}"/>`;
     for (let f = 0; f <= NF; f++) {                   // fret columns (nut thick)
       const isNut = nut && f === 0;
-      s += `<line x1="${fx(f)}" y1="${sy(0)}" x2="${fx(f)}" y2="${sy(5)}" stroke="${fg}" stroke-opacity="${isNut ? 0.85 : 0.15}" stroke-width="${isNut ? 2.4 : 0.7}" stroke-linecap="round"/>`;
+      s += `<line x1="${fx(f)}" y1="${sy(0)}" x2="${fx(f)}" y2="${sy(5)}" stroke="${fg}" stroke-opacity="${isNut ? 0.9 : 0.16}" stroke-width="${isNut ? 3.4 : 1}" stroke-linecap="round"/>`;
     }
-    for (let i = 0; i < NS; i++) {                    // markers + dots
+    for (let i = 0; i < NS; i++) {                    // markers + dots (with note names)
       const f = frets[5 - i], y = sy(i);
-      if (f === -1) { s += `<text x="${x0 - 7}" y="${y + 2.6}" text-anchor="middle" font-size="7.5" fill="var(--muted)">×</text>`; continue; }
-      if (f === 0)  { s += `<circle cx="${x0 - 7}" cy="${y}" r="2.5" fill="none" stroke="var(--accent)" stroke-width="1.1"/>`; continue; }
+      if (f === -1) { s += `<text x="${x0 - 12}" y="${y + 4}" text-anchor="middle" font-size="11" fill="var(--muted)">×</text>`; continue; }
+      if (f === 0)  { s += `<circle cx="${x0 - 12}" cy="${y}" r="4.5" fill="none" stroke="var(--accent)" stroke-width="1.6"/><text x="${x0 - 12}" y="${y + 2.6}" text-anchor="middle" font-size="6.5" fill="var(--accent2)" font-family="DM Mono,monospace">${_noteName(TUNE[5 - i] % 12)}</text>`; continue; }
       const df = f - base; if (df < 1 || df > NF) continue;
-      const cx = fx(df - 0.5);
-      const isRoot = ((TUNE[5 - i] + f) % 12) === rootPC;
-      s += `<circle cx="${cx}" cy="${y}" r="4.2" fill="var(--accent)"/>`;
-      if (isRoot) s += `<circle cx="${cx}" cy="${y}" r="1.6" fill="#fff"/>`;
+      const cx = fx(df - 0.5), pc = (TUNE[5 - i] + f) % 12, isRoot = pc === rootPC;
+      s += `<circle cx="${cx}" cy="${y}" r="9" fill="var(--accent)"${isRoot ? ' stroke="#fff" stroke-width="1.8"' : ''}/>`;
+      s += `<text x="${cx}" y="${y + 3}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="DM Mono,monospace">${_noteName(pc)}</text>`;
     }
     s += '</svg>';
     return s;
@@ -6250,15 +6269,19 @@ const GuitarShapes = (() => {
   function _cardHTML(c, pos) {
     const vs = _voicingsFor(c);
     const sel = clampi(_sel[pos] || 0, Math.max(0, vs.length - 1));
-    const dots = vs.length > 1
-      ? `<div class="gsc-dots">${vs.map((_, i) => `<span class="gsc-dot${i === sel ? ' on' : ''}" onclick="event.stopPropagation();GuitarShapes.setVoicing(${pos},${i})"></span>`).join('')}</div>`
-      : `<div class="gsc-dots"></div>`;
+    const multi = vs.length > 1;
+    const ctl = multi
+      ? `<div class="gsc-ctl">
+           <button class="gsc-arrow" onclick="event.stopPropagation();GuitarShapes.step(${pos},-1)" aria-label="lower position">‹</button>
+           <div class="gsc-dots">${vs.map((_, i) => `<span class="gsc-dot${i === sel ? ' on' : ''}" onclick="event.stopPropagation();GuitarShapes.setVoicing(${pos},${i})"></span>`).join('')}</div>
+           <button class="gsc-arrow" onclick="event.stopPropagation();GuitarShapes.step(${pos},1)" aria-label="higher position">›</button>
+         </div>`
+      : `<div class="gsc-ctl gsc-ctl-solo"></div>`;
     const diag = vs.length ? drawMiniFret(vs[sel].frets, c.rootPC) : '<div class="gss-empty">—</div>';
-    return `<div class="gss-card${pos === _activePos ? ' gss-active' : ''}" data-pos="${pos}" role="button"
-              onpointerdown="GuitarShapes.cardDown(event,${pos})">
+    return `<div class="gss-card${pos === _activePos ? ' gss-active' : ''}" data-pos="${pos}" role="button">
         <div class="gsc-name">${c.name}</div>
-        ${dots}
-        <div class="gsc-diag">${diag}</div>
+        ${ctl}
+        <div class="gsc-diag" onpointerdown="GuitarShapes.cardDown(event,${pos})">${diag}</div>
         <div class="gsc-pos">${vs.length ? vs[sel].label : ''}</div>
       </div>`;
   }
@@ -6311,23 +6334,26 @@ const GuitarShapes = (() => {
 
     // Dots → pick a specific voicing for one chord.
     setVoicing(pos, i) { _sel[pos] = i; _updateCard(pos); _highlightCard(pos); },
+    // Arrows → step to the lower/higher position (clamped).
+    step(pos, dir) {
+      const vs = _voicingsFor(_chords[pos]); if (vs.length <= 1) return;
+      _sel[pos] = Math.max(0, Math.min(vs.length - 1, (_sel[pos] || 0) + dir));
+      _updateCard(pos); _highlightCard(pos);
+    },
 
-    // Pointer on a card: a sideways drag cycles that chord's voicings (low→high);
-    // a tap (no drag) lights the chord's current shape big on the fretboard.
+    // Pointer on a card's fretboard: a sideways drag slides voicings (low→high);
+    // a tap (no drag) lights that chord's current shape big on the real fretboard.
     cardDown(e, pos) {
       const startX = e.clientX;
+      const move = ev => { if (Math.abs(ev.clientX - startX) > 6 && ev.cancelable) ev.preventDefault(); };
       const up = ev => {
+        window.removeEventListener('pointermove', move);
         window.removeEventListener('pointerup', up);
         const dx = ev.clientX - startX;
-        const vs = _voicingsFor(_chords[pos]);
-        if (Math.abs(dx) > 24 && vs.length > 1) {
-          let sel = (_sel[pos] || 0) + (dx < 0 ? 1 : -1);
-          _sel[pos] = Math.max(0, Math.min(vs.length - 1, sel));
-          _updateCard(pos); _highlightCard(pos);
-        } else {
-          _highlightCard(pos);
-        }
+        if (Math.abs(dx) > 22) this.step(pos, dx < 0 ? 1 : -1);
+        else _highlightCard(pos);
       };
+      window.addEventListener('pointermove', move, { passive: false });
       window.addEventListener('pointerup', up);
     },
 

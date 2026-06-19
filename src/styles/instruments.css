@@ -106,7 +106,7 @@ body[data-tab="production"] .instr-dock { display: none; }
   max-height: 0; overflow: hidden;
   transition: max-height .4s cubic-bezier(.34,1.4,.4,1);
 }
-.gss-strip.gss-on { max-height: 184px; }
+.gss-strip.gss-on { max-height: 260px; }
 .gss-head {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 12px 3px;
@@ -134,31 +134,50 @@ body[data-tab="production"] .instr-dock { display: none; }
 .gss-x:hover { color: var(--fg); }
 .gss-empty { color: var(--muted); font-size: 11px; padding: 14px 4px; }
 .gss-scroll {
-  display: flex; gap: 10px; overflow-x: auto; padding: 8px 12px 12px;
-  scrollbar-width: none; align-items: flex-start;
+  display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
+  padding: 14px 14px 16px; scrollbar-width: thin; scrollbar-color: var(--muted) transparent;
+  align-items: stretch;
 }
-.gss-scroll::-webkit-scrollbar { display: none; }
+.gss-scroll::-webkit-scrollbar { height: 5px; }
+.gss-scroll::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
 
-/* De-duplicated chord cards — each shows a mini-fretboard + position dots. */
+/* De-duplicated chord cards — big, clear, interactive. */
 .gss-card {
-  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  cursor: pointer; border-radius: 14px; padding: 6px 9px 7px;
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 7px;
+  cursor: pointer; border-radius: 18px; padding: 12px 14px 13px;
   border: 1.5px solid var(--card-bd); background: var(--sel-bg);
-  transition: border-color .14s, background .14s, transform .12s var(--ease);
-  user-select: none; touch-action: pan-y;
+  transition: border-color .16s, background .16s, transform .2s var(--ease), box-shadow .2s;
+  user-select: none;
 }
-.gss-card:hover { border-color: var(--muted); transform: translateY(-1px); }
-.gss-card.gss-active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent); }
-.gsc-name { font-family: 'DM Serif Display', Georgia, serif; font-size: 15px; color: var(--fg); line-height: 1; }
+.gss-card:hover {
+  border-color: var(--muted); transform: scale(1.05) translateY(-3px);
+  box-shadow: var(--shadow-lift); z-index: 2;
+}
+.gss-card.gss-active {
+  border-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent);
+  transform: scale(1.05) translateY(-2px); box-shadow: 0 12px 32px rgba(232,68,26,.28); z-index: 2;
+}
+.gsc-name { font-family: 'DM Serif Display', Georgia, serif; font-size: 20px; color: var(--fg); line-height: 1; }
 .gss-card.gss-active .gsc-name { color: var(--accent2); }
-.gsc-dots { display: flex; gap: 5px; height: 7px; align-items: center; }
+.gsc-ctl { display: flex; align-items: center; gap: 9px; height: 22px; }
+.gsc-ctl-solo { height: 22px; }
+.gsc-arrow {
+  width: 22px; height: 22px; border-radius: 999px; border: 0; cursor: pointer;
+  background: var(--sel-bg); border: 1px solid var(--card-bd); color: var(--muted);
+  font-size: 14px; line-height: 1; display: grid; place-items: center;
+  transition: color .14s, background .14s, border-color .14s;
+}
+.gsc-arrow:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
+.gsc-dots { display: flex; gap: 7px; align-items: center; }
 .gsc-dot {
-  width: 5px; height: 5px; border-radius: 999px; cursor: pointer;
+  width: 9px; height: 9px; border-radius: 999px; cursor: pointer;
   background: var(--ui-border-strong); transition: background .15s, transform .15s;
 }
-.gsc-dot.on { background: var(--accent); transform: scale(1.3); }
-.gsc-diag { line-height: 0; pointer-events: none; }
-.gsc-pos { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: .03em; color: var(--muted); }
+.gsc-dot:hover { background: var(--muted); }
+.gsc-dot.on { background: var(--accent); transform: scale(1.4); }
+.gsc-diag { line-height: 0; touch-action: none; cursor: grab; }
+.gsc-diag:active { cursor: grabbing; }
+.gsc-pos { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .04em; color: var(--muted); }
 .gss-card.gss-active .gsc-pos { color: var(--accent2); }
 
 /* "Shapes" trigger button in guitar drawer summary */
