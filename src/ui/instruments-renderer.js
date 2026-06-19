@@ -40,6 +40,13 @@ function _chordPcSet() {
 // Floating dock → jump to an instrument: expand its drawer, collapse the other
 // (tab-like), scroll it into view, and mark the dock button active.
 function gotoInstrument(which) {
+  const mobile = matchMedia('(max-width:860px)').matches;
+  // On phones the instruments live in a bottom-sheet (off the scroll). Tapping
+  // the already-active instrument while the sheet is open dismisses it.
+  if (mobile && document.body.classList.contains('instr-sheet')
+      && document.querySelector('.instr-dock-btn.on')?.dataset.instr === which) {
+    closeInstrSheet(); return;
+  }
   const drawers = document.querySelectorAll('#panel-theory .drawers .drawer');
   const piano = drawers[0], guitar = drawers[1];
   const target = which === 'guitar' ? guitar : piano;
@@ -47,8 +54,13 @@ function gotoInstrument(which) {
   if (other)  other.open  = false;
   if (target) target.open = true;
   document.querySelectorAll('.instr-dock-btn').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
-  requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  if (mobile) {
+    document.body.classList.add('instr-sheet');     // slide the sheet up
+  } else {
+    requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  }
 }
+function closeInstrSheet() { document.body.classList.remove('instr-sheet'); }
 
 function _hear(pitch)       { if (typeof AudioEngine === 'object') AudioEngine.playNote(pitch, 0.9); }
 function _hearGuitar(pitch) { if (typeof AudioEngine === 'object') AudioEngine.playGuitarNote(pitch); }

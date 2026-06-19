@@ -1923,6 +1923,30 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   .builder-next-moves .next-orbit { justify-content:flex-start !important; padding-inline:6px !important; gap:11px }
   /* Raise the floor so every bubble is tappable, but keep the size difference. */
   .builder-next-moves .next-bubble { --diam:clamp(44px, var(--d), 82px) !important; padding:5px !important }
+  /* ── Instruments as a bottom-sheet (off the scroll) ──────
+     The drawers leave the page flow and slide up from the bottom when you
+     tap Piano/Guitar in the dock. Big scroll saver. */
+  .drawers {
+    position:fixed; left:0; right:0; bottom:0; z-index:58; margin:0;
+    padding:8px 10px calc(78px + var(--mobile-safe-bottom,0px));
+    background:var(--ui-surface-strong); backdrop-filter:blur(26px);
+    border-top:1px solid var(--ui-border-strong); border-radius:22px 22px 0 0;
+    box-shadow:0 -18px 50px rgba(0,0,0,.5);
+    max-height:82svh; overflow-y:auto; overscroll-behavior:contain;
+    transform:translateY(105%); transition:transform .32s var(--ease);
+  }
+  body.instr-sheet .drawers { transform:translateY(0) }
+  .drawers::before {            /* drag handle */
+    content:''; display:block; width:40px; height:4px; border-radius:2px;
+    background:var(--ui-border-strong); margin:2px auto 8px;
+  }
+  .instr-sheet-backdrop {
+    position:fixed; inset:0; z-index:54; background:rgba(0,0,0,.45);
+    backdrop-filter:blur(3px); opacity:0; pointer-events:none;
+    transition:opacity .26s var(--ease);
+  }
+  body.instr-sheet .instr-sheet-backdrop { opacity:1; pointer-events:auto }
+
   .info-row       { grid-template-columns:1fr }
   .prod-grid,.elements-section { grid-template-columns:1fr }
   .deg-popup-wrap { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) }
@@ -2346,6 +2370,8 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
     <div id="libPresets" class="lib-list"></div>
   </div>
 </div>
+<!-- Backdrop behind the mobile instrument bottom-sheet -->
+<div id="instrSheetBackdrop" class="instr-sheet-backdrop" onclick="closeInstrSheet()" aria-hidden="true"></div>
 <!-- FLOATING INSTRUMENT DOCK (Dynamic-Island style jump to piano / guitar) -->
 <div id="instrDock" class="instr-dock" role="group" aria-label="Jump to instrument">
   <button class="instr-dock-btn on" data-instr="piano" onclick="gotoInstrument('piano')" aria-label="Piano">
@@ -2382,7 +2408,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.29';
+const APP_VERSION = 'V5.30';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -6684,6 +6710,13 @@ function _chordPcSet() {
 // Floating dock → jump to an instrument: expand its drawer, collapse the other
 // (tab-like), scroll it into view, and mark the dock button active.
 function gotoInstrument(which) {
+  const mobile = matchMedia('(max-width:860px)').matches;
+  // On phones the instruments live in a bottom-sheet (off the scroll). Tapping
+  // the already-active instrument while the sheet is open dismisses it.
+  if (mobile && document.body.classList.contains('instr-sheet')
+      && document.querySelector('.instr-dock-btn.on')?.dataset.instr === which) {
+    closeInstrSheet(); return;
+  }
   const drawers = document.querySelectorAll('#panel-theory .drawers .drawer');
   const piano = drawers[0], guitar = drawers[1];
   const target = which === 'guitar' ? guitar : piano;
@@ -6691,8 +6724,13 @@ function gotoInstrument(which) {
   if (other)  other.open  = false;
   if (target) target.open = true;
   document.querySelectorAll('.instr-dock-btn').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
-  requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  if (mobile) {
+    document.body.classList.add('instr-sheet');     // slide the sheet up
+  } else {
+    requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  }
 }
+function closeInstrSheet() { document.body.classList.remove('instr-sheet'); }
 
 function _hear(pitch)       { if (typeof AudioEngine === 'object') AudioEngine.playNote(pitch, 0.9); }
 function _hearGuitar(pitch) { if (typeof AudioEngine === 'object') AudioEngine.playGuitarNote(pitch); }
