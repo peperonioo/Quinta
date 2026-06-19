@@ -1816,6 +1816,57 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   outline: 2px solid var(--accent-light); outline-offset: 2px;
 }
 
+/* == typography.css == */
+/* ── TYPOGRAPHY PASS (Claude Design treatment) ──────────────
+   Same DM family (Serif Display · Sans · Mono) — applied consistently.
+   One eyebrow-label recipe (today they range 7–11px / .1–.14em), a
+   locked scale, Serif for display, Mono for data. Loaded late to win. */
+
+:root {
+  --fs-display: 56px; --fs-title: 30px; --fs-body: 15px; --fs-label: 10.5px; --fs-data: 28px;
+  --ls-label: .16em;
+}
+
+/* Eyebrow / section labels — DM Mono, uppercase, tracked, muted.
+   Unifies the side-card labels, builder/section titles and micro-labels. */
+.lbl,
+.builder-title,
+.builder-next-title,
+.gravity-card .g-label,
+.tips-card h4,
+.metro-title,
+.iz-title,
+.lib-section-title {
+  font-family: 'DM Mono', monospace !important;
+  font-size: var(--fs-label) !important;
+  letter-spacing: var(--ls-label) !important;
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+}
+.lbl,
+.builder-title,
+.gravity-card .g-label,
+.lib-section-title { color: var(--muted) !important; }
+.builder-next-title { color: var(--ink) !important; opacity: .9 !important; }
+
+/* Sub / hint lines — DM Sans, readable, muted. */
+.builder-sub,
+.builder-next-hint,
+.card .sub {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* Display — chord names, big values, titles use DM Serif Display. */
+.card .big,
+.prod-card .bigline,
+.gravity-card .g-value { font-family: 'DM Serif Display', serif !important; letter-spacing: -.01em; }
+
+/* Data — numbers and tempo stay DM Mono. */
+.metro-bpm, .metro-bpm-big { font-family: 'DM Mono', monospace; }
+
 /* == mobile.css == */
 /* ── MODE FAB + QUICK SHEET (hidden on desktop) ───────*/
 .mode-fab, .mobile-mode-sheet { display:none }
@@ -2331,7 +2382,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.28';
+const APP_VERSION = 'V5.29';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
