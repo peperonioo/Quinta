@@ -10,12 +10,25 @@
   --line:     rgba(255,255,255,.09);
   --card:     rgba(12,12,16,.7);
   --card-bd:  rgba(255,255,255,.09);
-  --accent:   #e8441a;
-  --accent2:  #ff7048;
+  --accent:       #e8441a;
+  --accent2:      #ff7048;
+  --accent-light: #ff7048;   /* design-system alias of accent2 */
+  --danger:       #ff4d4f;
   /* Bubble accent — follows the active plasma palette for colour cohesion
      (set by applyPalette). Defaults to the app accent. */
   --ba:       #e8441a;
   --ba-rgb:   232,68,26;
+
+  /* ── Design-system tokens (Claude Design · v1.0) ──────────
+     The locked surface + glass scale used by the component kit. */
+  --surface:      #0e0e11;
+  --faint:        rgba(240,237,232,.28);
+  --glass-1:      rgba(255,255,255,.045);   /* E1 — inline */
+  --glass-2:      rgba(255,255,255,.075);   /* E2 — card   */
+  --glass-3:      rgba(255,255,255,.12);    /* E3 — floating */
+  --glass-border: rgba(255,255,255,.14);
+  --r-full:       999px;                    /* alias of --r-pill */
+  --shadow-lifted:0 22px 60px rgba(0,0,0,.55);
   --degree-bg:   rgba(0,0,0,.52);
   --degree-tonic:rgba(232,68,26,.18);
   --popup-bg: rgba(8,8,12,.88);
@@ -76,8 +89,16 @@ body.light {
   --line:     rgba(0,0,0,.1);
   --card:     rgba(255,255,255,.8);
   --card-bd:  rgba(0,0,0,.1);
-  --accent:   #c83010;
-  --accent2:  #e8441a;
+  --accent:       #c83010;
+  --accent2:      #e8441a;
+  --accent-light: #e8441a;
+  /* Design-system light surface + glass */
+  --surface:      #efe9df;
+  --faint:        rgba(33,28,23,.28);
+  --glass-1:      rgba(33,28,23,.05);
+  --glass-2:      rgba(33,28,23,.07);
+  --glass-3:      rgba(255,255,255,.85);
+  --glass-border: rgba(33,28,23,.12);
   --degree-bg:   rgba(255,255,255,.8);
   --degree-tonic:rgba(200,48,16,.12);
   --popup-bg: rgba(248,245,240,.96);

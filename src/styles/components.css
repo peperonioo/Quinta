@@ -1,0 +1,100 @@
+/* ── COMPONENT KIT (Claude Design · v1.0) ───────────────────
+   One recipe per job. Loaded late so the ~13 drifted control
+   recipes converge onto these without touching every call site.   */
+
+/* ── Segmented control ─────────────────────────────────────
+   Tabs · Major/Minor · Chords|Triads · metronome sounds = one part. */
+.tabs,
+.wheel-toggle,
+.gss-seg,
+.metro-sounds {
+  display: inline-flex; gap: 3px; padding: 4px;
+  border-radius: var(--r-full); background: var(--glass-1);
+  border: 1px solid var(--line); box-shadow: none;
+}
+.tabs::before { display: none; }   /* retire the sliding indicator — active state lives on the button */
+
+.tabs .tab-btn,
+.wheel-toggle button,
+.gss-seg button,
+.metro-sounds .ms-btn {
+  flex: 1; min-height: 36px; padding: 0 15px; border: 0;
+  border-radius: var(--r-full); background: transparent; color: var(--muted);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  letter-spacing: 0; cursor: pointer; box-shadow: none;
+  transition: background .16s var(--ease), color .16s var(--ease);
+}
+.metro-sounds .ms-btn { font-family: 'DM Mono', monospace; font-size: 11px; }
+
+.tabs .tab-btn.active,
+.wheel-toggle button.active,
+.gss-seg button.on,
+.metro-sounds .ms-btn.active {
+  background: var(--glass-3); color: var(--accent); font-weight: 600;
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.tabs .tab-btn:not(.active):hover,
+.wheel-toggle button:not(.active):hover,
+.gss-seg button:not(.on):hover,
+.metro-sounds .ms-btn:not(.active):hover { color: var(--ink); background: transparent; }
+
+/* ── Button — secondary (ghost) ────────────────────────────
+   builder actions · Shapes. Compact size kept for the dense toolbar. */
+.builder-btn,
+.gss-btn {
+  min-height: 32px; padding: 0 13px; border-radius: var(--r-md);
+  border: 1px solid var(--glass-border); background: var(--glass-1);
+  color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 11.5px;
+  font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+  transition: background .16s var(--ease), border-color .16s var(--ease), color .16s var(--ease), transform .12s var(--ease);
+}
+.builder-btn:hover,
+.gss-btn:hover { background: var(--glass-2); border-color: var(--glass-border); color: var(--ink); transform: none; }
+.builder-btn.opt { min-width: 36px; padding: 0 10px; }
+
+/* Button — primary (the one orange action) */
+.builder-btn.play,
+.builder-btn.primary {
+  border: none; color: #fff; font-weight: 600;
+  background: linear-gradient(180deg, var(--accent-light), var(--accent));
+  box-shadow: 0 6px 18px -6px var(--accent), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.builder-btn.play:hover,
+.builder-btn.primary:hover { filter: brightness(1.06); background: linear-gradient(180deg, var(--accent-light), var(--accent)); }
+.builder-btn.play.playing { background: var(--accent); }
+
+/* Button — danger */
+.builder-btn.danger {
+  border: 1px solid color-mix(in oklab, var(--danger) 50%, transparent);
+  background: color-mix(in oklab, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+.builder-btn.danger:hover { background: color-mix(in oklab, var(--danger) 20%, transparent); color: var(--danger); }
+
+/* ── Pill — mood lens, genre ───────────────────────────────*/
+.mood-btn,
+.genre-btn {
+  min-height: 30px; padding: 0 14px; border-radius: var(--r-full);
+  border: 1px solid var(--line); background: var(--glass-1); color: var(--ink);
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: background .15s var(--ease), border-color .15s, color .15s;
+}
+.mood-btn:hover,
+.genre-btn:hover:not(.active) { border-color: var(--muted); color: var(--ink); }
+.mood-btn.active,
+.genre-btn.active {
+  background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600;
+}
+
+/* ── Focus-visible — one ring for every control ────────────*/
+.tabs .tab-btn:focus-visible,
+.wheel-toggle button:focus-visible,
+.gss-seg button:focus-visible,
+.metro-sounds .ms-btn:focus-visible,
+.builder-btn:focus-visible,
+.gss-btn:focus-visible,
+.mood-btn:focus-visible,
+.genre-btn:focus-visible {
+  outline: 2px solid var(--accent-light); outline-offset: 2px;
+}
