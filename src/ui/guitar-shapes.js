@@ -130,16 +130,48 @@ const GuitarShapes = (() => {
     return s;
   }
 
+  // ── Mini horizontal fretboard (matches the big board's orientation) ──
+  // Strings as rows (high-e on top, low-E at bottom), frets left→right. Cleaner
+  // and consistent with the real fretboard, so the small + big read the same.
+  function drawMiniFret(frets, rootPC) {
+    const W = 118, H = 58, x0 = 16, x1 = 112, y0 = 7, y1 = 51, NS = 6, NF = 5;
+    const active = frets.filter(f => f > 0);
+    const minF = active.length ? Math.min(...active) : 0;
+    const base = minF <= 1 ? 0 : minF - 1;          // leftmost shown fret
+    const nut = base === 0;
+    const sy = i => y0 + (y1 - y0) * i / (NS - 1);   // row (i=0 top = high e)
+    const fx = f => x0 + (x1 - x0) * f / NF;
+    const fg = 'var(--fg)';
+    let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+    if (!nut) s += `<text x="2" y="${sy(5) + 3}" font-size="7" fill="var(--muted)" font-family="DM Mono,monospace">${base + 1}</text>`;
+    for (let i = 0; i < NS; i++)                      // string rows (bass thicker)
+      s += `<line x1="${x0}" y1="${sy(i)}" x2="${x1}" y2="${sy(i)}" stroke="${fg}" stroke-opacity="0.3" stroke-width="${0.5 + i * 0.16}"/>`;
+    for (let f = 0; f <= NF; f++) {                   // fret columns (nut thick)
+      const isNut = nut && f === 0;
+      s += `<line x1="${fx(f)}" y1="${sy(0)}" x2="${fx(f)}" y2="${sy(5)}" stroke="${fg}" stroke-opacity="${isNut ? 0.85 : 0.15}" stroke-width="${isNut ? 2.4 : 0.7}" stroke-linecap="round"/>`;
+    }
+    for (let i = 0; i < NS; i++) {                    // markers + dots
+      const f = frets[5 - i], y = sy(i);
+      if (f === -1) { s += `<text x="${x0 - 7}" y="${y + 2.6}" text-anchor="middle" font-size="7.5" fill="var(--muted)">×</text>`; continue; }
+      if (f === 0)  { s += `<circle cx="${x0 - 7}" cy="${y}" r="2.5" fill="none" stroke="var(--accent)" stroke-width="1.1"/>`; continue; }
+      const df = f - base; if (df < 1 || df > NF) continue;
+      const cx = fx(df - 0.5);
+      const isRoot = ((TUNE[5 - i] + f) % 12) === rootPC;
+      s += `<circle cx="${cx}" cy="${y}" r="4.2" fill="var(--accent)"/>`;
+      if (isRoot) s += `<circle cx="${cx}" cy="${y}" r="1.6" fill="#fff"/>`;
+    }
+    s += '</svg>';
+    return s;
+  }
+
   // ── State ─────────────────────────────────────────
-  // The strip is a CONTROL bar now (no box diagrams): a row of de-duplicated
-  // chord chips + a position selector. The selected chord+voicing is drawn on
-  // the real fretboard above (via highlightGuitarShape) — that's the display.
-  let _view = 'chords', _chords = [], _selChord = 0, _selVoicing = 0;
+  let _view = 'chords', _chords = [], _sel = [], _activePos = -1;
   const isOpen = () => !!document.getElementById('guitarShapeStrip')?.classList.contains('gss-on');
   const clampi = (v, max) => Math.max(0, Math.min(v, max));
+  const _voicingsFor = c => c ? (_view === 'triads' ? triadVoicings(c.root, c.qual) : chordVoicings(c.root, c.qual)) : [];
 
-  // De-duplicated chord list. From the progression if there is one (each unique
-  // chord once, in order of first appearance); otherwise the single current chord.
+  // De-duplicated chord list — each unique chord once (order of first appearance).
+  // From the progression if there is one; otherwise the single current chord.
   function _collectChords() {
     const h = Array.isArray(st.history) ? st.history : [];
     const list = [], seen = new Set();
@@ -166,105 +198,106 @@ const GuitarShapes = (() => {
     return list;
   }
 
-  const _voicingsFor = c => c ? (_view === 'triads' ? triadVoicings(c.root, c.qual) : chordVoicings(c.root, c.qual)) : [];
+  function _cardHTML(c, pos) {
+    const vs = _voicingsFor(c);
+    const sel = clampi(_sel[pos] || 0, Math.max(0, vs.length - 1));
+    const dots = vs.length > 1
+      ? `<div class="gsc-dots">${vs.map((_, i) => `<span class="gsc-dot${i === sel ? ' on' : ''}" onclick="event.stopPropagation();GuitarShapes.setVoicing(${pos},${i})"></span>`).join('')}</div>`
+      : `<div class="gsc-dots"></div>`;
+    const diag = vs.length ? drawMiniFret(vs[sel].frets, c.rootPC) : '<div class="gss-empty">—</div>';
+    return `<div class="gss-card${pos === _activePos ? ' gss-active' : ''}" data-pos="${pos}" role="button"
+              onpointerdown="GuitarShapes.cardDown(event,${pos})">
+        <div class="gsc-name">${c.name}</div>
+        ${dots}
+        <div class="gsc-diag">${diag}</div>
+        <div class="gsc-pos">${vs.length ? vs[sel].label : ''}</div>
+      </div>`;
+  }
 
   function _render() {
     const el = document.getElementById('guitarShapeStrip'); if (!el) return;
     _chords = _collectChords();
     if (!_chords.length) { el.classList.remove('gss-on'); return; }
-    _selChord = clampi(_selChord, _chords.length - 1);
-    const chord = _chords[_selChord];
-    const vs = _voicingsFor(chord);
-    _selVoicing = clampi(_selVoicing, Math.max(0, vs.length - 1));
-    const v = vs[_selVoicing];
-
+    if (_activePos >= _chords.length) _activePos = -1;
     const seg = (vw, label) => `<button class="${_view === vw ? 'on' : ''}" role="tab" onclick="GuitarShapes.view('${vw}')">${label}</button>`;
-    const chips = _chords.map((c, i) =>
-      `<button class="gss-chip${i === _selChord ? ' on' : ''}" onclick="GuitarShapes.selChord(${i})">${c.name}</button>`).join('');
-    const dots = vs.map((_, i) => `<span class="gss-pos-dot${i === _selVoicing ? ' on' : ''}" onclick="GuitarShapes.setVoicing(${i})"></span>`).join('');
-
     el.innerHTML = `
       <div class="gss-head">
-        <span class="gss-title">${chord.name}${v ? ` · ${v.label}` : ''}</span>
+        <span class="gss-title">${T('prog')}</span>
         <div class="gss-seg" role="tablist">${seg('chords', T('chords'))}${seg('triads', T('triads'))}</div>
         <button class="gss-x" onclick="GuitarShapes.close()" aria-label="×">×</button>
       </div>
-      <div class="gss-chips">${chips}</div>
-      <div class="gss-pos" onpointerdown="GuitarShapes.posSwipe(event)">
-        <button class="gss-pos-arrow" onclick="GuitarShapes.step(-1)" aria-label="prev">‹</button>
-        <div class="gss-pos-dots">${dots || '<span class="gss-pos-none">—</span>'}</div>
-        <button class="gss-pos-arrow" onclick="GuitarShapes.step(1)" aria-label="next">›</button>
-      </div>`;
+      <div class="gss-scroll">${_chords.map((c, pos) => _cardHTML(c, pos)).join('')}</div>`;
     el.classList.add('gss-on');
-    _highlightSel();
   }
 
-  function _highlightSel() {
-    const vs = _voicingsFor(_chords[_selChord]);
-    const v = vs[_selVoicing];
-    if (typeof highlightGuitarShape === 'function') highlightGuitarShape(v ? v.frets : null);
+  // Update one card in place (no full rebuild → keeps horizontal scroll on slide).
+  function _updateCard(pos) {
+    const card = document.querySelector(`.gss-card[data-pos="${pos}"]`); if (!card) return;
+    const c = _chords[pos]; if (!c) return;
+    const vs = _voicingsFor(c), sel = clampi(_sel[pos] || 0, Math.max(0, vs.length - 1));
+    const diag = card.querySelector('.gsc-diag'); if (diag) diag.innerHTML = vs.length ? drawMiniFret(vs[sel].frets, c.rootPC) : '—';
+    card.querySelectorAll('.gsc-dot').forEach((d, i) => d.classList.toggle('on', i === sel));
+    const posEl = card.querySelector('.gsc-pos'); if (posEl) posEl.textContent = vs.length ? vs[sel].label : '';
   }
 
-  // Update just the position UI + fretboard (no chip rebuild → no flicker on slide).
-  function _updatePos() {
-    const vs = _voicingsFor(_chords[_selChord]);
-    _selVoicing = clampi(_selVoicing, Math.max(0, vs.length - 1));
-    document.querySelectorAll('.gss-pos-dot').forEach((d, i) => d.classList.toggle('on', i === _selVoicing));
-    const title = document.querySelector('#guitarShapeStrip .gss-title');
-    if (title) title.textContent = _chords[_selChord].name + (vs[_selVoicing] ? ` · ${vs[_selVoicing].label}` : '');
-    _highlightSel();
+  // Light a chord's current voicing big on the real fretboard + mark its card.
+  function _highlightCard(pos) {
+    const c = _chords[pos]; if (!c) return;
+    const vs = _voicingsFor(c), sel = clampi(_sel[pos] || 0, Math.max(0, vs.length - 1));
+    _activePos = pos;
+    if (typeof highlightGuitarShape === 'function') highlightGuitarShape(vs[sel] ? vs[sel].frets : null);
+    document.querySelectorAll('.gss-card').forEach(card => card.classList.toggle('gss-active', +card.dataset.pos === pos));
   }
 
   return {
     toggle() {
       if (isOpen()) { this.close(); return; }
-      _view = 'chords'; _selChord = 0; _selVoicing = 0;
+      _view = 'chords'; _sel = []; _activePos = -1;
       _render();
       if (typeof OverlayManager === 'object') OverlayManager.opened('guitar-shapes');
     },
 
-    // Switch voicing type (full chords vs triads). Keeps the selected chord.
-    view(v) { if (v !== _view) { _view = v; _selVoicing = 0; _render(); } },
+    // Switch voicing type (full chords vs triads) for all cards.
+    view(v) { if (v !== _view) { _view = v; _sel = []; _render(); if (_activePos >= 0) _highlightCard(_activePos); } },
 
-    // Select a chord chip → show it on the fretboard, reset to its first position.
-    selChord(i) { _selChord = i; _selVoicing = 0; _render(); },
+    // Dots → pick a specific voicing for one chord.
+    setVoicing(pos, i) { _sel[pos] = i; _updateCard(pos); _highlightCard(pos); },
 
-    // Position selector (dots / arrows / swipe) — slide through the SAME chord's
-    // voicings (positions/inversions), updating the fretboard live.
-    setVoicing(i) { _selVoicing = i; _updatePos(); },
-    step(dir) {
-      const vs = _voicingsFor(_chords[_selChord]);
-      if (vs.length > 1) { _selVoicing = (_selVoicing + dir + vs.length) % vs.length; _updatePos(); }
-    },
-    posSwipe(e) {
+    // Pointer on a card: a sideways drag cycles that chord's voicings (low→high);
+    // a tap (no drag) lights the chord's current shape big on the fretboard.
+    cardDown(e, pos) {
       const startX = e.clientX;
-      const move = () => {};
       const up = ev => {
-        window.removeEventListener('pointermove', move);
         window.removeEventListener('pointerup', up);
         const dx = ev.clientX - startX;
-        if (Math.abs(dx) > 24) this.step(dx < 0 ? 1 : -1);
+        const vs = _voicingsFor(_chords[pos]);
+        if (Math.abs(dx) > 24 && vs.length > 1) {
+          let sel = (_sel[pos] || 0) + (dx < 0 ? 1 : -1);
+          _sel[pos] = Math.max(0, Math.min(vs.length - 1, sel));
+          _updateCard(pos); _highlightCard(pos);
+        } else {
+          _highlightCard(pos);
+        }
       };
-      window.addEventListener('pointermove', move);
       window.addEventListener('pointerup', up);
     },
 
-    // A builder bar was tapped → select that chord's chip if present.
+    // A builder bar was tapped → highlight the matching chord card.
     hint(root, qual) {
       if (!isOpen() || !root) return;
       const r = ENH[root] || root, q = /min/i.test(qual) ? 'min' : /dim/i.test(qual) ? 'dim' : 'maj';
-      _chords = _collectChords();
-      const idx = _chords.findIndex(c => (ENH[c.root] || c.root) === r && c.qual === q);
-      if (idx >= 0) { _selChord = idx; _selVoicing = 0; }
       _render();
+      const idx = _chords.findIndex(c => (ENH[c.root] || c.root) === r && c.qual === q);
+      if (idx >= 0) _highlightCard(idx);
     },
 
-    // Progression changed → rebuild chips (keeps selection in range).
-    onProgressionChange() { if (isOpen()) _render(); },
+    // Progression changed → rebuild cards (keeps the active highlight if still valid).
+    onProgressionChange() { if (isOpen()) { _render(); if (_activePos >= 0 && _activePos < _chords.length) _highlightCard(_activePos); } },
     // Language changed → relabel.
     refresh() { if (isOpen()) _render(); },
 
     close() {
+      _activePos = -1;
       document.getElementById('guitarShapeStrip')?.classList.remove('gss-on');
       if (typeof highlightGuitarShape === 'function') highlightGuitarShape(null);
     },

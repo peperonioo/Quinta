@@ -106,7 +106,7 @@ body[data-tab="production"] .instr-dock { display: none; }
   max-height: 0; overflow: hidden;
   transition: max-height .4s cubic-bezier(.34,1.4,.4,1);
 }
-.gss-strip.gss-on { max-height: 150px; }
+.gss-strip.gss-on { max-height: 184px; }
 .gss-head {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 12px 3px;
@@ -133,44 +133,33 @@ body[data-tab="production"] .instr-dock { display: none; }
 }
 .gss-x:hover { color: var(--fg); }
 .gss-empty { color: var(--muted); font-size: 11px; padding: 14px 4px; }
+.gss-scroll {
+  display: flex; gap: 10px; overflow-x: auto; padding: 8px 12px 12px;
+  scrollbar-width: none; align-items: flex-start;
+}
+.gss-scroll::-webkit-scrollbar { display: none; }
 
-/* Chord chips — de-duplicated progression (or current chord). Tap to select. */
-.gss-chips {
-  display: flex; gap: 6px; overflow-x: auto; padding: 8px 12px 4px; scrollbar-width: none;
+/* De-duplicated chord cards — each shows a mini-fretboard + position dots. */
+.gss-card {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; border-radius: 14px; padding: 6px 9px 7px;
+  border: 1.5px solid var(--card-bd); background: var(--sel-bg);
+  transition: border-color .14s, background .14s, transform .12s var(--ease);
+  user-select: none; touch-action: pan-y;
 }
-.gss-chips::-webkit-scrollbar { display: none; }
-.gss-chip {
-  flex-shrink: 0; cursor: pointer; border-radius: 999px; padding: 6px 14px;
-  border: 1px solid var(--card-bd); background: var(--sel-bg); color: var(--fg);
-  font-family: 'DM Serif Display', Georgia, serif; font-size: 15px; line-height: 1;
-  transition: border-color .14s, background .14s, color .14s, transform .12s var(--ease);
+.gss-card:hover { border-color: var(--muted); transform: translateY(-1px); }
+.gss-card.gss-active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent); }
+.gsc-name { font-family: 'DM Serif Display', Georgia, serif; font-size: 15px; color: var(--fg); line-height: 1; }
+.gss-card.gss-active .gsc-name { color: var(--accent2); }
+.gsc-dots { display: flex; gap: 5px; height: 7px; align-items: center; }
+.gsc-dot {
+  width: 5px; height: 5px; border-radius: 999px; cursor: pointer;
+  background: var(--ui-border-strong); transition: background .15s, transform .15s;
 }
-.gss-chip:hover { border-color: var(--muted); }
-.gss-chip:active { transform: scale(.96); }
-.gss-chip.on {
-  border-color: var(--accent); color: #fff;
-  background: var(--accent); box-shadow: 0 4px 14px rgba(232,68,26,.3);
-}
-
-/* Position selector — slide through the SAME chord's voicings/positions. */
-.gss-pos {
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-  padding: 6px 12px 12px; touch-action: pan-y; user-select: none;
-}
-.gss-pos-arrow {
-  width: 26px; height: 26px; border-radius: 999px; cursor: pointer;
-  border: 1px solid var(--card-bd); background: var(--sel-bg); color: var(--muted);
-  font-size: 15px; line-height: 1; display: grid; place-items: center;
-  transition: color .14s, border-color .14s;
-}
-.gss-pos-arrow:hover { color: var(--accent2); border-color: rgba(232,68,26,.4); }
-.gss-pos-dots { display: flex; gap: 7px; align-items: center; min-height: 12px; }
-.gss-pos-dot {
-  width: 7px; height: 7px; border-radius: 999px; cursor: pointer;
-  background: var(--ui-border-strong); transition: width .25s var(--ease), background .15s;
-}
-.gss-pos-dot.on { width: 22px; background: var(--accent); }
-.gss-pos-none { color: var(--muted); font-size: 11px; }
+.gsc-dot.on { background: var(--accent); transform: scale(1.3); }
+.gsc-diag { line-height: 0; pointer-events: none; }
+.gsc-pos { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: .03em; color: var(--muted); }
+.gss-card.gss-active .gsc-pos { color: var(--accent2); }
 
 /* "Shapes" trigger button in guitar drawer summary */
 .gss-btn {
