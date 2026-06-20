@@ -183,6 +183,19 @@
 body.light .metro-pill, body.light .metro-panel { background:rgba(255,255,255,.9); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
 .metro-led { width:8px; height:8px; border-radius:50%; background:var(--muted); flex:0 0 auto }
 #metronome.running .metro-led { background:var(--accent) }
+/* Transport row — the BPM pill plus (mobile only) a Play button for the
+   progression, so Play + tempo are always reachable without scrolling. */
+.metro-row-top { display:flex; align-items:center; gap:8px }
+#metronome .transport-play {   /* #id beats the [data-ico] flex rule from components.css */
+  display:none;            /* desktop: the builder's own Play is always visible */
+  width:42px; height:42px; border-radius:50%; flex:0 0 auto; cursor:pointer; border:0;
+  background:var(--accent); color:#fff; place-items:center;
+  box-shadow:0 6px 20px rgba(232,68,26,.4); transition:transform .14s var(--ease), background .2s;
+}
+.transport-play:active { transform:scale(.92) }
+.transport-play.is-stop { background:#2a2a31 }
+body.light .transport-play.is-stop { background:#3a3a42 }
+#metronome.open .transport-play { opacity:0; pointer-events:none; transform:scale(.6) }
 .metro-pill .metro-bpm { font-weight:600 }
 .metro-unit { font-size:8.5px; opacity:.55; letter-spacing:.06em }
 
@@ -285,8 +298,24 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
 }
 .cv-act:hover { background:rgba(255,255,255,.14) }
 .cv-act.danger:hover { background:rgba(232,68,26,.9); color:#fff }
+/* The chips cascade in just after the islands spring out — the whole thing
+   unfolds rather than snapping, so the build-a-chord moment feels alive. */
+@keyframes cvChipIn { from { opacity:0; transform:translateY(5px) scale(.92) } to { opacity:1; transform:none } }
+.chord-variants.open .cv-chip  { animation:cvChipIn .28s var(--ease) both }
+.chord-variants.open .cv-foot  { animation:cvChipIn .28s var(--ease) .3s both }
+.chord-variants.open .cv-above .cv-chip:nth-child(1),
+.chord-variants.open .cv-below .cv-chip:nth-child(1) { animation-delay:.08s }
+.chord-variants.open .cv-above .cv-chip:nth-child(2),
+.chord-variants.open .cv-below .cv-chip:nth-child(2) { animation-delay:.13s }
+.chord-variants.open .cv-above .cv-chip:nth-child(3),
+.chord-variants.open .cv-below .cv-chip:nth-child(3) { animation-delay:.18s }
+.chord-variants.open .cv-above .cv-chip:nth-child(4),
+.chord-variants.open .cv-below .cv-chip:nth-child(4) { animation-delay:.23s }
+.chord-variants.open .cv-above .cv-chip:nth-child(5),
+.chord-variants.open .cv-below .cv-chip:nth-child(5) { animation-delay:.28s }
 @media (prefers-reduced-motion: reduce){
   .cv-above, .cv-below { transition:opacity .15s; transform:none }
+  .chord-variants.open .cv-chip, .chord-variants.open .cv-foot { animation:none }
 }
 
 /* Bar being dragged to reorder */

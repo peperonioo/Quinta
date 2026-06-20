@@ -286,6 +286,10 @@ body.light #plasma { opacity:.3 }
 
 /* Drawers */
 .drawers { display:flex; flex-direction:column; gap:8px }
+/* The pager wrapper + sheet header only exist for the mobile bottom-sheet; on
+   desktop they vanish from layout so the drawers stay stacked exactly as before. */
+.instr-pager { display:contents }
+.sheet-head  { display:none }
 .drawer  {
   border:1px solid var(--card-bd); border-radius:16px;
   background:var(--card); backdrop-filter:blur(20px);
@@ -1104,6 +1108,19 @@ body.light .gravity-pill.metric.high { color:#fff }
 body.light .metro-pill, body.light .metro-panel { background:rgba(255,255,255,.9); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
 .metro-led { width:8px; height:8px; border-radius:50%; background:var(--muted); flex:0 0 auto }
 #metronome.running .metro-led { background:var(--accent) }
+/* Transport row — the BPM pill plus (mobile only) a Play button for the
+   progression, so Play + tempo are always reachable without scrolling. */
+.metro-row-top { display:flex; align-items:center; gap:8px }
+#metronome .transport-play {   /* #id beats the [data-ico] flex rule from components.css */
+  display:none;            /* desktop: the builder's own Play is always visible */
+  width:42px; height:42px; border-radius:50%; flex:0 0 auto; cursor:pointer; border:0;
+  background:var(--accent); color:#fff; place-items:center;
+  box-shadow:0 6px 20px rgba(232,68,26,.4); transition:transform .14s var(--ease), background .2s;
+}
+.transport-play:active { transform:scale(.92) }
+.transport-play.is-stop { background:#2a2a31 }
+body.light .transport-play.is-stop { background:#3a3a42 }
+#metronome.open .transport-play { opacity:0; pointer-events:none; transform:scale(.6) }
 .metro-pill .metro-bpm { font-weight:600 }
 .metro-unit { font-size:8.5px; opacity:.55; letter-spacing:.06em }
 
@@ -1206,8 +1223,24 @@ body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rg
 }
 .cv-act:hover { background:rgba(255,255,255,.14) }
 .cv-act.danger:hover { background:rgba(232,68,26,.9); color:#fff }
+/* The chips cascade in just after the islands spring out — the whole thing
+   unfolds rather than snapping, so the build-a-chord moment feels alive. */
+@keyframes cvChipIn { from { opacity:0; transform:translateY(5px) scale(.92) } to { opacity:1; transform:none } }
+.chord-variants.open .cv-chip  { animation:cvChipIn .28s var(--ease) both }
+.chord-variants.open .cv-foot  { animation:cvChipIn .28s var(--ease) .3s both }
+.chord-variants.open .cv-above .cv-chip:nth-child(1),
+.chord-variants.open .cv-below .cv-chip:nth-child(1) { animation-delay:.08s }
+.chord-variants.open .cv-above .cv-chip:nth-child(2),
+.chord-variants.open .cv-below .cv-chip:nth-child(2) { animation-delay:.13s }
+.chord-variants.open .cv-above .cv-chip:nth-child(3),
+.chord-variants.open .cv-below .cv-chip:nth-child(3) { animation-delay:.18s }
+.chord-variants.open .cv-above .cv-chip:nth-child(4),
+.chord-variants.open .cv-below .cv-chip:nth-child(4) { animation-delay:.23s }
+.chord-variants.open .cv-above .cv-chip:nth-child(5),
+.chord-variants.open .cv-below .cv-chip:nth-child(5) { animation-delay:.28s }
 @media (prefers-reduced-motion: reduce){
   .cv-above, .cv-below { transition:opacity .15s; transform:none }
+  .chord-variants.open .cv-chip, .chord-variants.open .cv-foot { animation:none }
 }
 
 /* Bar being dragged to reorder */
@@ -1913,7 +1946,12 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   .circle-wrap    { order:0 }
   /* The wheel is the protagonist on mobile — make it big */
   #wheelSvg       { width:min(97vw,560px) !important; height:min(97vw,560px) !important;
-                    filter:drop-shadow(0 8px 26px rgba(0,0,0,.32)) }
+                    filter:drop-shadow(0 8px 26px rgba(0,0,0,.32));
+                    transition:width .42s var(--ease), height .42s var(--ease) }
+  /* Once you're building, the wheel steps back so the builder owns the screen. It
+     keeps the key/mode in its centre (your compact reference) and stays tappable. */
+  body.building #wheelSvg { width:min(60vw,320px) !important; height:min(60vw,320px) !important }
+  body.building .wheel-toggle-mobile { margin-top:6px }
   /* Surface the Major/Minor toggle on mobile (the side cards are hidden) */
   .wheel-toggle-mobile { display:flex; width:min(260px,80vw); margin:12px auto 2px }
   .wheel-toggle-mobile button { font-size:12px; padding:9px 8px }
@@ -1942,22 +1980,40 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   .builder-next-moves .next-orbit { justify-content:flex-start !important; padding-inline:6px !important; gap:11px }
   /* Raise the floor so every bubble is tappable, but keep the size difference. */
   .builder-next-moves .next-bubble { --diam:clamp(44px, var(--d), 82px) !important; padding:5px !important }
-  /* ── Instruments as a bottom-sheet (off the scroll) ──────
-     The drawers leave the page flow and slide up from the bottom when you
-     tap Piano/Guitar in the dock. Big scroll saver. */
+  /* ── Instruments as a swipeable bottom-sheet ─────────────
+     The drawers leave the page flow and slide up from the bottom. Inside, the two
+     instruments become a horizontal pager: swipe (or tap the dock / the dots) to
+     move between a full-size piano and fretboard. */
   .drawers {
-    position:fixed; left:0; right:0; bottom:0; z-index:58; margin:0;
-    padding:8px 10px calc(78px + var(--mobile-safe-bottom,0px));
+    position:fixed; left:0; right:0; bottom:0; z-index:58; margin:0; gap:0;
+    padding:6px 0 calc(78px + var(--mobile-safe-bottom,0px));
     background:var(--ui-surface-strong); backdrop-filter:blur(26px);
     border-top:1px solid var(--ui-border-strong); border-radius:22px 22px 0 0;
     box-shadow:0 -18px 50px rgba(0,0,0,.5);
-    max-height:82svh; overflow-y:auto; overscroll-behavior:contain;
+    max-height:82svh; overflow:hidden;
     transform:translateY(105%); transition:transform .32s var(--ease);
   }
   body.instr-sheet .drawers { transform:translateY(0) }
-  .drawers::before {            /* drag handle */
-    content:''; display:block; width:40px; height:4px; border-radius:2px;
-    background:var(--ui-border-strong); margin:2px auto 8px;
+  /* Header: drag grip + page dots, fixed while the panels scroll underneath */
+  .sheet-head { display:flex; flex-direction:column; align-items:center; gap:7px; padding:2px 0 6px; flex:none }
+  .sheet-grip { width:40px; height:4px; border-radius:2px; background:var(--ui-border-strong) }
+  .sheet-dots { display:flex; gap:7px }
+  .sheet-dots i {
+    width:7px; height:7px; border-radius:50%; cursor:pointer; background:var(--ui-border-strong);
+    transition:background .2s var(--ease), transform .2s var(--ease);
+  }
+  .sheet-dots i.on { background:var(--accent); transform:scale(1.25) }
+  /* The pager fills the rest of the sheet; each instrument is one snap page */
+  .instr-pager {
+    display:flex !important; flex:1 1 auto; min-height:0;
+    overflow-x:auto; overflow-y:hidden;
+    scroll-snap-type:x mandatory; scroll-behavior:smooth;
+    overscroll-behavior-x:contain; scrollbar-width:none;
+  }
+  .instr-pager::-webkit-scrollbar { display:none }
+  .instr-pager > .drawer {
+    flex:0 0 100%; min-width:100%; overflow-y:auto;
+    scroll-snap-align:center; scroll-snap-stop:always; padding:0 10px;
   }
   .instr-sheet-backdrop {
     position:fixed; inset:0; z-index:54; background:rgba(0,0,0,.45);
@@ -1966,11 +2022,9 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   }
   body.instr-sheet .instr-sheet-backdrop { opacity:1; pointer-events:auto }
 
-  /* Show ONLY the instrument you tapped — no second drawer hanging below — and let
-     it use the freed vertical space (bigger keys / frets, no zoom needed). The dock
-     is the switcher, so the drawer summary no longer toggles. */
-  body.instr-sheet .drawer:not([open])      { display:none }
-  body.instr-sheet .drawer                  { border:0; background:transparent; margin:0; padding:0 }
+  /* Each panel is a clean, full-size instrument — no card chrome, no collapse
+     (the pager + dock + dots handle switching). */
+  body.instr-sheet .drawer                  { border:0; background:transparent; margin:0 }
   body.instr-sheet .drawer > summary        { pointer-events:none }
   body.instr-sheet .drawer > summary button { pointer-events:auto }
   body.instr-sheet .drawer .chev            { display:none }
@@ -2042,6 +2096,10 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
     top:auto; bottom:calc(16px + var(--mobile-safe-bottom, 0px));
     left:auto; right:14px; transform:none; align-items:flex-end;
   }
+  #metronome .transport-play { display:grid }   /* surface the Play button beside the BPM pill */
+  /* One clean bottom tier: [mode FAB] [dock] [Play · BPM]. The dock sits just left
+     of centre so the wider Play+BPM transport clears it on a 375px phone. */
+  .instr-dock { transform:translateX(calc(-50% - 26px)); }
   .metro-pill   { transform:none }
   .metro-panel  {
     top:auto; bottom:0; left:auto; right:0;
@@ -2088,11 +2146,17 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 
   <!-- METRONOME — Dynamic-Island-style bubble -->
   <div id="metronome">
-    <button class="metro-pill" onclick="Metronome.toggleOpen()" aria-label="Metronome, open tempo controls" aria-expanded="false">
-      <span class="metro-led" aria-hidden="true"></span>
-      <span class="metro-bpm">100</span>
-      <span class="metro-unit">BPM</span>
-    </button>
+    <div class="metro-row-top">
+      <!-- Mobile transport: Play the progression without scrolling to the builder.
+           Pairs with the BPM pill so Play + tempo live in one bottom cluster. -->
+      <button class="transport-play" id="floatPlay" data-ico="play" data-ico-size="18"
+        onclick="toggleProgPlay()" aria-label="Play / stop progression"></button>
+      <button class="metro-pill" onclick="Metronome.toggleOpen()" aria-label="Metronome, open tempo controls" aria-expanded="false">
+        <span class="metro-led" aria-hidden="true"></span>
+        <span class="metro-bpm">100</span>
+        <span class="metro-unit">BPM</span>
+      </button>
+    </div>
     <div class="metro-panel" role="dialog" aria-label="Metronome">
       <div class="metro-head">
         <span class="metro-title" data-i18n="metro.title">Metronome</span>
@@ -2280,8 +2344,16 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
         <div id="suggestions" class="suggestion-grid"></div>
       </section>
 
-      <!-- Instrument drawers -->
+      <!-- Instrument drawers (mobile: a swipeable pager; desktop: stacked) -->
       <div class="drawers">
+        <div class="sheet-head" aria-hidden="true">
+          <span class="sheet-grip"></span>
+          <span class="sheet-dots">
+            <i class="on" data-instr="piano" onclick="gotoInstrument('piano')"></i>
+            <i data-instr="guitar" onclick="gotoInstrument('guitar')"></i>
+          </span>
+        </div>
+        <div class="instr-pager">
         <details class="drawer" open>
           <summary>
             <span data-i18n="drawers.piano">Piano</span>
@@ -2304,6 +2376,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
             <div id="guitarShapeStrip" class="gss-strip"></div>
           </div>
         </details>
+        </div>
       </div>
     </div>
   </div>
@@ -2448,7 +2521,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.31';
+const APP_VERSION = 'V5.32';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -4744,7 +4817,12 @@ function renderWheel() {
       class:'wheel-label', 'data-x':rx, 'data-y':ry,
       transform:`rotate(${-wRot},${rx},${ry})`,
     });
-    rt.textContent = secondaryLabel;
+    // When the lock lights this inner sector as the diatonic vii° (a diminished
+    // chord, not a minor), label it B° rather than Bm. Major view only — there the
+    // inner ring is the relative minor whose root coincides with the dim chord.
+    rt.textContent = (locked && innerDim && st.wheelView !== 'minor' && relMinName)
+      ? stripMinorSuffix(relMinName) + '°'
+      : secondaryLabel;
     ig.appendChild(rt);
     ig.addEventListener('click', e => {
       if (suppressWheelClick) { e.preventDefault(); e.stopPropagation(); return; }
@@ -5437,6 +5515,10 @@ const HistoryEngine = {
     const root = document.getElementById('flowRow'); if (!root) return;
     const h    = Array.isArray(st.history) ? st.history : [];
 
+    // Once you're building, the giant wheel steps back (it shrinks on mobile so the
+    // builder gets the screen). Empty progression → the wheel is the protagonist.
+    document.body.classList.toggle('building', h.length > 0);
+
     // Clear __justAdded flag + migrate older items that have no duration yet.
     h.forEach(it => { delete it.__justAdded; if (it.beats == null) it.beats = 2; });
 
@@ -5604,6 +5686,9 @@ const BarDrag = {
 // timeline in tempo, and the bar under the playhead lights up.
 let _progRAF = 0;
 function setProgBtn(playing) {
+  // The floating mobile transport mirrors the builder's Play/Stop state.
+  const fb = document.getElementById('floatPlay');
+  if (fb) { if (typeof setIcon === 'function') setIcon(fb, playing ? 'stop' : 'play'); fb.classList.toggle('is-stop', playing); }
   const b = document.getElementById('playProgBtn'); if (!b) return;
   const lbl = b.querySelector('span'); if (lbl) lbl.textContent = playing ? t('play.stop') : t('builder.play');
   if (typeof setIcon === 'function') setIcon(b, playing ? 'stop' : 'play');
@@ -6747,26 +6832,49 @@ function _chordPcSet() {
   if (!pcs || !pcs.length) return null;
   return new Set(pcs.map(p => ((p % 12) + 12) % 12));
 }
-// Floating dock → jump to an instrument: expand its drawer, collapse the other
-// (tab-like), scroll it into view, and mark the dock button active.
+// Mark the active instrument across the dock + the sheet's page dots (no scroll).
+function _setInstrUI(which) {
+  document.querySelectorAll('.instr-dock-btn').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
+  document.querySelectorAll('.sheet-dots i').forEach(d => d.classList.toggle('on', d.dataset.instr === which));
+}
+function _instrPager() { return document.querySelector('#panel-theory .instr-pager'); }
+
+// Keep the dock + dots in sync when the user swipes the pager between instruments.
+function _wireInstrPager() {
+  const pager = _instrPager(); if (!pager || pager._wired) return;
+  pager._wired = true;
+  const sync = () => _setInstrUI(Math.round(pager.scrollLeft / Math.max(pager.clientWidth, 1)) >= 1 ? 'guitar' : 'piano');
+  pager.addEventListener('scrollend', sync);
+  let t; pager.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(sync, 120); }, { passive: true });
+}
+
+// Floating dock / page dots → jump to an instrument. On phones the two boards are
+// a swipeable pager inside the bottom-sheet; on desktop they're tab-like drawers.
 function gotoInstrument(which) {
   const mobile = matchMedia('(max-width:860px)').matches;
-  // On phones the instruments live in a bottom-sheet (off the scroll). Tapping
-  // the already-active instrument while the sheet is open dismisses it.
+  // Tapping the already-active instrument while the sheet is open dismisses it.
   if (mobile && document.body.classList.contains('instr-sheet')
       && document.querySelector('.instr-dock-btn.on')?.dataset.instr === which) {
     closeInstrSheet(); return;
   }
   const drawers = document.querySelectorAll('#panel-theory .drawers .drawer');
   const piano = drawers[0], guitar = drawers[1];
-  const target = which === 'guitar' ? guitar : piano;
-  const other  = which === 'guitar' ? piano  : guitar;
-  if (other)  other.open  = false;
-  if (target) target.open = true;
-  document.querySelectorAll('.instr-dock-btn').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
   if (mobile) {
-    document.body.classList.add('instr-sheet');     // slide the sheet up
+    // Both panels live in the pager — render both, slide the sheet up, page across.
+    if (piano)  piano.open  = true;
+    if (guitar) guitar.open = true;
+    _wireInstrPager();
+    document.body.classList.add('instr-sheet');
+    _setInstrUI(which);
+    const pager = _instrPager();
+    if (pager) requestAnimationFrame(() =>
+      pager.scrollTo({ left: (which === 'guitar' ? 1 : 0) * pager.clientWidth, behavior: 'smooth' }));
   } else {
+    const target = which === 'guitar' ? guitar : piano;
+    const other  = which === 'guitar' ? piano  : guitar;
+    if (other)  other.open  = false;
+    if (target) target.open = true;
+    _setInstrUI(which);
     requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   }
 }

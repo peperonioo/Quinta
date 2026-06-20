@@ -37,26 +37,49 @@ function _chordPcSet() {
   if (!pcs || !pcs.length) return null;
   return new Set(pcs.map(p => ((p % 12) + 12) % 12));
 }
-// Floating dock → jump to an instrument: expand its drawer, collapse the other
-// (tab-like), scroll it into view, and mark the dock button active.
+// Mark the active instrument across the dock + the sheet's page dots (no scroll).
+function _setInstrUI(which) {
+  document.querySelectorAll('.instr-dock-btn').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
+  document.querySelectorAll('.sheet-dots i').forEach(d => d.classList.toggle('on', d.dataset.instr === which));
+}
+function _instrPager() { return document.querySelector('#panel-theory .instr-pager'); }
+
+// Keep the dock + dots in sync when the user swipes the pager between instruments.
+function _wireInstrPager() {
+  const pager = _instrPager(); if (!pager || pager._wired) return;
+  pager._wired = true;
+  const sync = () => _setInstrUI(Math.round(pager.scrollLeft / Math.max(pager.clientWidth, 1)) >= 1 ? 'guitar' : 'piano');
+  pager.addEventListener('scrollend', sync);
+  let t; pager.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(sync, 120); }, { passive: true });
+}
+
+// Floating dock / page dots → jump to an instrument. On phones the two boards are
+// a swipeable pager inside the bottom-sheet; on desktop they're tab-like drawers.
 function gotoInstrument(which) {
   const mobile = matchMedia('(max-width:860px)').matches;
-  // On phones the instruments live in a bottom-sheet (off the scroll). Tapping
-  // the already-active instrument while the sheet is open dismisses it.
+  // Tapping the already-active instrument while the sheet is open dismisses it.
   if (mobile && document.body.classList.contains('instr-sheet')
       && document.querySelector('.instr-dock-btn.on')?.dataset.instr === which) {
     closeInstrSheet(); return;
   }
   const drawers = document.querySelectorAll('#panel-theory .drawers .drawer');
   const piano = drawers[0], guitar = drawers[1];
-  const target = which === 'guitar' ? guitar : piano;
-  const other  = which === 'guitar' ? piano  : guitar;
-  if (other)  other.open  = false;
-  if (target) target.open = true;
-  document.querySelectorAll('.instr-dock-btn').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
   if (mobile) {
-    document.body.classList.add('instr-sheet');     // slide the sheet up
+    // Both panels live in the pager — render both, slide the sheet up, page across.
+    if (piano)  piano.open  = true;
+    if (guitar) guitar.open = true;
+    _wireInstrPager();
+    document.body.classList.add('instr-sheet');
+    _setInstrUI(which);
+    const pager = _instrPager();
+    if (pager) requestAnimationFrame(() =>
+      pager.scrollTo({ left: (which === 'guitar' ? 1 : 0) * pager.clientWidth, behavior: 'smooth' }));
   } else {
+    const target = which === 'guitar' ? guitar : piano;
+    const other  = which === 'guitar' ? piano  : guitar;
+    if (other)  other.open  = false;
+    if (target) target.open = true;
+    _setInstrUI(which);
     requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   }
 }

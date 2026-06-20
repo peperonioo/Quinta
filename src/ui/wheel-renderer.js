@@ -153,7 +153,12 @@ function renderWheel() {
       class:'wheel-label', 'data-x':rx, 'data-y':ry,
       transform:`rotate(${-wRot},${rx},${ry})`,
     });
-    rt.textContent = secondaryLabel;
+    // When the lock lights this inner sector as the diatonic vii° (a diminished
+    // chord, not a minor), label it B° rather than Bm. Major view only — there the
+    // inner ring is the relative minor whose root coincides with the dim chord.
+    rt.textContent = (locked && innerDim && st.wheelView !== 'minor' && relMinName)
+      ? stripMinorSuffix(relMinName) + '°'
+      : secondaryLabel;
     ig.appendChild(rt);
     ig.addEventListener('click', e => {
       if (suppressWheelClick) { e.preventDefault(); e.stopPropagation(); return; }

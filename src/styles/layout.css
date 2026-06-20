@@ -99,6 +99,10 @@
 
 /* Drawers */
 .drawers { display:flex; flex-direction:column; gap:8px }
+/* The pager wrapper + sheet header only exist for the mobile bottom-sheet; on
+   desktop they vanish from layout so the drawers stay stacked exactly as before. */
+.instr-pager { display:contents }
+.sheet-head  { display:none }
 .drawer  {
   border:1px solid var(--card-bd); border-radius:16px;
   background:var(--card); backdrop-filter:blur(20px);

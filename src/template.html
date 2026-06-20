@@ -51,11 +51,17 @@
 
   <!-- METRONOME — Dynamic-Island-style bubble -->
   <div id="metronome">
-    <button class="metro-pill" onclick="Metronome.toggleOpen()" aria-label="Metronome, open tempo controls" aria-expanded="false">
-      <span class="metro-led" aria-hidden="true"></span>
-      <span class="metro-bpm">100</span>
-      <span class="metro-unit">BPM</span>
-    </button>
+    <div class="metro-row-top">
+      <!-- Mobile transport: Play the progression without scrolling to the builder.
+           Pairs with the BPM pill so Play + tempo live in one bottom cluster. -->
+      <button class="transport-play" id="floatPlay" data-ico="play" data-ico-size="18"
+        onclick="toggleProgPlay()" aria-label="Play / stop progression"></button>
+      <button class="metro-pill" onclick="Metronome.toggleOpen()" aria-label="Metronome, open tempo controls" aria-expanded="false">
+        <span class="metro-led" aria-hidden="true"></span>
+        <span class="metro-bpm">100</span>
+        <span class="metro-unit">BPM</span>
+      </button>
+    </div>
     <div class="metro-panel" role="dialog" aria-label="Metronome">
       <div class="metro-head">
         <span class="metro-title" data-i18n="metro.title">Metronome</span>
@@ -243,8 +249,16 @@
         <div id="suggestions" class="suggestion-grid"></div>
       </section>
 
-      <!-- Instrument drawers -->
+      <!-- Instrument drawers (mobile: a swipeable pager; desktop: stacked) -->
       <div class="drawers">
+        <div class="sheet-head" aria-hidden="true">
+          <span class="sheet-grip"></span>
+          <span class="sheet-dots">
+            <i class="on" data-instr="piano" onclick="gotoInstrument('piano')"></i>
+            <i data-instr="guitar" onclick="gotoInstrument('guitar')"></i>
+          </span>
+        </div>
+        <div class="instr-pager">
         <details class="drawer" open>
           <summary>
             <span data-i18n="drawers.piano">Piano</span>
@@ -267,6 +281,7 @@
             <div id="guitarShapeStrip" class="gss-strip"></div>
           </div>
         </details>
+        </div>
       </div>
     </div>
   </div>
