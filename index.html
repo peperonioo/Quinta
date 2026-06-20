@@ -2226,8 +2226,9 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   .ts-tool.ghost { padding:0 14px; white-space:nowrap }
   .ts-tool.sq { width:42px; flex:none }
 
-  /* This branch: the single island replaces the scattered floating bottom islands */
-  .instr-dock, .transport-play, .metro-pill, .mode-fab { display:none !important }
+  /* The island replaces the dock + the duplicate transport (Play / BPM pill).
+     Mode FAB stays for now (mode selection) until it moves into settings. */
+  .instr-dock, .transport-play, .metro-pill { display:none !important }
 }
 
 </style>
@@ -2673,7 +2674,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.34';
+const APP_VERSION = 'V5.35';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];

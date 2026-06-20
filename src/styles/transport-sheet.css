@@ -70,6 +70,7 @@
   .ts-tool.ghost { padding:0 14px; white-space:nowrap }
   .ts-tool.sq { width:42px; flex:none }
 
-  /* This branch: the single island replaces the scattered floating bottom islands */
-  .instr-dock, .transport-play, .metro-pill, .mode-fab { display:none !important }
+  /* The island replaces the dock + the duplicate transport (Play / BPM pill).
+     Mode FAB stays for now (mode selection) until it moves into settings. */
+  .instr-dock, .transport-play, .metro-pill { display:none !important }
 }
