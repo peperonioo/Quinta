@@ -25,6 +25,7 @@ const ICONS = {
   arrowR:    { p: '<path d="M5 12h14M13 6l6 6-6 6"/>' },
   plus:      { p: '<path d="M12 5v14M5 12h14"/>' },
   check:     { p: '<path d="M5 12.5l4.5 4.5L19 6.5"/>' },
+  expand:    { p: '<path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/>' },
 };
 
 // Build an inline SVG string for an icon (default 18px).

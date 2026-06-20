@@ -39,8 +39,7 @@ function _chordPcSet() {
 }
 // Mark the active instrument across the dock + the sheet's page dots (no scroll).
 function _setInstrUI(which) {
-  document.querySelectorAll('.instr-dock-btn').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
-  document.querySelectorAll('.sheet-dots i').forEach(d => d.classList.toggle('on', d.dataset.instr === which));
+  document.querySelectorAll('.instr-dock-btn, .instr-tab').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
 }
 function _instrPager() { return document.querySelector('.instr-pager'); }
 
@@ -173,8 +172,30 @@ const InstrumentZoom = {
     const zs = document.getElementById('instrZoomStrip');
     if (zs) zs.innerHTML = document.getElementById('tsProgStrip')?.innerHTML || '';
     ov.classList.add('open'); this.open = true;
+    this._wireSwipe();
     (which === 'piano' ? renderPiano : renderGuitar)();
     if (typeof OverlayManager === 'object') OverlayManager.opened('instr-zoom');
+  },
+  // Swipe the panel down (from the grip / header) to dismiss — the easy close.
+  _wireSwipe() {
+    const panel = document.getElementById('instrZoomPanel'); if (!panel || panel._swipe) return;
+    panel._swipe = true;
+    let startY = 0, dragging = false;
+    panel.addEventListener('pointerdown', ev => {
+      if (!ev.target.closest('.iz-grip, .iz-head')) return;
+      if (ev.target.closest('.iz-close')) return;       // let the × do its thing
+      dragging = true; startY = ev.clientY; panel.style.transition = 'none';
+    });
+    window.addEventListener('pointermove', ev => {
+      if (!dragging) return;
+      panel.style.transform = `translateY(${Math.max(0, ev.clientY - startY)}px)`;
+    });
+    window.addEventListener('pointerup', ev => {
+      if (!dragging) return; dragging = false;
+      const dy = Math.max(0, ev.clientY - startY);
+      panel.style.transition = ''; panel.style.transform = '';
+      if (dy > 80) this.close();
+    });
   },
   close() {
     if (!this.open) return;

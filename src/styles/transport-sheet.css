@@ -4,7 +4,7 @@
 .transport-sheet { display:none }
 
 /* Progression chord strip — used in the island AND in the zoom view (all sizes) */
-.ts-prog-strip { display:flex; gap:6px; overflow-x:auto; padding:0 2px 8px; scrollbar-width:none }
+.ts-prog-strip { display:flex; align-items:center; gap:6px; overflow-x:auto; padding:0 2px 8px; scrollbar-width:none }
 .ts-prog-strip::-webkit-scrollbar { display:none }
 .tps-chip {
   flex:0 0 auto; padding:6px 12px; border-radius:11px; cursor:pointer;
@@ -15,8 +15,8 @@
 .tps-chip:active { transform:scale(.95) }
 .tps-chip.on { background:var(--accent); border-color:transparent; color:#fff }
 .tps-empty { font-size:11px; color:var(--muted); padding:4px 2px }
-/* Strip docked in the zoom header */
-.iz-strip { flex:1 1 auto; min-width:0; padding:0 10px 0 14px; margin:0 }
+/* Strip docked in the zoom (its own row, doesn't grow) */
+.iz-strip { flex:0 0 auto }
 
 @media (max-width:860px) {
   /* The island is just a fixed layer; the capsule and panel cross-fade inside it
@@ -87,9 +87,15 @@
     padding:0 !important; margin:0 !important; backdrop-filter:none !important;
   }
   #tsInstruments .sheet-grip { display:none }
-  #tsInstruments .sheet-head { padding:0 0 8px }
+  #tsInstruments .sheet-head { display:flex; flex-direction:row; align-items:center; justify-content:space-between; padding:0 2px 10px }
+  .instr-switch { display:flex; gap:3px; padding:3px; border-radius:11px; background:var(--glass-1); border:1px solid var(--glass-border) }
+  .instr-tab { width:48px; height:32px; border:0; background:transparent; color:var(--muted); border-radius:8px; cursor:pointer; display:grid; place-items:center; transition:background .15s, color .15s }
+  .instr-tab.on { background:var(--accent); color:#fff }
+  .instr-zoom-toggle { width:36px; height:36px; border-radius:10px; border:1px solid var(--glass-border); background:var(--glass-1); color:var(--muted); cursor:pointer; display:grid; place-items:center; transition:transform .12s, color .15s }
+  .instr-zoom-toggle:active { transform:scale(.92) }
+  .instr-zoom-toggle:hover { color:var(--ink) }
   #tsInstruments .drawer { background:transparent !important; border:0 !important; box-shadow:none !important }
-  #tsInstruments .drawer > summary { padding:2px 2px 8px }
+  #tsInstruments .drawer > summary { display:none }   /* no inline collapse — fullscreen is the only enlarge */
   #tsInstruments .drawer-body { padding:0 }
   #tsInstruments .instr-pager { flex:none; height:248px }
   #tsInstruments .instr-pager > .drawer { height:248px; overflow:hidden }

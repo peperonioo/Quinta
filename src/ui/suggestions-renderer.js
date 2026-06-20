@@ -100,18 +100,9 @@ function _buildBubblesHTML() {
     </button>`;
   }).join('');
 
-  const best = all[0];
-  const hint = best
-    ? `${t('suggest.strongest')} <b>${current.chord}</b>: <b>${best.chord.chord}</b> — ${best.reason || friendlyCategory(best.transition?.category)}`
-    : t('suggest.hint');
-
-  return `<div class="builder-next-top">
-    <div>
-      <div class="builder-next-title">${t('suggest.title')}</div>
-      <div class="builder-next-hint">${hint}</div>
-    </div>
-  </div>
-  <div class="next-orbit">${bubbles}</div>`;
+  // The bubbles speak for themselves — bigger = stronger move — so the title and
+  // the "strongest move" prose are dropped to keep the builder clean.
+  return `<div class="next-orbit">${bubbles}</div>`;
 }
 
 // ── Tap a suggestion → quick add; drag → place (V4.6) ─

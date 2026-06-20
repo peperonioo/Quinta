@@ -216,7 +216,6 @@
         <div class="builder-head">
           <div>
             <h2 class="builder-title" data-i18n="builder.title">Progression builder</h2>
-            <div class="builder-sub" data-i18n="builder.subtitle">Tap a degree or bubble to add it to your progression.</div>
           </div>
           <div class="builder-actions">
             <button class="builder-btn play" id="playProgBtn" data-ico="play" onclick="toggleProgPlay()"><span data-i18n="builder.play">Play</span></button>
@@ -248,12 +247,12 @@
 
       <!-- Instrument drawers (mobile: a swipeable pager; desktop: stacked) -->
       <div class="drawers">
-        <div class="sheet-head" aria-hidden="true">
-          <span class="sheet-grip"></span>
-          <span class="sheet-dots">
-            <i class="on" data-instr="piano" onclick="gotoInstrument('piano')"></i>
-            <i data-instr="guitar" onclick="gotoInstrument('guitar')"></i>
-          </span>
+        <div class="sheet-head">
+          <div class="instr-switch" role="group" aria-label="Choose instrument">
+            <button class="instr-tab on" data-instr="piano"  onclick="gotoInstrument('piano')"  aria-label="Piano"><span data-ico="piano" data-ico-size="17"></span></button>
+            <button class="instr-tab"    data-instr="guitar" onclick="gotoInstrument('guitar')" aria-label="Guitar"><span data-ico="guitar" data-ico-size="17"></span></button>
+          </div>
+          <button class="instr-zoom-toggle" onclick="InstrumentZoom.show((document.querySelector('.instr-tab.on')&&document.querySelector('.instr-tab.on').dataset.instr)||'piano')" aria-label="Fullscreen"><span data-ico="expand" data-ico-size="17"></span></button>
         </div>
         <div class="instr-pager">
         <details class="drawer" open>
@@ -330,11 +329,12 @@
 <!-- INSTRUMENT FULLSCREEN / ENLARGE -->
 <div id="instrZoom" class="instr-zoom" onclick="if(event.target===this)InstrumentZoom.close()">
   <div class="iz-panel" id="instrZoomPanel" role="dialog" aria-modal="true" aria-label="Instrument">
+    <div class="iz-grip" aria-hidden="true"></div>
     <div class="iz-head">
       <span id="instrZoomTitle" class="iz-title">Piano</span>
-      <div id="instrZoomStrip" class="ts-prog-strip iz-strip"></div>
-      <button class="iz-close" onclick="InstrumentZoom.close()" aria-label="Close">✕</button>
+      <button class="iz-close" onclick="InstrumentZoom.close()" aria-label="Close"><span data-ico="close" data-ico-size="18"></span></button>
     </div>
+    <div id="instrZoomStrip" class="ts-prog-strip iz-strip"></div>
     <div id="instrZoomBody" class="iz-body"></div>
   </div>
 </div>

@@ -23,12 +23,8 @@ const TransportSheet = (() => {
     }
   }
 
-  // Dots scroll the pager; the pager's scroll keeps the dots in sync.
+  // Keep the piano/guitar tabs in sync if the pager is swiped.
   function wirePager() {
-    const pg = pager(); if (!pg) return;
-    document.querySelectorAll('#tsInstruments .sheet-dots i').forEach((dot, i) => {
-      dot.onclick = e => { e.stopPropagation(); pg.scrollTo({ left: i * pg.clientWidth, behavior: 'smooth' }); };
-    });
     if (typeof _wireInstrPager === 'function') _wireInstrPager();
   }
 

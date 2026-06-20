@@ -1621,9 +1621,22 @@ body[data-tab="production"] .instr-dock { display: none; }
 }
 body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96), rgba(244,241,236,.98)); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
 .instr-zoom.open .iz-panel { transform:none }
-.iz-head { display:flex; align-items:center; justify-content:space-between; padding:14px 18px 10px }
+.iz-grip { display:none }
+.iz-head { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 8px }
 .iz-title { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted) }
-.iz-close { background:none; border:0; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 8px }
+.iz-close {
+  width:40px; height:40px; border-radius:50%; flex:none; cursor:pointer;
+  background:var(--glass-2); border:1px solid var(--glass-border); color:var(--ink);
+  display:grid; place-items:center; transition:background .15s, transform .12s;
+}
+.iz-close:hover  { background:var(--glass-3) }
+.iz-close:active { transform:scale(.92) }
+.iz-strip { padding:0 16px 8px }
+@media (max-width:860px){
+  .iz-grip { display:block; width:44px; height:5px; border-radius:3px; background:rgba(255,255,255,.28); margin:10px auto 2px }
+  body.light .iz-grip { background:rgba(0,0,0,.2) }
+  .iz-close { width:44px; height:44px }   /* a comfortable thumb target */
+}
 .iz-body  { padding:6px 18px 20px; overflow:auto; display:flex; align-items:center; justify-content:center }
 /* Enlarged boards */
 .piano.zoom    { height:min(56vh, 440px); width:100%; border-radius:18px }
@@ -1638,19 +1651,10 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   .iz-panel { width:100vw; height:100vh; max-height:100vh; border-radius:0 }
   .piano.zoom { height:min(72vw, 320px) }
 }
-/* Portrait phone: rotate the zoom panel to landscape so instruments use the long axis */
+/* Portrait phone: keep the fullscreen upright (the old -90° rotation made the
+   close button impossible to find/tap). The board just scrolls sideways. */
 @media (max-width:860px) and (orientation:portrait) {
-  .instr-zoom .iz-panel {
-    position:absolute;
-    width:100dvh; height:100dvw; max-height:none;
-    top:calc(50dvh - 50dvw); left:calc(50dvw - 50dvh);
-    border-radius:0;
-    transform:rotate(-90deg) scale(.95) !important;
-    transition:transform .3s cubic-bezier(.34,1.4,.4,1);
-  }
-  .instr-zoom.open .iz-panel { transform:rotate(-90deg) !important }
-  .piano.zoom { height:min(44dvw, 260px) }
-  .fretboard-wrap.zoom { max-height:100dvw }
+  .piano.zoom { height:min(58vw, 300px) }
 }
 
 /* == onboarding.css == */
@@ -2194,7 +2198,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 .transport-sheet { display:none }
 
 /* Progression chord strip — used in the island AND in the zoom view (all sizes) */
-.ts-prog-strip { display:flex; gap:6px; overflow-x:auto; padding:0 2px 8px; scrollbar-width:none }
+.ts-prog-strip { display:flex; align-items:center; gap:6px; overflow-x:auto; padding:0 2px 8px; scrollbar-width:none }
 .ts-prog-strip::-webkit-scrollbar { display:none }
 .tps-chip {
   flex:0 0 auto; padding:6px 12px; border-radius:11px; cursor:pointer;
@@ -2205,8 +2209,8 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 .tps-chip:active { transform:scale(.95) }
 .tps-chip.on { background:var(--accent); border-color:transparent; color:#fff }
 .tps-empty { font-size:11px; color:var(--muted); padding:4px 2px }
-/* Strip docked in the zoom header */
-.iz-strip { flex:1 1 auto; min-width:0; padding:0 10px 0 14px; margin:0 }
+/* Strip docked in the zoom (its own row, doesn't grow) */
+.iz-strip { flex:0 0 auto }
 
 @media (max-width:860px) {
   /* The island is just a fixed layer; the capsule and panel cross-fade inside it
@@ -2277,9 +2281,15 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
     padding:0 !important; margin:0 !important; backdrop-filter:none !important;
   }
   #tsInstruments .sheet-grip { display:none }
-  #tsInstruments .sheet-head { padding:0 0 8px }
+  #tsInstruments .sheet-head { display:flex; flex-direction:row; align-items:center; justify-content:space-between; padding:0 2px 10px }
+  .instr-switch { display:flex; gap:3px; padding:3px; border-radius:11px; background:var(--glass-1); border:1px solid var(--glass-border) }
+  .instr-tab { width:48px; height:32px; border:0; background:transparent; color:var(--muted); border-radius:8px; cursor:pointer; display:grid; place-items:center; transition:background .15s, color .15s }
+  .instr-tab.on { background:var(--accent); color:#fff }
+  .instr-zoom-toggle { width:36px; height:36px; border-radius:10px; border:1px solid var(--glass-border); background:var(--glass-1); color:var(--muted); cursor:pointer; display:grid; place-items:center; transition:transform .12s, color .15s }
+  .instr-zoom-toggle:active { transform:scale(.92) }
+  .instr-zoom-toggle:hover { color:var(--ink) }
   #tsInstruments .drawer { background:transparent !important; border:0 !important; box-shadow:none !important }
-  #tsInstruments .drawer > summary { padding:2px 2px 8px }
+  #tsInstruments .drawer > summary { display:none }   /* no inline collapse — fullscreen is the only enlarge */
   #tsInstruments .drawer-body { padding:0 }
   #tsInstruments .instr-pager { flex:none; height:248px }
   #tsInstruments .instr-pager > .drawer { height:248px; overflow:hidden }
@@ -2511,7 +2521,6 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
         <div class="builder-head">
           <div>
             <h2 class="builder-title" data-i18n="builder.title">Progression builder</h2>
-            <div class="builder-sub" data-i18n="builder.subtitle">Tap a degree or bubble to add it to your progression.</div>
           </div>
           <div class="builder-actions">
             <button class="builder-btn play" id="playProgBtn" data-ico="play" onclick="toggleProgPlay()"><span data-i18n="builder.play">Play</span></button>
@@ -2543,12 +2552,12 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 
       <!-- Instrument drawers (mobile: a swipeable pager; desktop: stacked) -->
       <div class="drawers">
-        <div class="sheet-head" aria-hidden="true">
-          <span class="sheet-grip"></span>
-          <span class="sheet-dots">
-            <i class="on" data-instr="piano" onclick="gotoInstrument('piano')"></i>
-            <i data-instr="guitar" onclick="gotoInstrument('guitar')"></i>
-          </span>
+        <div class="sheet-head">
+          <div class="instr-switch" role="group" aria-label="Choose instrument">
+            <button class="instr-tab on" data-instr="piano"  onclick="gotoInstrument('piano')"  aria-label="Piano"><span data-ico="piano" data-ico-size="17"></span></button>
+            <button class="instr-tab"    data-instr="guitar" onclick="gotoInstrument('guitar')" aria-label="Guitar"><span data-ico="guitar" data-ico-size="17"></span></button>
+          </div>
+          <button class="instr-zoom-toggle" onclick="InstrumentZoom.show((document.querySelector('.instr-tab.on')&&document.querySelector('.instr-tab.on').dataset.instr)||'piano')" aria-label="Fullscreen"><span data-ico="expand" data-ico-size="17"></span></button>
         </div>
         <div class="instr-pager">
         <details class="drawer" open>
@@ -2625,11 +2634,12 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 <!-- INSTRUMENT FULLSCREEN / ENLARGE -->
 <div id="instrZoom" class="instr-zoom" onclick="if(event.target===this)InstrumentZoom.close()">
   <div class="iz-panel" id="instrZoomPanel" role="dialog" aria-modal="true" aria-label="Instrument">
+    <div class="iz-grip" aria-hidden="true"></div>
     <div class="iz-head">
       <span id="instrZoomTitle" class="iz-title">Piano</span>
-      <div id="instrZoomStrip" class="ts-prog-strip iz-strip"></div>
-      <button class="iz-close" onclick="InstrumentZoom.close()" aria-label="Close">✕</button>
+      <button class="iz-close" onclick="InstrumentZoom.close()" aria-label="Close"><span data-ico="close" data-ico-size="18"></span></button>
     </div>
+    <div id="instrZoomStrip" class="ts-prog-strip iz-strip"></div>
     <div id="instrZoomBody" class="iz-body"></div>
   </div>
 </div>
@@ -2771,7 +2781,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.40';
+const APP_VERSION = 'V5.41';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -3075,6 +3085,7 @@ const ICONS = {
   arrowR:    { p: '<path d="M5 12h14M13 6l6 6-6 6"/>' },
   plus:      { p: '<path d="M12 5v14M5 12h14"/>' },
   check:     { p: '<path d="M5 12.5l4.5 4.5L19 6.5"/>' },
+  expand:    { p: '<path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/>' },
 };
 
 // Build an inline SVG string for an icon (default 18px).
@@ -6215,18 +6226,9 @@ function _buildBubblesHTML() {
     </button>`;
   }).join('');
 
-  const best = all[0];
-  const hint = best
-    ? `${t('suggest.strongest')} <b>${current.chord}</b>: <b>${best.chord.chord}</b> — ${best.reason || friendlyCategory(best.transition?.category)}`
-    : t('suggest.hint');
-
-  return `<div class="builder-next-top">
-    <div>
-      <div class="builder-next-title">${t('suggest.title')}</div>
-      <div class="builder-next-hint">${hint}</div>
-    </div>
-  </div>
-  <div class="next-orbit">${bubbles}</div>`;
+  // The bubbles speak for themselves — bigger = stronger move — so the title and
+  // the "strongest move" prose are dropped to keep the builder clean.
+  return `<div class="next-orbit">${bubbles}</div>`;
 }
 
 // ── Tap a suggestion → quick add; drag → place (V4.6) ─
@@ -7167,8 +7169,7 @@ function _chordPcSet() {
 }
 // Mark the active instrument across the dock + the sheet's page dots (no scroll).
 function _setInstrUI(which) {
-  document.querySelectorAll('.instr-dock-btn').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
-  document.querySelectorAll('.sheet-dots i').forEach(d => d.classList.toggle('on', d.dataset.instr === which));
+  document.querySelectorAll('.instr-dock-btn, .instr-tab').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
 }
 function _instrPager() { return document.querySelector('.instr-pager'); }
 
@@ -7301,8 +7302,30 @@ const InstrumentZoom = {
     const zs = document.getElementById('instrZoomStrip');
     if (zs) zs.innerHTML = document.getElementById('tsProgStrip')?.innerHTML || '';
     ov.classList.add('open'); this.open = true;
+    this._wireSwipe();
     (which === 'piano' ? renderPiano : renderGuitar)();
     if (typeof OverlayManager === 'object') OverlayManager.opened('instr-zoom');
+  },
+  // Swipe the panel down (from the grip / header) to dismiss — the easy close.
+  _wireSwipe() {
+    const panel = document.getElementById('instrZoomPanel'); if (!panel || panel._swipe) return;
+    panel._swipe = true;
+    let startY = 0, dragging = false;
+    panel.addEventListener('pointerdown', ev => {
+      if (!ev.target.closest('.iz-grip, .iz-head')) return;
+      if (ev.target.closest('.iz-close')) return;       // let the × do its thing
+      dragging = true; startY = ev.clientY; panel.style.transition = 'none';
+    });
+    window.addEventListener('pointermove', ev => {
+      if (!dragging) return;
+      panel.style.transform = `translateY(${Math.max(0, ev.clientY - startY)}px)`;
+    });
+    window.addEventListener('pointerup', ev => {
+      if (!dragging) return; dragging = false;
+      const dy = Math.max(0, ev.clientY - startY);
+      panel.style.transition = ''; panel.style.transform = '';
+      if (dy > 80) this.close();
+    });
   },
   close() {
     if (!this.open) return;
@@ -7775,12 +7798,8 @@ const TransportSheet = (() => {
     }
   }
 
-  // Dots scroll the pager; the pager's scroll keeps the dots in sync.
+  // Keep the piano/guitar tabs in sync if the pager is swiped.
   function wirePager() {
-    const pg = pager(); if (!pg) return;
-    document.querySelectorAll('#tsInstruments .sheet-dots i').forEach((dot, i) => {
-      dot.onclick = e => { e.stopPropagation(); pg.scrollTo({ left: i * pg.clientWidth, behavior: 'smooth' }); };
-    });
     if (typeof _wireInstrPager === 'function') _wireInstrPager();
   }
 
