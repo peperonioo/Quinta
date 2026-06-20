@@ -27,6 +27,7 @@ const CSS_FILES = [
   'src/styles/components.css',
   'src/styles/typography.css',
   'src/styles/mobile.css',
+  'src/styles/transport-sheet.css',
 ];
 
 // ── JS files in dependency order ─────────────────────
@@ -74,6 +75,7 @@ const JS_FILES = [
   'src/ui/instruments-renderer.js',
   'src/ui/metronome.js',
   'src/ui/modulation-coach.js',
+  'src/ui/transport-sheet.js',
   'src/ui/onboarding.js',
   'src/ui/tabs.js',
   // Interactions

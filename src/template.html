@@ -413,6 +413,25 @@
 <!-- MODULATION COACH — where to change key next (filled by ModulationCoach) -->
 <div id="modulatePanel" class="modulate-panel" role="dialog" aria-label="Modulate" hidden></div>
 
+<!-- TRANSPORT SHEET (detented bottom sheet · mobile) -->
+<div id="transportSheet" class="transport-sheet" data-state="peek" aria-label="Transport">
+  <div class="ts-grip-zone">
+    <div class="ts-grip" aria-hidden="true"></div>
+    <div class="ts-transport">
+      <button class="ts-play" id="tsPlay" data-ico="play" data-ico-size="18" onclick="event.stopPropagation();toggleProgPlay()" aria-label="Play / stop progression"></button>
+      <span class="ts-key"><b id="tsKey">C</b><small id="tsMode">major</small></span>
+      <button class="ts-bpm" onclick="event.stopPropagation();Metronome.toggleOpen()" aria-label="Tempo"><b id="tsBpm">120</b><small>BPM</small></button>
+      <span class="ts-chev" data-ico="chevron" aria-hidden="true"></span>
+    </div>
+  </div>
+  <div class="ts-body">
+    <div class="ts-section-label">Instruments</div>
+    <div class="ts-placeholder">piano / guitar move here</div>
+    <div class="ts-section-label">Harmony tools</div>
+    <div class="ts-placeholder">modulate · color chords</div>
+  </div>
+</div>
+
 <!-- ONBOARDING / GUIDED SPOTLIGHT TOUR -->
 <div id="onboarding" class="ob" hidden role="dialog" aria-modal="true" aria-label="Welcome tour">
   <div class="ob-catch"></div>

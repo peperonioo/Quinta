@@ -15,6 +15,7 @@ const RenderEngine = {
     renderGuitar();
     applyI18n();
     if (typeof MobileModePanel !== 'undefined') MobileModePanel._sync();
+    if (typeof TransportSheet === 'object') TransportSheet.sync();
   },
 
   partial(set) {

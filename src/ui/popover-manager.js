@@ -107,6 +107,12 @@ OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),
   close:  () => { if (typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible) WheelDirectionGuide.toggle(); },
 });
+OverlayManager.register('transport-sheet', {
+  persistent: true,   // it's a primary surface — don't auto-collapse when other popovers open
+  isOpen:   () => !!(typeof TransportSheet === 'object' && TransportSheet.isOpen()),
+  close:    () => { if (typeof TransportSheet === 'object') TransportSheet.collapse(); },
+  contains: (t) => !!t.closest('#transportSheet'),
+});
 OverlayManager.register('modulate', {
   isOpen:   () => !!(typeof ModulationCoach === 'object' && ModulationCoach.isOpen()),
   close:    () => { if (typeof ModulationCoach === 'object' && ModulationCoach.isOpen()) ModulationCoach.close(); },

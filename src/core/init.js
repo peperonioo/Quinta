@@ -222,6 +222,7 @@ function toggleTheme() {
   RenderEngine.full();
   applyI18n();
   if (typeof applyIcons === 'function') applyIcons();   // inject the line-SVG icon set
+  if (typeof TransportSheet === 'object') TransportSheet.init();
 
   // First-run welcome tour (once; re-openable from the header "?" button).
   if (typeof Onboarding === 'object' && Onboarding.shouldShow()) {

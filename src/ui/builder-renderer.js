@@ -324,9 +324,11 @@ const BarDrag = {
 // timeline in tempo, and the bar under the playhead lights up.
 let _progRAF = 0;
 function setProgBtn(playing) {
-  // The floating mobile transport mirrors the builder's Play/Stop state.
-  const fb = document.getElementById('floatPlay');
-  if (fb) { if (typeof setIcon === 'function') setIcon(fb, playing ? 'stop' : 'play'); fb.classList.toggle('is-stop', playing); }
+  // The floating mobile transport(s) mirror the builder's Play/Stop state.
+  ['floatPlay', 'tsPlay'].forEach(id => {
+    const fb = document.getElementById(id);
+    if (fb) { if (typeof setIcon === 'function') setIcon(fb, playing ? 'stop' : 'play'); fb.classList.toggle('is-stop', playing); }
+  });
   const b = document.getElementById('playProgBtn'); if (!b) return;
   const lbl = b.querySelector('span'); if (lbl) lbl.textContent = playing ? t('play.stop') : t('builder.play');
   if (typeof setIcon === 'function') setIcon(b, playing ? 'stop' : 'play');
