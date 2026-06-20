@@ -2154,46 +2154,79 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 }
 
 /* == transport-sheet.css == */
-/* ── TRANSPORT SHEET (detented bottom sheet · mobile only) ── */
+/* ── TRANSPORT ISLAND (liquid-glass · mobile only) ──
+   Collapsed = small centred capsule. Tap → morphs into a floating island
+   holding the transport, the instrument pager and the harmony tools. */
 .transport-sheet { display:none }
 
 @media (max-width:860px) {
   .transport-sheet {
-    display:flex; flex-direction:column;
-    position:fixed; left:0; right:0; bottom:0; z-index:59;
-    height:84svh;
-    background:var(--ui-surface-strong); backdrop-filter:blur(28px);
-    border-top:1px solid var(--ui-border-strong); border-radius:24px 24px 0 0;
-    box-shadow:0 -18px 50px rgba(0,0,0,.5);
-    will-change:transform;
+    display:block;
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom:calc(14px + var(--mobile-safe-bottom,0px));
+    z-index:59; width:218px; max-width:calc(100vw - 20px);
+    border-radius:24px; overflow:hidden;
+    background:rgba(40,32,55,.5); backdrop-filter:blur(26px) saturate(1.5);
+    border:1px solid rgba(255,255,255,.22);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.20), 0 14px 44px rgba(0,0,0,.5);
+    transition:width .44s cubic-bezier(.32,.72,0,1), border-radius .3s var(--ease);
   }
-  .ts-grip-zone { flex:none; padding:9px 16px 12px; cursor:grab; touch-action:none; user-select:none }
-  .ts-grip { width:38px; height:4px; border-radius:2px; background:var(--ui-border-strong); margin:0 auto 11px }
-  .ts-transport { display:flex; align-items:center; gap:12px }
+  body.light .transport-sheet { background:rgba(252,250,247,.55); border-color:rgba(0,0,0,.1) }
+  .transport-sheet[data-state="open"] { width:calc(100vw - 20px); border-radius:28px }
+
+  .ts-head { display:flex; align-items:center; gap:11px; padding:9px 11px; cursor:pointer; user-select:none }
   .ts-play {
-    width:42px; height:42px; border-radius:14px; border:0; background:var(--accent); color:#fff;
+    width:38px; height:38px; border-radius:13px; border:0; background:var(--accent); color:#fff;
     display:grid; place-items:center; cursor:pointer; flex:none; transition:background .2s, transform .14s var(--ease);
   }
   .ts-play:active { transform:scale(.92) }
   .ts-play.is-stop { background:#2a2a31 }
   body.light .ts-play.is-stop { background:#3a3a42 }
-  .ts-key { display:flex; align-items:baseline; gap:5px }
-  .ts-key b { font-family:'DM Serif Display',serif; font-size:19px; color:var(--ink); line-height:1 }
+  .ts-key { display:flex; align-items:baseline; gap:5px; white-space:nowrap }
+  .ts-key b { font-family:'DM Serif Display',serif; font-size:17px; color:var(--ink); line-height:1 }
   .ts-key small { font-size:11px; color:var(--muted) }
-  .ts-bpm { margin-left:auto; display:flex; align-items:baseline; gap:4px; background:transparent; border:0; cursor:pointer }
-  .ts-bpm b { font-family:'DM Mono',monospace; font-size:14px; color:var(--ink) }
-  .ts-bpm small { font-size:9px; color:var(--muted); letter-spacing:.06em }
-  .ts-chev { color:var(--muted); display:inline-flex; transition:transform .3s var(--ease) }
-  .transport-sheet[data-state="peek"] .ts-chev { transform:rotate(180deg) }
+  .ts-bpm { margin-left:auto; display:flex; align-items:baseline; gap:3px; background:transparent; border:0; cursor:pointer; white-space:nowrap }
+  .ts-bpm b { font-family:'DM Mono',monospace; font-size:13px; color:var(--ink) }
+  .ts-bpm small { font-size:8.5px; color:var(--muted); letter-spacing:.05em }
+  .ts-chev { color:var(--muted); display:none; transition:transform .3s var(--ease) }
+  .transport-sheet[data-state="open"] .ts-chev { display:inline-flex }
 
-  .ts-body { flex:1 1 auto; min-height:0; overflow-y:auto; padding:4px 16px calc(16px + var(--mobile-safe-bottom,0px)) }
-  .ts-section-label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:14px 0 8px }
-  .ts-placeholder { padding:20px; border:1px dashed var(--card-bd); border-radius:14px; color:var(--muted); font-size:12px; text-align:center }
+  .ts-body { max-height:0; opacity:0; overflow:hidden; transition:max-height .44s cubic-bezier(.32,.72,0,1), opacity .3s var(--ease) }
+  .transport-sheet[data-state="open"] .ts-body {
+    max-height:74svh; opacity:1; overflow-y:auto;
+    padding:2px 12px calc(12px + var(--mobile-safe-bottom,0px));
+  }
+  .ts-section-label { font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:12px 4px 8px }
 
-  /* A scrim behind the raised sheet so the page recedes */
-  body.ts-open .instr-sheet-backdrop { opacity:1; pointer-events:auto }
+  /* Instruments: neutralise the old fixed bottom-sheet styling inside the island */
+  #tsInstruments .drawers {
+    position:static !important; transform:none !important; inset:auto !important;
+    height:auto !important; max-height:none !important; background:transparent !important;
+    border:0 !important; box-shadow:none !important; border-radius:0 !important;
+    padding:0 !important; margin:0 !important; backdrop-filter:none !important;
+  }
+  #tsInstruments .sheet-grip { display:none }
+  #tsInstruments .sheet-head { padding:0 0 8px }
+  #tsInstruments .drawer { background:transparent !important; border:0 !important; box-shadow:none !important }
+  #tsInstruments .drawer > summary { padding:2px 2px 8px }
+  #tsInstruments .drawer-body { padding:0 }
+  #tsInstruments .instr-pager { flex:none; height:212px }
+  #tsInstruments .instr-pager > .drawer { height:212px; overflow:hidden }
 
-  /* This branch: the single sheet replaces the scattered bottom islands */
+  /* Harmony tools row */
+  .ts-tools { display:flex; gap:7px; padding-top:2px }
+  .ts-tool {
+    display:flex; align-items:center; justify-content:center; gap:6px; height:42px;
+    border-radius:13px; border:1px solid var(--glass-border); background:var(--glass-1);
+    color:var(--ink); font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif;
+    transition:border-color .15s, background .15s;
+  }
+  .ts-tool:active { transform:scale(.97) }
+  .ts-tool.primary { flex:1; background:rgba(232,68,26,.16); border-color:rgba(232,68,26,.42); color:var(--accent2) }
+  .ts-tool.ghost { padding:0 14px; white-space:nowrap }
+  .ts-tool.sq { width:42px; flex:none }
+
+  /* This branch: the single island replaces the scattered floating bottom islands */
   .instr-dock, .transport-play, .metro-pill, .mode-fab { display:none !important }
 }
 
@@ -2596,22 +2629,23 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 <!-- MODULATION COACH — where to change key next (filled by ModulationCoach) -->
 <div id="modulatePanel" class="modulate-panel" role="dialog" aria-label="Modulate" hidden></div>
 
-<!-- TRANSPORT SHEET (detented bottom sheet · mobile) -->
+<!-- TRANSPORT ISLAND (liquid-glass · mobile) -->
 <div id="transportSheet" class="transport-sheet" data-state="peek" aria-label="Transport">
-  <div class="ts-grip-zone">
-    <div class="ts-grip" aria-hidden="true"></div>
-    <div class="ts-transport">
-      <button class="ts-play" id="tsPlay" data-ico="play" data-ico-size="18" onclick="event.stopPropagation();toggleProgPlay()" aria-label="Play / stop progression"></button>
-      <span class="ts-key"><b id="tsKey">C</b><small id="tsMode">major</small></span>
-      <button class="ts-bpm" onclick="event.stopPropagation();Metronome.toggleOpen()" aria-label="Tempo"><b id="tsBpm">120</b><small>BPM</small></button>
-      <span class="ts-chev" data-ico="chevron" aria-hidden="true"></span>
-    </div>
+  <div class="ts-head" onclick="TransportSheet.toggle()">
+    <button class="ts-play" id="tsPlay" data-ico="play" data-ico-size="18" onclick="event.stopPropagation();toggleProgPlay()" aria-label="Play / stop progression"></button>
+    <span class="ts-key"><b id="tsKey">C</b><small id="tsMode">major</small></span>
+    <button class="ts-bpm" onclick="event.stopPropagation();Metronome.toggleOpen()" aria-label="Tempo"><b id="tsBpm">120</b><small>BPM</small></button>
+    <span class="ts-chev" data-ico="chevron" aria-hidden="true"></span>
   </div>
   <div class="ts-body">
-    <div class="ts-section-label">Instruments</div>
-    <div class="ts-placeholder">piano / guitar move here</div>
-    <div class="ts-section-label">Harmony tools</div>
-    <div class="ts-placeholder">modulate · color chords</div>
+    <div class="ts-section-label" data-i18n="dock.piano">Instruments</div>
+    <div id="tsInstruments"></div>
+    <div class="ts-section-label">Harmony</div>
+    <div class="ts-tools">
+      <button class="ts-tool primary" onclick="ModulationCoach.toggle()"><span class="mod-ico" aria-hidden="true">✦</span><span data-i18n="modulate.btn">Modulate</span></button>
+      <button class="ts-tool ghost" id="tsVoicing" onclick="togglePlayOpt('voicingOpen',this)" data-ico="voicing" data-ico-size="16" aria-label="Open voicing"></button>
+      <button class="ts-tool sq" id="tsCountin" onclick="togglePlayOpt('countIn',this)" data-ico="countin" data-ico-size="16" aria-label="Count-in"></button>
+    </div>
   </div>
 </div>
 
@@ -6974,7 +7008,7 @@ function _setInstrUI(which) {
   document.querySelectorAll('.instr-dock-btn').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
   document.querySelectorAll('.sheet-dots i').forEach(d => d.classList.toggle('on', d.dataset.instr === which));
 }
-function _instrPager() { return document.querySelector('#panel-theory .instr-pager'); }
+function _instrPager() { return document.querySelector('.instr-pager'); }
 
 // Keep the dock + dots in sync when the user swipes the pager between instruments.
 function _wireInstrPager() {
@@ -6994,7 +7028,7 @@ function gotoInstrument(which) {
       && document.querySelector('.instr-dock-btn.on')?.dataset.instr === which) {
     closeInstrSheet(); return;
   }
-  const drawers = document.querySelectorAll('#panel-theory .drawers .drawer');
+  const drawers = document.querySelectorAll('.drawers .drawer');
   const piano = drawers[0], guitar = drawers[1];
   if (mobile) {
     // Both panels live in the pager — render both, slide the sheet up, page across.
@@ -7447,87 +7481,69 @@ const ModulationCoach = (() => {
 
 
 // == transport-sheet.js ==
-// ── TRANSPORT SHEET (V5.35 · transport-sheet branch) ──
-// iOS-style detented bottom sheet. Peek = just the transport (Play · key · BPM);
-// drag the handle (or tap the chevron) up to Half → Full to reveal instruments
-// and harmony tools. One glass surface replaces the scattered floating islands.
+// ── TRANSPORT ISLAND (V5.35 · transport-sheet branch) ──
+// A liquid-glass floating island. Collapsed = a small centred capsule (Play ·
+// key · BPM). Tap → it morphs into a floating island holding the instrument
+// pager and the harmony tools. Replaces the scattered floating bottom controls.
 const TransportSheet = (() => {
-  const DETENTS = ['peek', 'half', 'full'];
   let state = 'peek';
   const el = () => document.getElementById('transportSheet');
-  const H  = () => window.innerHeight || 800;
+  const mobile = () => matchMedia('(max-width:860px)').matches;
+  const pager = () => document.querySelector('.instr-pager');
 
-  // translateY (px) for a detent: the sheet is full-height and slid down to reveal
-  // only the wanted slice. 0 = fully open; larger = more hidden below the screen.
-  function tyFor(s) {
-    const sheetH = H() * 0.84;
-    if (s === 'full') return 0;
-    if (s === 'half') return Math.max(0, sheetH - H() * 0.46);
-    return Math.max(0, sheetH - 72);   // peek — handle + transport only
+  // Move the instrument drawers into the island on phones; restore on desktop
+  // (the renderers target #piano / #guitar by id, so relocation is safe).
+  function placeInstruments() {
+    const drawers = document.querySelector('.drawers'); if (!drawers) return;
+    const host = document.getElementById('tsInstruments');
+    if (mobile() && host && drawers.parentElement !== host) {
+      if (!drawers._home) { drawers._home = drawers.parentElement; drawers._homeNext = drawers.nextSibling; }
+      drawers.querySelectorAll('.drawer').forEach(d => d.open = true);   // both boards visible in the pager
+      host.appendChild(drawers);
+      wirePager();
+    } else if (!mobile() && drawers._home && drawers.parentElement === host) {
+      drawers._home.insertBefore(drawers, drawers._homeNext);
+    }
   }
 
-  function apply(s, animate = true) {
-    const e = el(); if (!e) return;
-    state = s;
-    e.dataset.state = s;
-    e.style.transition = animate ? 'transform .36s cubic-bezier(.32,.72,0,1)' : 'none';
-    e.style.transform  = `translateY(${tyFor(s)}px)`;
-    document.body.classList.toggle('ts-open', s !== 'peek');
-    if (typeof OverlayManager === 'object' && s !== 'peek') OverlayManager.opened('transport-sheet');
-  }
-
-  function set(s)      { apply(DETENTS.includes(s) ? s : 'peek'); }
-  function toggle()    { set(state === 'peek' ? 'half' : 'peek'); }
-  function collapse()  { apply('peek'); }
-  function isOpen()    { return state !== 'peek'; }
-
-  // Pointer drag on the grip/header → follow the finger, snap to nearest detent.
-  function initDrag() {
-    const e = el(); if (!e) return;
-    const grip = e.querySelector('.ts-grip-zone'); if (!grip) return;
-    let startY = 0, startTy = 0, dragging = false, moved = false;
-    grip.addEventListener('pointerdown', ev => {
-      if (ev.target.closest('button')) return;          // let buttons do their thing
-      dragging = true; moved = false; startY = ev.clientY; startTy = tyFor(state);
-      e.style.transition = 'none';
-      try { grip.setPointerCapture(ev.pointerId); } catch (_) {}
+  // Dots scroll the pager; the pager's scroll keeps the dots in sync.
+  function wirePager() {
+    const pg = pager(); if (!pg) return;
+    document.querySelectorAll('#tsInstruments .sheet-dots i').forEach((dot, i) => {
+      dot.onclick = e => { e.stopPropagation(); pg.scrollTo({ left: i * pg.clientWidth, behavior: 'smooth' }); };
     });
-    grip.addEventListener('pointermove', ev => {
-      if (!dragging) return;
-      const ty = Math.max(0, startTy + (ev.clientY - startY));
-      if (Math.abs(ev.clientY - startY) > 3) moved = true;
-      e.style.transform = `translateY(${ty}px)`;
-    });
-    const end = ev => {
-      if (!dragging) return; dragging = false;
-      if (!moved) { toggle(); return; }                 // a tap (no drag) toggles
-      const ty = Math.max(0, startTy + (ev.clientY - startY));
-      const nearest = DETENTS.reduce((a, b) => Math.abs(tyFor(b) - ty) < Math.abs(tyFor(a) - ty) ? b : a);
-      apply(nearest);
-    };
-    grip.addEventListener('pointerup', end);
-    grip.addEventListener('pointercancel', end);
+    if (typeof _wireInstrPager === 'function') _wireInstrPager();
   }
 
-  // Mirror the live key / mode / tempo into the peek header.
+  function apply(s) {
+    const e = el(); if (!e) return;
+    state = s; e.dataset.state = s;
+    document.body.classList.toggle('ts-open', s === 'open');
+    if (typeof OverlayManager === 'object' && s === 'open') OverlayManager.opened('transport-sheet');
+  }
+  function open()     { apply('open'); }
+  function collapse() { apply('peek'); }
+  function toggle()   { state === 'open' ? collapse() : open(); }
+  function isOpen()   { return state === 'open'; }
+
+  // Mirror the live key / mode / tempo into the capsule.
   function sync() {
-    const e = el(); if (!e) return;
+    if (!el()) return;
     const k = (typeof gr === 'function' && gr()[0]) ? gr()[0] : (st.key || 'C');
     const minor = (typeof modeIsMinor === 'function') ? modeIsMinor(st.mode) : (st.wheelView === 'minor');
-    const kEl = document.getElementById('tsKey');  if (kEl) kEl.textContent = k;
-    const mEl = document.getElementById('tsMode'); if (mEl) mEl.textContent = minor ? 'minor' : 'major';
-    const bEl = document.getElementById('tsBpm');  if (bEl) bEl.textContent = st.bpm || 120;
+    const set = (id, v) => { const n = document.getElementById(id); if (n) n.textContent = v; };
+    set('tsKey', k); set('tsMode', minor ? 'minor' : 'major'); set('tsBpm', st.bpm || 120);
   }
 
   function init() {
     if (!el()) return;
-    apply('peek', false);
-    initDrag();
+    apply('peek');
+    placeInstruments();
     sync();
-    window.addEventListener('resize', () => apply(state, false));
+    window.addEventListener('resize', placeInstruments);
   }
 
-  return { init, set, toggle, collapse, sync, isOpen, get state() { return state; } };
+  return { init, open, collapse, toggle, sync, isOpen, placeInstruments, get state() { return state; } };
 })();
 
 

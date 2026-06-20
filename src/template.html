@@ -413,22 +413,23 @@
 <!-- MODULATION COACH — where to change key next (filled by ModulationCoach) -->
 <div id="modulatePanel" class="modulate-panel" role="dialog" aria-label="Modulate" hidden></div>
 
-<!-- TRANSPORT SHEET (detented bottom sheet · mobile) -->
+<!-- TRANSPORT ISLAND (liquid-glass · mobile) -->
 <div id="transportSheet" class="transport-sheet" data-state="peek" aria-label="Transport">
-  <div class="ts-grip-zone">
-    <div class="ts-grip" aria-hidden="true"></div>
-    <div class="ts-transport">
-      <button class="ts-play" id="tsPlay" data-ico="play" data-ico-size="18" onclick="event.stopPropagation();toggleProgPlay()" aria-label="Play / stop progression"></button>
-      <span class="ts-key"><b id="tsKey">C</b><small id="tsMode">major</small></span>
-      <button class="ts-bpm" onclick="event.stopPropagation();Metronome.toggleOpen()" aria-label="Tempo"><b id="tsBpm">120</b><small>BPM</small></button>
-      <span class="ts-chev" data-ico="chevron" aria-hidden="true"></span>
-    </div>
+  <div class="ts-head" onclick="TransportSheet.toggle()">
+    <button class="ts-play" id="tsPlay" data-ico="play" data-ico-size="18" onclick="event.stopPropagation();toggleProgPlay()" aria-label="Play / stop progression"></button>
+    <span class="ts-key"><b id="tsKey">C</b><small id="tsMode">major</small></span>
+    <button class="ts-bpm" onclick="event.stopPropagation();Metronome.toggleOpen()" aria-label="Tempo"><b id="tsBpm">120</b><small>BPM</small></button>
+    <span class="ts-chev" data-ico="chevron" aria-hidden="true"></span>
   </div>
   <div class="ts-body">
-    <div class="ts-section-label">Instruments</div>
-    <div class="ts-placeholder">piano / guitar move here</div>
-    <div class="ts-section-label">Harmony tools</div>
-    <div class="ts-placeholder">modulate · color chords</div>
+    <div class="ts-section-label" data-i18n="dock.piano">Instruments</div>
+    <div id="tsInstruments"></div>
+    <div class="ts-section-label">Harmony</div>
+    <div class="ts-tools">
+      <button class="ts-tool primary" onclick="ModulationCoach.toggle()"><span class="mod-ico" aria-hidden="true">✦</span><span data-i18n="modulate.btn">Modulate</span></button>
+      <button class="ts-tool ghost" id="tsVoicing" onclick="togglePlayOpt('voicingOpen',this)" data-ico="voicing" data-ico-size="16" aria-label="Open voicing"></button>
+      <button class="ts-tool sq" id="tsCountin" onclick="togglePlayOpt('countIn',this)" data-ico="countin" data-ico-size="16" aria-label="Count-in"></button>
+    </div>
   </div>
 </div>
 

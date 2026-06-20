@@ -42,7 +42,7 @@ function _setInstrUI(which) {
   document.querySelectorAll('.instr-dock-btn').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
   document.querySelectorAll('.sheet-dots i').forEach(d => d.classList.toggle('on', d.dataset.instr === which));
 }
-function _instrPager() { return document.querySelector('#panel-theory .instr-pager'); }
+function _instrPager() { return document.querySelector('.instr-pager'); }
 
 // Keep the dock + dots in sync when the user swipes the pager between instruments.
 function _wireInstrPager() {
@@ -62,7 +62,7 @@ function gotoInstrument(which) {
       && document.querySelector('.instr-dock-btn.on')?.dataset.instr === which) {
     closeInstrSheet(); return;
   }
-  const drawers = document.querySelectorAll('#panel-theory .drawers .drawer');
+  const drawers = document.querySelectorAll('.drawers .drawer');
   const piano = drawers[0], guitar = drawers[1];
   if (mobile) {
     // Both panels live in the pager — render both, slide the sheet up, page across.
