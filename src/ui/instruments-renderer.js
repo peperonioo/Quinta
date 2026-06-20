@@ -106,7 +106,7 @@ function pickProgChord(i) {
   const pcs = (typeof chordPitchesForItem === 'function') ? chordPitchesForItem(it) : null;
   if (typeof setActiveChord === 'function') setActiveChord(pcs);
   if (pcs && typeof AudioEngine === 'object') AudioEngine.playChord(pcs);
-  document.querySelectorAll('#tsProgStrip .tps-chip').forEach((c, j) => c.classList.toggle('on', j === i));
+  document.querySelectorAll('.tps-chip').forEach(c => c.classList.toggle('on', +c.dataset.i === i));
 }
 
 // Dot the dock's *other* instrument when a chord is highlighted, so it's obvious
@@ -169,6 +169,9 @@ const InstrumentZoom = {
     if (title) title.textContent = which === 'piano' ? t('drawers.piano') : t('drawers.guitar');
     const body = document.getElementById('instrZoomBody'); body.innerHTML = ''; body.appendChild(el);
     el.classList.add('zoom');
+    // Keep the chord strip in view while zoomed, so you don't lose the progression.
+    const zs = document.getElementById('instrZoomStrip');
+    if (zs) zs.innerHTML = document.getElementById('tsProgStrip')?.innerHTML || '';
     ov.classList.add('open'); this.open = true;
     (which === 'piano' ? renderPiano : renderGuitar)();
     if (typeof OverlayManager === 'object') OverlayManager.opened('instr-zoom');

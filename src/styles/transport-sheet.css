@@ -3,6 +3,21 @@
    holding the transport, the instrument pager and the harmony tools. */
 .transport-sheet { display:none }
 
+/* Progression chord strip — used in the island AND in the zoom view (all sizes) */
+.ts-prog-strip { display:flex; gap:6px; overflow-x:auto; padding:0 2px 8px; scrollbar-width:none }
+.ts-prog-strip::-webkit-scrollbar { display:none }
+.tps-chip {
+  flex:0 0 auto; padding:6px 12px; border-radius:11px; cursor:pointer;
+  border:1px solid var(--card-bd); background:var(--sel-bg); color:var(--ink);
+  font-family:'DM Serif Display',Georgia,serif; font-size:15px; line-height:1;
+  transition:border-color .14s, background .14s, color .14s;
+}
+.tps-chip:active { transform:scale(.95) }
+.tps-chip.on { background:var(--accent); border-color:transparent; color:#fff }
+.tps-empty { font-size:11px; color:var(--muted); padding:4px 2px }
+/* Strip docked in the zoom header */
+.iz-strip { flex:1 1 auto; min-width:0; padding:0 10px 0 14px; margin:0 }
+
 @media (max-width:860px) {
   .transport-sheet {
     display:block;
@@ -13,7 +28,8 @@
     background:rgba(40,32,55,.5); backdrop-filter:blur(26px) saturate(1.5);
     border:1px solid rgba(255,255,255,.22);
     box-shadow:inset 0 1px 0 rgba(255,255,255,.20), 0 14px 44px rgba(0,0,0,.5);
-    transition:width .44s cubic-bezier(.32,.72,0,1), border-radius .3s var(--ease);
+    transition:width .42s cubic-bezier(.4,0,.2,1), border-radius .3s var(--ease);
+    will-change:width; contain:layout paint;
   }
   body.light .transport-sheet { background:rgba(252,250,247,.55); border-color:rgba(0,0,0,.1) }
   .transport-sheet[data-state="open"] { width:calc(100vw - 20px); border-radius:28px }
@@ -57,24 +73,12 @@
   #tsInstruments .instr-pager { flex:none; height:248px }
   #tsInstruments .instr-pager > .drawer { height:248px; overflow:hidden }
   #tsInstruments #piano { height:168px }
+  /* Guitar "Shapes" open → let the drawer grow so the shapes strip isn't clipped */
+  body.shapes-open #tsInstruments .instr-pager { height:auto !important }
+  body.shapes-open #tsInstruments .instr-pager > .drawer { height:auto !important; overflow:visible !important }
   #tsInstruments #piano .white .kl { font-size:12px }
   #tsInstruments .fret-cell { height:40px }
   #tsInstruments .fret-note.on, #tsInstruments .fret-note.root, #tsInstruments .fret-note.chord { width:28px; height:28px; font-size:10px }
-
-  /* Tappable strip of your progression — audition each chord on the board */
-  .ts-prog-strip {
-    display:flex; gap:6px; overflow-x:auto; padding:0 2px 8px; scrollbar-width:none;
-  }
-  .ts-prog-strip::-webkit-scrollbar { display:none }
-  .tps-chip {
-    flex:0 0 auto; padding:6px 12px; border-radius:11px; cursor:pointer;
-    border:1px solid var(--glass-border); background:var(--glass-1); color:var(--ink);
-    font-family:'DM Serif Display',Georgia,serif; font-size:15px; line-height:1;
-    transition:border-color .14s, background .14s, color .14s;
-  }
-  .tps-chip:active { transform:scale(.95) }
-  .tps-chip.on { background:var(--accent); border-color:transparent; color:#fff }
-  .tps-empty { font-size:11px; color:var(--muted); padding:4px 2px }
 
   /* Harmony tools row */
   .ts-tools { display:flex; gap:7px; padding-top:2px }

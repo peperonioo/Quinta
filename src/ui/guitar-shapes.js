@@ -135,6 +135,7 @@ const GuitarShapes = (() => {
   // the nut, position inlays (3/5/7/9/12) and note-named dots. Reads instantly
   // as a fretboard rather than floating circles.
   const _noteName = pc => (typeof na === 'function') ? ((typeof dn === 'function') ? dn(na(pc)) : na(pc)) : '';
+  let _mfN = 0;
   function drawMiniFret(frets, rootPC) {
     const W = 172, H = 92, x0 = 26, x1 = 162, y0 = 13, y1 = 79, NS = 6, NF = 5;
     const active = frets.filter(f => f > 0);
@@ -146,8 +147,9 @@ const GuitarShapes = (() => {
     const mid = (y0 + y1) / 2;
     let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
     // Wood panel
-    s += `<defs><linearGradient id="mfW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c2010"/><stop offset="1" stop-color="#150e05"/></linearGradient></defs>`;
-    s += `<rect x="${x0 - 3}" y="3" width="${W - (x0 - 3) - 3}" height="${H - 6}" rx="7" fill="url(#mfW)" stroke="rgba(255,255,255,.09)"/>`;
+    const gid = 'mfW' + (_mfN++);   // unique per diagram — fixed ids collide across cards
+    s += `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c2010"/><stop offset="1" stop-color="#150e05"/></linearGradient></defs>`;
+    s += `<rect x="${x0 - 3}" y="3" width="${W - (x0 - 3) - 3}" height="${H - 6}" rx="7" fill="url(#${gid})" stroke="rgba(255,255,255,.09)"/>`;
     // Position inlays (between/around strings) at standard frets within the window
     for (let f = 1; f <= NF; f++) {
       const abs = base + f, cx = fx(f - 0.5);
@@ -235,7 +237,7 @@ const GuitarShapes = (() => {
   function _render() {
     const el = document.getElementById('guitarShapeStrip'); if (!el) return;
     _chords = _collectChords();
-    if (!_chords.length) { el.classList.remove('gss-on'); return; }
+    if (!_chords.length) { el.classList.remove('gss-on'); document.body.classList.remove('shapes-open'); return; }
     if (_activePos >= _chords.length) _activePos = -1;
     const seg = (vw, label) => `<button class="${_view === vw ? 'on' : ''}" role="tab" onclick="GuitarShapes.view('${vw}')">${label}</button>`;
     el.innerHTML = `
@@ -246,6 +248,7 @@ const GuitarShapes = (() => {
       </div>
       <div class="gss-scroll">${_chords.map((c, pos) => _cardHTML(c, pos)).join('')}</div>`;
     el.classList.add('gss-on');
+    document.body.classList.add('shapes-open');
   }
 
   // Update one card in place (no full rebuild → keeps horizontal scroll on slide).
@@ -334,6 +337,7 @@ const GuitarShapes = (() => {
     close() {
       _activePos = -1;
       document.getElementById('guitarShapeStrip')?.classList.remove('gss-on');
+      document.body.classList.remove('shapes-open');
       if (typeof highlightGuitarShape === 'function') highlightGuitarShape(null);
     },
   };

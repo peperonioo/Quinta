@@ -195,9 +195,6 @@
         <button data-view="major" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
         <button data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
       </div>
-      <button class="modulate-btn modulate-btn-mobile" onclick="ModulationCoach.toggle()" aria-haspopup="dialog" aria-label="Modulate to another key">
-        <span class="mod-ico" aria-hidden="true">⇄</span><span data-i18n="modulate.btn">Modulate</span>
-      </button>
     </div>
 
     <!-- BOTTOM THEORY -->
@@ -353,6 +350,7 @@
   <div class="iz-panel" id="instrZoomPanel" role="dialog" aria-modal="true" aria-label="Instrument">
     <div class="iz-head">
       <span id="instrZoomTitle" class="iz-title">Piano</span>
+      <div id="instrZoomStrip" class="ts-prog-strip iz-strip"></div>
       <button class="iz-close" onclick="InstrumentZoom.close()" aria-label="Close">✕</button>
     </div>
     <div id="instrZoomBody" class="iz-body"></div>
@@ -423,14 +421,13 @@
     <span class="ts-chev" data-ico="chevron" aria-hidden="true"></span>
   </div>
   <div class="ts-body">
-    <div class="ts-section-label" data-i18n="dock.piano">Instruments</div>
+    <div class="ts-section-label" data-i18n="strip.chords">Chords</div>
     <div id="tsProgStrip" class="ts-prog-strip" aria-label="Tap a chord to show it on the instrument"></div>
     <div id="tsInstruments"></div>
     <div class="ts-section-label">Harmony</div>
     <div class="ts-tools">
       <button class="ts-tool primary" onclick="ColorChords.toggle()"><span class="mod-ico" aria-hidden="true">✦</span><span data-i18n="color.btn">Colour chords</span></button>
       <button class="ts-tool ghost" onclick="ModulationCoach.toggle()" data-i18n="key.btn">Key</button>
-      <button class="ts-tool sq" id="tsVoicing" onclick="togglePlayOpt('voicingOpen',this)" data-ico="voicing" data-ico-size="16" aria-label="Open voicing"></button>
     </div>
   </div>
 </div>

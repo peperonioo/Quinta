@@ -13,6 +13,7 @@ const I18N_EN = {
   'modulate.btn':      'Modulate',
   'color.btn':         'Colour chords',
   'key.btn':           'Key',
+  'strip.chords':      'Chords',
   'common.minor':      'minor',
   'common.major':      'major',
   'builder.title':     'Progression builder',

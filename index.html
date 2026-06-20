@@ -2177,6 +2177,21 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
    holding the transport, the instrument pager and the harmony tools. */
 .transport-sheet { display:none }
 
+/* Progression chord strip — used in the island AND in the zoom view (all sizes) */
+.ts-prog-strip { display:flex; gap:6px; overflow-x:auto; padding:0 2px 8px; scrollbar-width:none }
+.ts-prog-strip::-webkit-scrollbar { display:none }
+.tps-chip {
+  flex:0 0 auto; padding:6px 12px; border-radius:11px; cursor:pointer;
+  border:1px solid var(--card-bd); background:var(--sel-bg); color:var(--ink);
+  font-family:'DM Serif Display',Georgia,serif; font-size:15px; line-height:1;
+  transition:border-color .14s, background .14s, color .14s;
+}
+.tps-chip:active { transform:scale(.95) }
+.tps-chip.on { background:var(--accent); border-color:transparent; color:#fff }
+.tps-empty { font-size:11px; color:var(--muted); padding:4px 2px }
+/* Strip docked in the zoom header */
+.iz-strip { flex:1 1 auto; min-width:0; padding:0 10px 0 14px; margin:0 }
+
 @media (max-width:860px) {
   .transport-sheet {
     display:block;
@@ -2187,7 +2202,8 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
     background:rgba(40,32,55,.5); backdrop-filter:blur(26px) saturate(1.5);
     border:1px solid rgba(255,255,255,.22);
     box-shadow:inset 0 1px 0 rgba(255,255,255,.20), 0 14px 44px rgba(0,0,0,.5);
-    transition:width .44s cubic-bezier(.32,.72,0,1), border-radius .3s var(--ease);
+    transition:width .42s cubic-bezier(.4,0,.2,1), border-radius .3s var(--ease);
+    will-change:width; contain:layout paint;
   }
   body.light .transport-sheet { background:rgba(252,250,247,.55); border-color:rgba(0,0,0,.1) }
   .transport-sheet[data-state="open"] { width:calc(100vw - 20px); border-radius:28px }
@@ -2231,24 +2247,12 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   #tsInstruments .instr-pager { flex:none; height:248px }
   #tsInstruments .instr-pager > .drawer { height:248px; overflow:hidden }
   #tsInstruments #piano { height:168px }
+  /* Guitar "Shapes" open → let the drawer grow so the shapes strip isn't clipped */
+  body.shapes-open #tsInstruments .instr-pager { height:auto !important }
+  body.shapes-open #tsInstruments .instr-pager > .drawer { height:auto !important; overflow:visible !important }
   #tsInstruments #piano .white .kl { font-size:12px }
   #tsInstruments .fret-cell { height:40px }
   #tsInstruments .fret-note.on, #tsInstruments .fret-note.root, #tsInstruments .fret-note.chord { width:28px; height:28px; font-size:10px }
-
-  /* Tappable strip of your progression — audition each chord on the board */
-  .ts-prog-strip {
-    display:flex; gap:6px; overflow-x:auto; padding:0 2px 8px; scrollbar-width:none;
-  }
-  .ts-prog-strip::-webkit-scrollbar { display:none }
-  .tps-chip {
-    flex:0 0 auto; padding:6px 12px; border-radius:11px; cursor:pointer;
-    border:1px solid var(--glass-border); background:var(--glass-1); color:var(--ink);
-    font-family:'DM Serif Display',Georgia,serif; font-size:15px; line-height:1;
-    transition:border-color .14s, background .14s, color .14s;
-  }
-  .tps-chip:active { transform:scale(.95) }
-  .tps-chip.on { background:var(--accent); border-color:transparent; color:#fff }
-  .tps-empty { font-size:11px; color:var(--muted); padding:4px 2px }
 
   /* Harmony tools row */
   .ts-tools { display:flex; gap:7px; padding-top:2px }
@@ -2449,9 +2453,6 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
         <button data-view="major" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
         <button data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
       </div>
-      <button class="modulate-btn modulate-btn-mobile" onclick="ModulationCoach.toggle()" aria-haspopup="dialog" aria-label="Modulate to another key">
-        <span class="mod-ico" aria-hidden="true">⇄</span><span data-i18n="modulate.btn">Modulate</span>
-      </button>
     </div>
 
     <!-- BOTTOM THEORY -->
@@ -2607,6 +2608,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   <div class="iz-panel" id="instrZoomPanel" role="dialog" aria-modal="true" aria-label="Instrument">
     <div class="iz-head">
       <span id="instrZoomTitle" class="iz-title">Piano</span>
+      <div id="instrZoomStrip" class="ts-prog-strip iz-strip"></div>
       <button class="iz-close" onclick="InstrumentZoom.close()" aria-label="Close">✕</button>
     </div>
     <div id="instrZoomBody" class="iz-body"></div>
@@ -2677,14 +2679,13 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
     <span class="ts-chev" data-ico="chevron" aria-hidden="true"></span>
   </div>
   <div class="ts-body">
-    <div class="ts-section-label" data-i18n="dock.piano">Instruments</div>
+    <div class="ts-section-label" data-i18n="strip.chords">Chords</div>
     <div id="tsProgStrip" class="ts-prog-strip" aria-label="Tap a chord to show it on the instrument"></div>
     <div id="tsInstruments"></div>
     <div class="ts-section-label">Harmony</div>
     <div class="ts-tools">
       <button class="ts-tool primary" onclick="ColorChords.toggle()"><span class="mod-ico" aria-hidden="true">✦</span><span data-i18n="color.btn">Colour chords</span></button>
       <button class="ts-tool ghost" onclick="ModulationCoach.toggle()" data-i18n="key.btn">Key</button>
-      <button class="ts-tool sq" id="tsVoicing" onclick="togglePlayOpt('voicingOpen',this)" data-ico="voicing" data-ico-size="16" aria-label="Open voicing"></button>
     </div>
   </div>
 </div>
@@ -2713,7 +2714,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.36';
+const APP_VERSION = 'V5.37';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -2802,6 +2803,7 @@ const I18N_EN = {
   'modulate.btn':      'Modulate',
   'color.btn':         'Colour chords',
   'key.btn':           'Key',
+  'strip.chords':      'Chords',
   'common.minor':      'minor',
   'common.major':      'major',
   'builder.title':     'Progression builder',
@@ -2880,6 +2882,7 @@ const I18N_ES = {
   'modulate.btn':      'Modular',
   'color.btn':         'Acordes de color',
   'key.btn':           'Tonalidad',
+  'strip.chords':      'Acordes',
   'common.minor':      'menor',
   'common.major':      'mayor',
   'builder.title':     'Constructor de progresión',
@@ -6839,6 +6842,7 @@ const GuitarShapes = (() => {
   // the nut, position inlays (3/5/7/9/12) and note-named dots. Reads instantly
   // as a fretboard rather than floating circles.
   const _noteName = pc => (typeof na === 'function') ? ((typeof dn === 'function') ? dn(na(pc)) : na(pc)) : '';
+  let _mfN = 0;
   function drawMiniFret(frets, rootPC) {
     const W = 172, H = 92, x0 = 26, x1 = 162, y0 = 13, y1 = 79, NS = 6, NF = 5;
     const active = frets.filter(f => f > 0);
@@ -6850,8 +6854,9 @@ const GuitarShapes = (() => {
     const mid = (y0 + y1) / 2;
     let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
     // Wood panel
-    s += `<defs><linearGradient id="mfW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c2010"/><stop offset="1" stop-color="#150e05"/></linearGradient></defs>`;
-    s += `<rect x="${x0 - 3}" y="3" width="${W - (x0 - 3) - 3}" height="${H - 6}" rx="7" fill="url(#mfW)" stroke="rgba(255,255,255,.09)"/>`;
+    const gid = 'mfW' + (_mfN++);   // unique per diagram — fixed ids collide across cards
+    s += `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c2010"/><stop offset="1" stop-color="#150e05"/></linearGradient></defs>`;
+    s += `<rect x="${x0 - 3}" y="3" width="${W - (x0 - 3) - 3}" height="${H - 6}" rx="7" fill="url(#${gid})" stroke="rgba(255,255,255,.09)"/>`;
     // Position inlays (between/around strings) at standard frets within the window
     for (let f = 1; f <= NF; f++) {
       const abs = base + f, cx = fx(f - 0.5);
@@ -6939,7 +6944,7 @@ const GuitarShapes = (() => {
   function _render() {
     const el = document.getElementById('guitarShapeStrip'); if (!el) return;
     _chords = _collectChords();
-    if (!_chords.length) { el.classList.remove('gss-on'); return; }
+    if (!_chords.length) { el.classList.remove('gss-on'); document.body.classList.remove('shapes-open'); return; }
     if (_activePos >= _chords.length) _activePos = -1;
     const seg = (vw, label) => `<button class="${_view === vw ? 'on' : ''}" role="tab" onclick="GuitarShapes.view('${vw}')">${label}</button>`;
     el.innerHTML = `
@@ -6950,6 +6955,7 @@ const GuitarShapes = (() => {
       </div>
       <div class="gss-scroll">${_chords.map((c, pos) => _cardHTML(c, pos)).join('')}</div>`;
     el.classList.add('gss-on');
+    document.body.classList.add('shapes-open');
   }
 
   // Update one card in place (no full rebuild → keeps horizontal scroll on slide).
@@ -7038,6 +7044,7 @@ const GuitarShapes = (() => {
     close() {
       _activePos = -1;
       document.getElementById('guitarShapeStrip')?.classList.remove('gss-on');
+      document.body.classList.remove('shapes-open');
       if (typeof highlightGuitarShape === 'function') highlightGuitarShape(null);
     },
   };
@@ -7153,7 +7160,7 @@ function pickProgChord(i) {
   const pcs = (typeof chordPitchesForItem === 'function') ? chordPitchesForItem(it) : null;
   if (typeof setActiveChord === 'function') setActiveChord(pcs);
   if (pcs && typeof AudioEngine === 'object') AudioEngine.playChord(pcs);
-  document.querySelectorAll('#tsProgStrip .tps-chip').forEach((c, j) => c.classList.toggle('on', j === i));
+  document.querySelectorAll('.tps-chip').forEach(c => c.classList.toggle('on', +c.dataset.i === i));
 }
 
 // Dot the dock's *other* instrument when a chord is highlighted, so it's obvious
@@ -7216,6 +7223,9 @@ const InstrumentZoom = {
     if (title) title.textContent = which === 'piano' ? t('drawers.piano') : t('drawers.guitar');
     const body = document.getElementById('instrZoomBody'); body.innerHTML = ''; body.appendChild(el);
     el.classList.add('zoom');
+    // Keep the chord strip in view while zoomed, so you don't lose the progression.
+    const zs = document.getElementById('instrZoomStrip');
+    if (zs) zs.innerHTML = document.getElementById('tsProgStrip')?.innerHTML || '';
     ov.classList.add('open'); this.open = true;
     (which === 'piano' ? renderPiano : renderGuitar)();
     if (typeof OverlayManager === 'object') OverlayManager.opened('instr-zoom');
