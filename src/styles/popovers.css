@@ -1,6 +1,48 @@
 /* ── OVERLAY SYSTEM ───────────────────────────────────
    Dropdown and popovers always beat cards.           */
 
+/* ── Modulation coach ─────────────────────────────────*/
+.modulate-btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  margin-top:8px; width:100%; padding:8px 10px;
+  border:1px solid var(--glass-border); border-radius:10px;
+  background:var(--glass-1); color:var(--muted);
+  font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; cursor:pointer;
+  transition:color .15s, border-color .15s, background .15s;
+}
+.modulate-btn:hover, .modulate-btn.on { color:var(--accent2); border-color:rgba(232,68,26,.42); background:var(--glass-2) }
+.modulate-btn .mod-ico { font-size:13px; opacity:.85 }
+.modulate-btn-mobile { display:none }   /* desktop hides it; shown on mobile */
+
+.modulate-panel {
+  position:fixed; left:50%; top:50%; transform:translate(-50%,-46%) scale(.97);
+  z-index:var(--z-modal, 9500); width:min(346px, calc(100vw - 32px));
+  padding:14px; border-radius:18px;
+  background:var(--ui-surface-strong); backdrop-filter:blur(26px);
+  border:1px solid var(--ui-border-strong); box-shadow:var(--shadow-lifted, 0 22px 60px rgba(0,0,0,.55));
+  opacity:0; pointer-events:none;
+  transition:opacity .18s var(--ease), transform .2s var(--ease);
+}
+.modulate-panel.open { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1) }
+.mod-head  { display:flex; align-items:center; justify-content:space-between; margin-bottom:11px }
+.mod-title { font-family:'DM Serif Display',Georgia,serif; font-size:18px; color:var(--ink) }
+.mod-x     { border:0; background:var(--sel-bg); color:var(--muted); width:24px; height:24px; border-radius:8px; cursor:pointer; font-size:12px; display:grid; place-items:center }
+.mod-list  { display:flex; flex-direction:column; gap:7px }
+.mod-item  {
+  display:grid; grid-template-columns:1fr auto; grid-template-areas:'role role' 'key pivot' 'why why';
+  gap:1px 10px; text-align:left; cursor:pointer;
+  padding:9px 12px; border-radius:13px; border:1px solid var(--glass-border); background:var(--glass-1);
+  transition:border-color .15s, background .15s, transform .12s;
+}
+.mod-item:hover { border-color:rgba(232,68,26,.42); background:var(--glass-2); transform:translateY(-1px) }
+.mod-role  { grid-area:role; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.13em; text-transform:uppercase; color:var(--accent2) }
+.mod-key   { grid-area:key; font-family:'DM Serif Display',Georgia,serif; font-size:17px; color:var(--ink); line-height:1.1 }
+.mod-pivot { grid-area:pivot; align-self:end; font-family:'DM Mono',monospace; font-size:9.5px; color:var(--muted); white-space:nowrap }
+.mod-pivot b { color:var(--ink) }
+.mod-why   { grid-area:why; font-size:11px; color:var(--muted); line-height:1.35; margin-top:3px }
+@media (prefers-reduced-motion: reduce){ .modulate-panel { transition:opacity .15s } }
+
+
 /* Mode control trigger */
 .mode-control   { position:relative }
 .mode-display   {

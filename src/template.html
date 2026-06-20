@@ -109,6 +109,9 @@
             <button id="viewMajorBtn" class="active" data-view="major" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
             <button id="viewMinorBtn" data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
           </div>
+          <button class="modulate-btn" onclick="ModulationCoach.toggle()" aria-haspopup="dialog" aria-label="Modulate to another key">
+            <span class="mod-ico" aria-hidden="true">⇄</span><span data-i18n="modulate.btn">Modulate</span>
+          </button>
         </div>
         <div class="card">
           <div class="lbl" data-i18n="labels.mode">Mode</div>
@@ -187,9 +190,14 @@
     </div>
 
     <!-- Mobile-only Major/Minor toggle (the side cards are hidden on phones) -->
-    <div class="wheel-toggle wheel-toggle-mobile" role="group" aria-label="Key tonality: major or minor">
-      <button data-view="major" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
-      <button data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
+    <div class="wheel-toggle-row">
+      <div class="wheel-toggle wheel-toggle-mobile" role="group" aria-label="Key tonality: major or minor">
+        <button data-view="major" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
+        <button data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
+      </div>
+      <button class="modulate-btn modulate-btn-mobile" onclick="ModulationCoach.toggle()" aria-haspopup="dialog" aria-label="Modulate to another key">
+        <span class="mod-ico" aria-hidden="true">⇄</span><span data-i18n="modulate.btn">Modulate</span>
+      </button>
     </div>
 
     <!-- BOTTOM THEORY -->
@@ -401,6 +409,9 @@
     <span class="idk-lbl" data-i18n="dock.guitar">Guitar</span>
   </button>
 </div>
+
+<!-- MODULATION COACH — where to change key next (filled by ModulationCoach) -->
+<div id="modulatePanel" class="modulate-panel" role="dialog" aria-label="Modulate" hidden></div>
 
 <!-- ONBOARDING / GUIDED SPOTLIGHT TOUR -->
 <div id="onboarding" class="ob" hidden role="dialog" aria-modal="true" aria-label="Welcome tour">

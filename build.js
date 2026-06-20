@@ -73,6 +73,7 @@ const JS_FILES = [
   'src/ui/guitar-shapes.js',
   'src/ui/instruments-renderer.js',
   'src/ui/metronome.js',
+  'src/ui/modulation-coach.js',
   'src/ui/onboarding.js',
   'src/ui/tabs.js',
   // Interactions

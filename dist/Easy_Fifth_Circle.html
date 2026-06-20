@@ -926,6 +926,48 @@ body.light .gravity-pill.metric.high { color:#fff }
 /* ── OVERLAY SYSTEM ───────────────────────────────────
    Dropdown and popovers always beat cards.           */
 
+/* ── Modulation coach ─────────────────────────────────*/
+.modulate-btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  margin-top:8px; width:100%; padding:8px 10px;
+  border:1px solid var(--glass-border); border-radius:10px;
+  background:var(--glass-1); color:var(--muted);
+  font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; cursor:pointer;
+  transition:color .15s, border-color .15s, background .15s;
+}
+.modulate-btn:hover, .modulate-btn.on { color:var(--accent2); border-color:rgba(232,68,26,.42); background:var(--glass-2) }
+.modulate-btn .mod-ico { font-size:13px; opacity:.85 }
+.modulate-btn-mobile { display:none }   /* desktop hides it; shown on mobile */
+
+.modulate-panel {
+  position:fixed; left:50%; top:50%; transform:translate(-50%,-46%) scale(.97);
+  z-index:var(--z-modal, 9500); width:min(346px, calc(100vw - 32px));
+  padding:14px; border-radius:18px;
+  background:var(--ui-surface-strong); backdrop-filter:blur(26px);
+  border:1px solid var(--ui-border-strong); box-shadow:var(--shadow-lifted, 0 22px 60px rgba(0,0,0,.55));
+  opacity:0; pointer-events:none;
+  transition:opacity .18s var(--ease), transform .2s var(--ease);
+}
+.modulate-panel.open { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1) }
+.mod-head  { display:flex; align-items:center; justify-content:space-between; margin-bottom:11px }
+.mod-title { font-family:'DM Serif Display',Georgia,serif; font-size:18px; color:var(--ink) }
+.mod-x     { border:0; background:var(--sel-bg); color:var(--muted); width:24px; height:24px; border-radius:8px; cursor:pointer; font-size:12px; display:grid; place-items:center }
+.mod-list  { display:flex; flex-direction:column; gap:7px }
+.mod-item  {
+  display:grid; grid-template-columns:1fr auto; grid-template-areas:'role role' 'key pivot' 'why why';
+  gap:1px 10px; text-align:left; cursor:pointer;
+  padding:9px 12px; border-radius:13px; border:1px solid var(--glass-border); background:var(--glass-1);
+  transition:border-color .15s, background .15s, transform .12s;
+}
+.mod-item:hover { border-color:rgba(232,68,26,.42); background:var(--glass-2); transform:translateY(-1px) }
+.mod-role  { grid-area:role; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.13em; text-transform:uppercase; color:var(--accent2) }
+.mod-key   { grid-area:key; font-family:'DM Serif Display',Georgia,serif; font-size:17px; color:var(--ink); line-height:1.1 }
+.mod-pivot { grid-area:pivot; align-self:end; font-family:'DM Mono',monospace; font-size:9.5px; color:var(--muted); white-space:nowrap }
+.mod-pivot b { color:var(--ink) }
+.mod-why   { grid-area:why; font-size:11px; color:var(--muted); line-height:1.35; margin-top:3px }
+@media (prefers-reduced-motion: reduce){ .modulate-panel { transition:opacity .15s } }
+
+
 /* Mode control trigger */
 .mode-control   { position:relative }
 .mode-display   {
@@ -1951,10 +1993,12 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   /* Once you're building, the wheel steps back so the builder owns the screen. It
      keeps the key/mode in its centre (your compact reference) and stays tappable. */
   body.building #wheelSvg { width:min(60vw,320px) !important; height:min(60vw,320px) !important }
-  body.building .wheel-toggle-mobile { margin-top:6px }
+  body.building .wheel-toggle-row { margin-top:6px }
   /* Surface the Major/Minor toggle on mobile (the side cards are hidden) */
-  .wheel-toggle-mobile { display:flex; width:min(260px,80vw); margin:12px auto 2px }
+  .wheel-toggle-row { display:flex; gap:8px; align-items:stretch; justify-content:center; width:min(344px,92vw); margin:12px auto 2px }
+  .wheel-toggle-mobile { display:flex; flex:1; margin:0 }
   .wheel-toggle-mobile button { font-size:12px; padding:9px 8px }
+  .modulate-btn-mobile { display:inline-flex; margin-top:0; width:auto; flex:0 0 auto; padding:9px 13px; white-space:nowrap }
   /* Lighter wheel on mobile so scrolling stays smooth */
   #wheelSheen     { animation:none !important; opacity:0 !important }
   .theory-bottom  { gap:9px }
@@ -2204,6 +2248,9 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
             <button id="viewMajorBtn" class="active" data-view="major" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
             <button id="viewMinorBtn" data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
           </div>
+          <button class="modulate-btn" onclick="ModulationCoach.toggle()" aria-haspopup="dialog" aria-label="Modulate to another key">
+            <span class="mod-ico" aria-hidden="true">⇄</span><span data-i18n="modulate.btn">Modulate</span>
+          </button>
         </div>
         <div class="card">
           <div class="lbl" data-i18n="labels.mode">Mode</div>
@@ -2282,9 +2329,14 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
     </div>
 
     <!-- Mobile-only Major/Minor toggle (the side cards are hidden on phones) -->
-    <div class="wheel-toggle wheel-toggle-mobile" role="group" aria-label="Key tonality: major or minor">
-      <button data-view="major" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
-      <button data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
+    <div class="wheel-toggle-row">
+      <div class="wheel-toggle wheel-toggle-mobile" role="group" aria-label="Key tonality: major or minor">
+        <button data-view="major" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
+        <button data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
+      </div>
+      <button class="modulate-btn modulate-btn-mobile" onclick="ModulationCoach.toggle()" aria-haspopup="dialog" aria-label="Modulate to another key">
+        <span class="mod-ico" aria-hidden="true">⇄</span><span data-i18n="modulate.btn">Modulate</span>
+      </button>
     </div>
 
     <!-- BOTTOM THEORY -->
@@ -2497,6 +2549,9 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   </button>
 </div>
 
+<!-- MODULATION COACH — where to change key next (filled by ModulationCoach) -->
+<div id="modulatePanel" class="modulate-panel" role="dialog" aria-label="Modulate" hidden></div>
+
 <!-- ONBOARDING / GUIDED SPOTLIGHT TOUR -->
 <div id="onboarding" class="ob" hidden role="dialog" aria-modal="true" aria-label="Welcome tour">
   <div class="ob-catch"></div>
@@ -2521,7 +2576,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.33';
+const APP_VERSION = 'V5.34';
 const STORAGE_KEY = 'easy-fifth-circle:v1';
 
 const NOTES  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -2607,6 +2662,7 @@ const I18N_EN = {
   'labels.scaleNotes': 'Scale notes',
   'toggle.major':      'Major',
   'toggle.minor':      'Minor',
+  'modulate.btn':      'Modulate',
   'common.minor':      'minor',
   'common.major':      'major',
   'builder.title':     'Progression builder',
@@ -2682,6 +2738,7 @@ const I18N_ES = {
   'labels.scaleNotes': 'Notas de la escala',
   'toggle.major':      'Mayor',
   'toggle.minor':      'Menor',
+  'modulate.btn':      'Modular',
   'common.minor':      'menor',
   'common.major':      'mayor',
   'builder.title':     'Constructor de progresión',
@@ -5048,6 +5105,11 @@ OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),
   close:  () => { if (typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible) WheelDirectionGuide.toggle(); },
 });
+OverlayManager.register('modulate', {
+  isOpen:   () => !!(typeof ModulationCoach === 'object' && ModulationCoach.isOpen()),
+  close:    () => { if (typeof ModulationCoach === 'object' && ModulationCoach.isOpen()) ModulationCoach.close(); },
+  contains: (t) => !!(t.closest('#modulatePanel') || t.closest('.modulate-btn')),
+});
 OverlayManager.register('theory-help', {
   isOpen: () => !!document.querySelector('.micro-popover.open'),
   close:  () => document.querySelectorAll('.micro-popover.open').forEach(p => p.classList.remove('open')),
@@ -7210,6 +7272,106 @@ const Metronome = {
     window.addEventListener('pointerup', () => { dragging = false; });
   },
 };
+
+
+// == modulation-coach.js ==
+// ── MODULATION COACH (V5.34) ──────────────────────────
+// Suggests musically-sound key changes from the current key. Each target carries
+// a one-line "why" and a pivot chord (shared by both keys) to move through; tap
+// one and the wheel jumps there. A small "Modulate" button opens the panel.
+const ModulationCoach = (() => {
+  const PCF = {}; FIFTHS.forEach(k => { PCF[ni(k)] = k; });   // pitch-class → conventional spelling
+  const STEPS_MAJ = [0,2,4,5,7,9,11], QUAL_MAJ = ['','m','m','','','m','°'];
+  const STEPS_MIN = [0,2,3,5,7,8,10], QUAL_MIN = ['m','°','','m','m','',''];   // natural minor
+
+  function triads(tonicPc, maj) {
+    const S = maj ? STEPS_MAJ : STEPS_MIN, Q = maj ? QUAL_MAJ : QUAL_MIN;
+    return S.map((s, i) => ({ pc: (tonicPc + s) % 12, q: Q[i] }));
+  }
+  const cName = c => dn(na(c.pc)) + c.q;
+
+  // A shared diatonic chord to pivot through (prefer one that isn't the home tonic).
+  function pivot(curPc, curMaj, tgtPc, tgtMaj) {
+    const A = triads(curPc, curMaj), B = triads(tgtPc, tgtMaj);
+    const shared = A.filter(a => B.some(b => b.pc === a.pc && b.q === a.q));
+    if (!shared.length) return null;
+    return cName(shared.find(s => s.pc !== curPc) || shared[0]);
+  }
+
+  const L = o => o[st.lang] || o.en;
+  const keyName = (pc, maj) => `${dn(na(pc))} ${st.lang === 'es' ? (maj ? 'mayor' : 'menor') : (maj ? 'major' : 'minor')}`;
+  // Map a (tonic, quality) key onto a wheel (sector, view).
+  const place = (pc, maj) => maj ? { sector: PCF[pc], view: 'major' } : { sector: PCF[(pc + 3) % 12], view: 'minor' };
+
+  function targets() {
+    // Authoritative current tonic + quality — works for major, minor and modes,
+    // independent of how the wheel stores its key/view internally.
+    const homeName = (typeof gr === 'function' && gr()[0]) ? gr()[0] : st.key;
+    const homePc   = ni(homeName);
+    const homeMaj  = (typeof modeIsMinor === 'function') ? !modeIsMinor(st.mode) : (st.wheelView !== 'minor');
+    const up = n => (homePc + n) % 12;
+
+    const defs = [
+      homeMaj
+        ? [up(9), false, {en:'Relative minor', es:'Relativa menor'}, {en:'Same notes — just darker.',          es:'Mismas notas — solo que más oscuro.'}]
+        : [up(3), true,  {en:'Relative major', es:'Relativa mayor'}, {en:'Same notes — brighter and open.',     es:'Mismas notas — más luminoso y abierto.'}],
+      [up(7), true,      {en:'Dominant',        es:'Dominante'},     {en:'Up a fifth — lifts the energy.',      es:'Una quinta arriba — sube la energía.'}],
+      [up(5), true,      {en:'Subdominant',     es:'Subdominante'},  {en:'Down a fifth — warmer, relaxed.',     es:'Una quinta abajo — más cálido y relajado.'}],
+      [homePc, !homeMaj, {en:'Parallel',        es:'Paralela'},     {en:'Same home note — flips the mood.',    es:'Mismo centro — voltea el mood.'}],
+      [up(2), true,      {en:'Up a whole step', es:'Un tono arriba'},{en:'The classic final-chorus lift.',      es:'El subidón clásico de estribillo.'}],
+    ];
+    return defs.map(([pc, maj, label, why]) => ({
+      label: L(label), why: L(why), name: keyName(pc, maj),
+      pivot: pivot(homePc, homeMaj, pc, maj), ...place(pc, maj),
+    }));
+  }
+
+  let _open = false;
+  const el = () => document.getElementById('modulatePanel');
+
+  function render() {
+    const box = el(); if (!box) return;
+    const es = st.lang === 'es';
+    box.innerHTML = `
+      <div class="mod-head">
+        <span class="mod-title">${es ? '¿Hacia dónde modular?' : 'Where to modulate?'}</span>
+        <button class="mod-x" onclick="ModulationCoach.close()" aria-label="Close">✕</button>
+      </div>
+      <div class="mod-list">
+        ${targets().map(tg => `
+          <button class="mod-item" onclick="ModulationCoach.jump('${tg.sector}','${tg.view}')">
+            <span class="mod-role">${tg.label}</span>
+            <span class="mod-key">${tg.name}</span>
+            <span class="mod-why">${tg.why}</span>
+            ${tg.pivot ? `<span class="mod-pivot">${es ? 'pivote' : 'pivot'} · <b>${tg.pivot}</b></span>` : ''}
+          </button>`).join('')}
+      </div>`;
+  }
+
+  function show() {
+    const box = el(); if (!box) return;
+    render(); box.hidden = false; requestAnimationFrame(() => box.classList.add('open'));
+    _open = true;
+    document.querySelectorAll('.modulate-btn').forEach(b => b.classList.add('on'));
+    if (typeof OverlayManager === 'object') OverlayManager.opened('modulate');
+  }
+  function close() {
+    const box = el(); if (!box) return;
+    box.classList.remove('open'); _open = false;
+    document.querySelectorAll('.modulate-btn').forEach(b => b.classList.remove('on'));
+    setTimeout(() => { if (!_open) box.hidden = true; }, 200);
+  }
+  function toggle() { _open ? close() : show(); }
+
+  function jump(sector, view) {
+    if (typeof wheelLocked !== 'undefined' && wheelLocked && typeof setWheelLock === 'function') setWheelLock(false);
+    AppActions.setKey(sector);
+    AppActions.setWheelView(view);
+    close();
+  }
+
+  return { toggle, show, close, jump, isOpen: () => _open };
+})();
 
 
 // == onboarding.js ==

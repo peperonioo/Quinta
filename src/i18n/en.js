@@ -10,6 +10,7 @@ const I18N_EN = {
   'labels.scaleNotes': 'Scale notes',
   'toggle.major':      'Major',
   'toggle.minor':      'Minor',
+  'modulate.btn':      'Modulate',
   'common.minor':      'minor',
   'common.major':      'major',
   'builder.title':     'Progression builder',

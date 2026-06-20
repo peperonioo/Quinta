@@ -107,6 +107,11 @@ OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),
   close:  () => { if (typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible) WheelDirectionGuide.toggle(); },
 });
+OverlayManager.register('modulate', {
+  isOpen:   () => !!(typeof ModulationCoach === 'object' && ModulationCoach.isOpen()),
+  close:    () => { if (typeof ModulationCoach === 'object' && ModulationCoach.isOpen()) ModulationCoach.close(); },
+  contains: (t) => !!(t.closest('#modulatePanel') || t.closest('.modulate-btn')),
+});
 OverlayManager.register('theory-help', {
   isOpen: () => !!document.querySelector('.micro-popover.open'),
   close:  () => document.querySelectorAll('.micro-popover.open').forEach(p => p.classList.remove('open')),

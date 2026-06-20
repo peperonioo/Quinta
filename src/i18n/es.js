@@ -10,6 +10,7 @@ const I18N_ES = {
   'labels.scaleNotes': 'Notas de la escala',
   'toggle.major':      'Mayor',
   'toggle.minor':      'Menor',
+  'modulate.btn':      'Modular',
   'common.minor':      'menor',
   'common.major':      'mayor',
   'builder.title':     'Constructor de progresión',
