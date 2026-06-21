@@ -101,7 +101,11 @@ const ChordVariants = {
     if (gap && this._anchorRect) gap.style.height = this._anchorRect.height + 'px';
     el.style.display = 'block';
     this._place();
-    requestAnimationFrame(() => el.classList.add('open'));
+    // Commit the collapsed start state with a forced reflow, THEN add `open` so
+    // the spring transition always plays — reliable even in background tabs where
+    // requestAnimationFrame is throttled/paused.
+    void el.offsetWidth;
+    el.classList.add('open');
     // Light up the current chord's notes on the piano/fretboard (build-a-chord guide).
     this._light(ctx.current);
     // Update chord shape strip if it's currently visible (pass current variant)

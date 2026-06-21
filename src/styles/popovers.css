@@ -393,45 +393,61 @@ body.light .ms-btn.active { background:rgba(232,68,26,.1); border-color:rgba(232
   box-shadow:0 18px 44px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
 }
 body.light .cv-above, body.light .cv-below { background:#15151a; border-color:rgba(255,255,255,.08) }
-.cv-above { transform-origin:bottom center; opacity:0; transform:translateY(16px) scale(.86);
-  transition:transform .36s cubic-bezier(.34,1.56,.4,1), opacity .22s var(--ease) }
-.cv-below { transform-origin:top center;    opacity:0; transform:translateY(-16px) scale(.86);
-  transition:transform .36s cubic-bezier(.34,1.56,.4,1), opacity .22s var(--ease) }
+/* The islands spring out from the bar edge (above grows up, below grows down)
+   with a bouncy overshoot, and add perspective so the chips inside can unfold
+   in 3D like an accordion. */
+.cv-above { transform-origin:bottom center; perspective:560px; opacity:0;
+  transform:translateY(20px) scaleY(.42) scale(.9);
+  transition:transform .46s cubic-bezier(.22,1.5,.36,1), opacity .2s var(--ease) }
+.cv-below { transform-origin:top center;    perspective:560px; opacity:0;
+  transform:translateY(-20px) scaleY(.42) scale(.9);
+  transition:transform .46s cubic-bezier(.22,1.5,.36,1), opacity .2s var(--ease) }
 .chord-variants.open .cv-above, .chord-variants.open .cv-below { opacity:1; transform:none }
 .cv-mid { width:100%; pointer-events:none }            /* transparent gap over the bar */
 .cv-chip {
   pointer-events:auto; cursor:pointer; color:#f0ede8;
   padding:7px 6px; border-radius:10px; text-align:center; border:0; background:transparent;
   font-family:'DM Serif Display',Georgia,serif; font-size:14px; line-height:1;
-  transition:background .12s, color .12s;
+  transition:background .12s, color .12s, transform .2s cubic-bezier(.34,1.56,.4,1);
 }
-.cv-chip:hover  { background:rgba(255,255,255,.08) }
+.cv-chip:hover  { background:rgba(255,255,255,.08); transform:scale(1.07) }
+.cv-chip:active { transform:scale(.93) }
 .cv-chip.active { background:var(--accent); color:#fff }
 .cv-foot { display:flex; gap:4px; margin-top:3px; padding-top:5px; border-top:1px solid rgba(255,255,255,.08) }
 .cv-act {
   pointer-events:auto; flex:1; padding:6px 0; border-radius:10px; cursor:pointer;
   border:0; background:rgba(255,255,255,.07); color:#f0ede8; font-size:14px; line-height:1;
+  transition:background .12s, color .12s, transform .2s cubic-bezier(.34,1.56,.4,1);
 }
-.cv-act:hover { background:rgba(255,255,255,.14) }
+.cv-act:hover { background:rgba(255,255,255,.14); transform:scale(1.07) }
+.cv-act:active { transform:scale(.93) }
 .cv-act.danger:hover { background:rgba(232,68,26,.9); color:#fff }
-/* The chips cascade in just after the islands spring out — the whole thing
-   unfolds rather than snapping, so the build-a-chord moment feels alive. */
-@keyframes cvChipIn { from { opacity:0; transform:translateY(5px) scale(.92) } to { opacity:1; transform:none } }
-.chord-variants.open .cv-chip  { animation:cvChipIn .28s var(--ease) both }
-.chord-variants.open .cv-foot  { animation:cvChipIn .28s var(--ease) .3s both }
+/* Each chip UNFOLDS — tilting up from a hinge nearest the bar — and overshoots
+   slightly before settling, so the whole chooser blooms open rather than snapping.
+   (fill:backwards, not both, so hover/press transforms still work once settled.) */
+@keyframes cvChipIn {
+  0%   { opacity:0; transform:translateY(7px) rotateX(-78deg) scale(.9) }
+  62%  { opacity:1; transform:translateY(0)   rotateX(9deg)   scale(1.04) }
+  100% { opacity:1; transform:none }
+}
+.cv-above .cv-chip { transform-origin:center bottom }   /* hinge toward the bar */
+.cv-below .cv-chip { transform-origin:center top }
+.chord-variants.open .cv-chip  { animation:cvChipIn .36s cubic-bezier(.34,1.42,.5,1) backwards }
+.chord-variants.open .cv-foot  { animation:cvChipIn .32s cubic-bezier(.34,1.42,.5,1) .32s backwards }
 .chord-variants.open .cv-above .cv-chip:nth-child(1),
-.chord-variants.open .cv-below .cv-chip:nth-child(1) { animation-delay:.08s }
+.chord-variants.open .cv-below .cv-chip:nth-child(1) { animation-delay:.07s }
 .chord-variants.open .cv-above .cv-chip:nth-child(2),
-.chord-variants.open .cv-below .cv-chip:nth-child(2) { animation-delay:.13s }
+.chord-variants.open .cv-below .cv-chip:nth-child(2) { animation-delay:.12s }
 .chord-variants.open .cv-above .cv-chip:nth-child(3),
-.chord-variants.open .cv-below .cv-chip:nth-child(3) { animation-delay:.18s }
+.chord-variants.open .cv-below .cv-chip:nth-child(3) { animation-delay:.17s }
 .chord-variants.open .cv-above .cv-chip:nth-child(4),
-.chord-variants.open .cv-below .cv-chip:nth-child(4) { animation-delay:.23s }
+.chord-variants.open .cv-below .cv-chip:nth-child(4) { animation-delay:.22s }
 .chord-variants.open .cv-above .cv-chip:nth-child(5),
-.chord-variants.open .cv-below .cv-chip:nth-child(5) { animation-delay:.28s }
+.chord-variants.open .cv-below .cv-chip:nth-child(5) { animation-delay:.27s }
 @media (prefers-reduced-motion: reduce){
-  .cv-above, .cv-below { transition:opacity .15s; transform:none }
+  .cv-above, .cv-below { transition:opacity .15s; transform:none; perspective:none }
   .chord-variants.open .cv-chip, .chord-variants.open .cv-foot { animation:none }
+  .cv-chip:hover, .cv-chip:active, .cv-act:hover, .cv-act:active { transform:none }
 }
 
 /* Bar being dragged to reorder */
