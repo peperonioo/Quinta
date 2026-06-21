@@ -69,32 +69,10 @@
   .builder-next-moves .next-orbit { justify-content:flex-start !important; padding-inline:6px !important; gap:11px }
   /* Raise the floor so every bubble is tappable, but keep the size difference. */
   .builder-next-moves .next-bubble { --diam:clamp(44px, var(--d), 82px) !important; padding:5px !important }
-  /* ── Instruments as a swipeable bottom-sheet ─────────────
-     The drawers leave the page flow and slide up from the bottom. Inside, the two
-     instruments become a horizontal pager: swipe (or tap the dock / the dots) to
-     move between a full-size piano and fretboard. */
-  .drawers {
-    position:fixed; left:0; right:0; bottom:0; z-index:58; margin:0; gap:0;
-    padding:6px 0 calc(78px + var(--mobile-safe-bottom,0px));
-    background:var(--ui-surface-strong); backdrop-filter:blur(26px);
-    border-top:1px solid var(--ui-border-strong); border-radius:22px 22px 0 0;
-    box-shadow:0 -18px 50px rgba(0,0,0,.5);
-    max-height:82svh; overflow:hidden;
-    transform:translateY(105%); transition:transform .32s var(--ease);
-  }
-  body.instr-sheet .drawers { transform:translateY(0) }
-  /* Header: drag grip + page dots, fixed while the panels scroll underneath */
-  .sheet-head { display:flex; flex-direction:column; align-items:center; gap:7px; padding:2px 0 6px; flex:none }
-  .sheet-grip { width:40px; height:4px; border-radius:2px; background:var(--ui-border-strong) }
-  .sheet-dots { display:flex; gap:7px }
-  .sheet-dots i {
-    width:7px; height:7px; border-radius:50%; cursor:pointer; background:var(--ui-border-strong);
-    transition:background .2s var(--ease), transform .2s var(--ease);
-  }
-  .sheet-dots i.on { background:var(--accent); transform:scale(1.25) }
-  /* The pager fills the rest of the sheet; each instrument is one snap page */
+  /* Instrument pager — lives inside the transport island (#tsInstruments styles
+     the rest). Horizontal scroll-snap between the full-size piano and fretboard. */
   .instr-pager {
-    display:flex !important; flex:1 1 auto; min-height:0;
+    display:flex !important; min-height:0;
     overflow-x:auto; overflow-y:hidden;
     scroll-snap-type:x mandatory; scroll-behavior:smooth;
     overscroll-behavior-x:contain; scrollbar-width:none;
@@ -104,28 +82,12 @@
     flex:0 0 100%; min-width:100%; overflow-y:auto;
     scroll-snap-align:center; scroll-snap-stop:always; padding:0 10px;
   }
+  /* Dim scrim behind the open island; tap it to collapse */
   .instr-sheet-backdrop {
-    position:fixed; inset:0; z-index:54; background:rgba(0,0,0,.45);
-    backdrop-filter:blur(3px); opacity:0; pointer-events:none;
-    transition:opacity .26s var(--ease);
+    position:fixed; inset:0; z-index:54; background:rgba(0,0,0,.42);
+    opacity:0; pointer-events:none; transition:opacity .26s var(--ease);
   }
-  body.instr-sheet .instr-sheet-backdrop { opacity:1; pointer-events:auto }
-
-  /* Each panel is a clean, full-size instrument — no card chrome, no collapse
-     (the pager + dock + dots handle switching). */
-  body.instr-sheet .drawer                  { border:0; background:transparent; margin:0 }
-  body.instr-sheet .drawer > summary        { pointer-events:none }
-  body.instr-sheet .drawer > summary button { pointer-events:auto }
-  body.instr-sheet .drawer .chev            { display:none }
-  /* Piano: taller, thumb-friendly keys */
-  body.instr-sheet #piano               { height:min(32svh, 250px) }
-  body.instr-sheet #piano .white .kl    { font-size:13px }
-  body.instr-sheet #piano .black .kl    { font-size:11px }
-  /* Fretboard: roomier rows + bigger lit note dots */
-  body.instr-sheet .fret-cell           { height:42px }
-  body.instr-sheet .fret-note.on,
-  body.instr-sheet .fret-note.root,
-  body.instr-sheet .fret-note.chord     { width:30px; height:30px; font-size:10px }
+  body.ts-open .instr-sheet-backdrop { opacity:1; pointer-events:auto }
 
   .info-row       { grid-template-columns:1fr }
   .prod-grid,.elements-section { grid-template-columns:1fr }
@@ -185,10 +147,6 @@
     top:auto; bottom:calc(16px + var(--mobile-safe-bottom, 0px));
     left:auto; right:14px; transform:none; align-items:flex-end;
   }
-  #metronome .transport-play { display:grid }   /* surface the Play button beside the BPM pill */
-  /* One clean bottom tier: [mode FAB] [dock] [Play · BPM]. The dock sits just left
-     of centre so the wider Play+BPM transport clears it on a 375px phone. */
-  .instr-dock { transform:translateX(calc(-50% - 26px)); }
   .metro-pill   { transform:none }
   .metro-panel  {
     top:auto; bottom:0; left:auto; right:0;

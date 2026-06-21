@@ -5,11 +5,21 @@
   "private": true,
   "scripts": {
     "build": "node build.js",
+    "test": "node test/ci-tests.mjs",
     "serve": "npx serve -p 4242 dist",
     "dev": "node build.js && npx serve -p 4242 dist"
   },
   "engines": {
     "node": ">=16"
   },
-  "keywords": ["music-theory", "circle-of-fifths", "harmony", "producers"]
+  "keywords": [
+    "music-theory",
+    "circle-of-fifths",
+    "harmony",
+    "producers"
+  ],
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "playwright-core": "^1.61.0"
+  }
 }

@@ -65,6 +65,7 @@ const ColorChords = (() => {
     if (typeof HistoryEngine === 'object' && HistoryEngine.addCustom) {
       HistoryEngine.addCustom({ note: nm(c.pc), chord: c.name, quality: c.quality, variant: c.variant });
     }
+    if (typeof tel === 'function') tel('color_chord', { role: c.role.en });
     if (typeof AudioEngine === 'object') AudioEngine.playChord(c.iv.map(x => c.pc + x));
   }
 

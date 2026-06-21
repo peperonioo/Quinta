@@ -1,6 +1,7 @@
 // ── TABS & PRODUCTION RENDERER ────────────────────────
 
 function switchTab(tab, btn) {
+  if (typeof tel === 'function') tel('tab', { tab });
   const tabsEl = btn?.closest?.('.tabs');
   if (tabsEl) {
     const buttons = [...tabsEl.querySelectorAll('.tab-btn')];

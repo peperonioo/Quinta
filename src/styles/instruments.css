@@ -79,39 +79,6 @@
 .fret-cell      { height:34px; display:flex; align-items:center; justify-content:center; position:relative; z-index:1 }
 .fret-cell::after { content:''; position:absolute; right:0; top:4px; bottom:4px; width:1px; background:rgba(255,255,255,.09) }
 
-/* ── Floating instrument dock (Dynamic-Island jump) ───*/
-.instr-dock {
-  position: fixed; left: 50%; transform: translateX(-50%);
-  bottom: calc(16px + var(--mobile-safe-bottom)); z-index: 60;
-  display: flex; gap: 3px; padding: 4px;
-  background: var(--ui-surface-strong); border: 1px solid var(--ui-border-strong);
-  border-radius: 999px; box-shadow: var(--shadow-lift); backdrop-filter: blur(20px);
-  opacity: .92; transition: opacity .2s var(--ease), transform .25s var(--ease);
-}
-.instr-dock:hover { opacity: 1; }
-body[data-tab="production"] .instr-dock { display: none; }
-.instr-dock-btn {
-  display: flex; align-items: center; gap: 6px; cursor: pointer; border: 0;
-  background: transparent; color: var(--muted); border-radius: 999px; padding: 7px 14px;
-  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .03em;
-  transition: background .18s var(--ease), color .18s;
-}
-.instr-dock-btn .idk-ico { display: grid; place-items: center; line-height: 0; }
-.instr-dock-btn.on { background: var(--accent); color: #fff; }
-.instr-dock-btn:not(.on):hover { color: var(--ink); }
-/* When a chord is selected, dot the *other* instrument: the same chord is shown
-   there too — tap to see how it's played on it. */
-.instr-dock-btn { position: relative; }
-.instr-dock.has-chord .instr-dock-btn:not(.on)::after {
-  content: ''; position: absolute; top: 5px; right: 8px;
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 0 2px var(--ui-surface-strong);
-}
-/* Phones: icon-only so the dock stays compact between the corner FABs */
-@media (max-width: 560px) {
-  .instr-dock-btn .idk-lbl { display: none; }
-  .instr-dock-btn { padding: 8px 12px; }
-}
 
 /* ── Guitar Chord Shape Strip ─────────────────────────*/
 .gss-strip {

@@ -37,13 +37,13 @@ function _chordPcSet() {
   if (!pcs || !pcs.length) return null;
   return new Set(pcs.map(p => ((p % 12) + 12) % 12));
 }
-// Mark the active instrument across the dock + the sheet's page dots (no scroll).
+// Mark the active instrument on the island's piano/guitar tabs.
 function _setInstrUI(which) {
-  document.querySelectorAll('.instr-dock-btn, .instr-tab').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
+  document.querySelectorAll('.instr-tab').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
 }
 function _instrPager() { return document.querySelector('.instr-pager'); }
 
-// Keep the dock + dots in sync when the user swipes the pager between instruments.
+// Keep the tabs in sync when the pager is swiped between instruments.
 function _wireInstrPager() {
   const pager = _instrPager(); if (!pager || pager._wired) return;
   pager._wired = true;
@@ -52,23 +52,15 @@ function _wireInstrPager() {
   let t; pager.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(sync, 120); }, { passive: true });
 }
 
-// Floating dock / page dots → jump to an instrument. On phones the two boards are
-// a swipeable pager inside the bottom-sheet; on desktop they're tab-like drawers.
+// Piano/guitar tab → show that board. On phones the two live in a swipeable pager
+// inside the island; on desktop they're tab-like drawers in the panel.
 function gotoInstrument(which) {
-  const mobile = matchMedia('(max-width:860px)').matches;
-  // Tapping the already-active instrument while the sheet is open dismisses it.
-  if (mobile && document.body.classList.contains('instr-sheet')
-      && document.querySelector('.instr-dock-btn.on')?.dataset.instr === which) {
-    closeInstrSheet(); return;
-  }
   const drawers = document.querySelectorAll('.drawers .drawer');
   const piano = drawers[0], guitar = drawers[1];
-  if (mobile) {
-    // Both panels live in the pager — render both, slide the sheet up, page across.
+  if (matchMedia('(max-width:860px)').matches) {
     if (piano)  piano.open  = true;
     if (guitar) guitar.open = true;
     _wireInstrPager();
-    document.body.classList.add('instr-sheet');
     _setInstrUI(which);
     const pager = _instrPager();
     if (pager) requestAnimationFrame(() =>
@@ -82,7 +74,6 @@ function gotoInstrument(which) {
     requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   }
 }
-function closeInstrSheet() { document.body.classList.remove('instr-sheet'); }
 
 // ── Progression strip (inside the instrument island) ──────
 // Your built chords as tappable chips; tapping one lights it on the piano (and
@@ -108,12 +99,6 @@ function pickProgChord(i) {
   document.querySelectorAll('.tps-chip').forEach(c => c.classList.toggle('on', +c.dataset.i === i));
 }
 
-// Dot the dock's *other* instrument when a chord is highlighted, so it's obvious
-// the selected chord is also shown there (piano ↔ guitar). The highlight lives on
-// both boards at once — the sheet just shows one at a time, full-size.
-function _updateDockChordHint() {
-  document.getElementById('instrDock')?.classList.toggle('has-chord', _chordPcSet() != null);
-}
 
 function _hear(pitch)       { if (typeof AudioEngine === 'object') AudioEngine.playNote(pitch, 0.9); }
 function _hearGuitar(pitch) { if (typeof AudioEngine === 'object') AudioEngine.playGuitarNote(pitch); }
@@ -149,7 +134,6 @@ function renderPiano() {
     el.onclick = () => _hear(pitch);
     root.appendChild(el);
   });
-  _updateDockChordHint();
 }
 
 // ── Fullscreen / enlarge a board ──────────────────────
@@ -291,5 +275,4 @@ function renderGuitar() {
     }
     root.appendChild(row);
   });
-  _updateDockChordHint();
 }

@@ -11,6 +11,22 @@ const path = require('path');
 const ROOT = __dirname;
 const DIST = path.join(ROOT, 'dist');
 
+// Minify with esbuild when available. IMPORTANT: identifiers are NOT mangled —
+// the inline on* handlers in the HTML call global function names by string, so
+// renaming them would break the app. We only strip whitespace + simplify syntax.
+const NO_MIN  = process.argv.includes('--no-min') || process.env.NO_MIN === '1';
+const esbuild = (() => { try { return NO_MIN ? null : require('esbuild'); } catch { return null; } })();
+function minifyJS(code) {
+  if (!esbuild) return code;
+  try { return esbuild.transformSync(code, { loader: 'js', minifyWhitespace: true, minifySyntax: true, minifyIdentifiers: false, legalComments: 'none', target: 'es2019' }).code; }
+  catch (e) { console.warn('  JS minify skipped:', e.message); return code; }
+}
+function minifyCSS(code) {
+  if (!esbuild) return code;
+  try { return esbuild.transformSync(code, { loader: 'css', minify: true, legalComments: 'none' }).code; }
+  catch (e) { console.warn('  CSS minify skipped:', e.message); return code; }
+}
+
 // ── CSS files in layer order ────────────────────────
 const CSS_FILES = [
   'src/styles/tokens.css',
@@ -46,6 +62,8 @@ const JS_FILES = [
   'src/theory/theory-data.js',
   // State — uses constants.js (defaultState, STORAGE_KEY)
   'src/core/state.js',
+  // Telemetry (opt-in event layer; no-op until an endpoint is set)
+  'src/core/telemetry.js',
   // Pure helpers — uses state (at runtime only), constants
   'src/core/utils.js',
   // Audio engine (Web Audio synth) — uses utils at runtime
@@ -108,14 +126,14 @@ function build() {
     console.log(`  css  ${f}`);
     return `/* == ${path.basename(f)} == */\n` + readFile(f);
   });
-  const css = `<style>\n${cssChunks.join('\n')}\n</style>`;
+  const css = `<style>${minifyCSS(cssChunks.join('\n'))}</style>`;
 
   // Assemble JS
   const jsChunks = JS_FILES.map(f => {
     console.log(`  js   ${f}`);
     return `// == ${path.basename(f)} ==\n` + readFile(f);
   });
-  const js = `<script>\n'use strict';\n${jsChunks.join('\n\n')}\n</script>`;
+  const js = `<script>'use strict';\n${minifyJS(jsChunks.join('\n\n'))}</script>`;
 
   // Inject into template
   const template = readFile('src/template.html');

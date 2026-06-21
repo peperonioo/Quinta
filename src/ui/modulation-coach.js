@@ -90,6 +90,7 @@ const ModulationCoach = (() => {
     if (typeof wheelLocked !== 'undefined' && wheelLocked && typeof setWheelLock === 'function') setWheelLock(false);
     AppActions.setKey(sector);
     AppActions.setWheelView(view);
+    if (typeof tel === 'function') tel('modulate');
     close();
   }
 

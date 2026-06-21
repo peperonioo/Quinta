@@ -67,6 +67,7 @@ function buildMIDI() {
 function exportMIDI() {
   const bytes = buildMIDI();
   if (!bytes) { _shareToast('Add some chords first'); return; }
+  if (typeof tel === 'function') tel('export_midi');
   const blob = new Blob([bytes], { type: 'audio/midi' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -98,6 +99,7 @@ function buildShareURL() {
 }
 
 function shareProgression() {
+  if (typeof tel === 'function') tel('share');
   const url = buildShareURL();
   const done = () => _shareToast('Link copied');
   if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(done).catch(() => prompt('Copy this link:', url));

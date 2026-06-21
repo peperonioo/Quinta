@@ -116,6 +116,7 @@ const HistoryEngine = {
     this.render();
     renderProgressionStory();
     saveState();
+    if (typeof tel === 'function') tel('chord_add');
     if (opts.sourceEl) animateChordToBuilder(opts.sourceEl, idx);
   },
 
@@ -342,11 +343,10 @@ const BarDrag = {
 // timeline in tempo, and the bar under the playhead lights up.
 let _progRAF = 0;
 function setProgBtn(playing) {
-  // The floating mobile transport(s) mirror the builder's Play/Stop state.
-  const fl = document.getElementById('floatPlay');
-  const tsPlays = [...document.querySelectorAll('#transportSheet .ts-play')];
-  [fl, ...tsPlays].forEach(b => {
-    if (b) { if (typeof setIcon === 'function') setIcon(b, playing ? 'stop' : 'play'); b.classList.toggle('is-stop', playing); }
+  // The island transport play buttons mirror the builder's Play/Stop state.
+  document.querySelectorAll('#transportSheet .ts-play').forEach(b => {
+    if (typeof setIcon === 'function') setIcon(b, playing ? 'stop' : 'play');
+    b.classList.toggle('is-stop', playing);
   });
   const b = document.getElementById('playProgBtn'); if (!b) return;
   const lbl = b.querySelector('span'); if (lbl) lbl.textContent = playing ? t('play.stop') : t('builder.play');

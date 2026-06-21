@@ -24,7 +24,7 @@
        .app sets z-index:1, so a body-level backdrop (z:54) would paint over the whole
        app — the sheet included — and its blur would fog everything. Kept inside .app,
        the sheet (z:58) wins over the backdrop (z:54) while the page behind dims. -->
-  <div id="instrSheetBackdrop" class="instr-sheet-backdrop" onclick="closeInstrSheet()" aria-hidden="true"></div>
+  <div id="instrSheetBackdrop" class="instr-sheet-backdrop" onclick="TransportSheet.collapse()" aria-hidden="true"></div>
   <!-- TOP BAR -->
   <header class="topbar">
     <div class="brand">
@@ -44,10 +44,6 @@
   <!-- METRONOME — Dynamic-Island-style bubble -->
   <div id="metronome">
     <div class="metro-row-top">
-      <!-- Mobile transport: Play the progression without scrolling to the builder.
-           Pairs with the BPM pill so Play + tempo live in one bottom cluster. -->
-      <button class="transport-play" id="floatPlay" data-ico="play" data-ico-size="18"
-        onclick="toggleProgPlay()" aria-label="Play / stop progression"></button>
       <button class="metro-pill" onclick="Metronome.toggleOpen()" aria-label="Metronome, open tempo controls" aria-expanded="false">
         <span class="metro-led" aria-hidden="true"></span>
         <span class="metro-bpm">100</span>
@@ -378,17 +374,6 @@
     <div class="lib-section-title" data-i18n="library.presets">Presets</div>
     <div id="libPresets" class="lib-list"></div>
   </div>
-</div>
-<!-- FLOATING INSTRUMENT DOCK (Dynamic-Island style jump to piano / guitar) -->
-<div id="instrDock" class="instr-dock" role="group" aria-label="Jump to instrument">
-  <button class="instr-dock-btn on" data-instr="piano" onclick="gotoInstrument('piano')" aria-label="Piano">
-    <span class="idk-ico" aria-hidden="true"><svg viewBox="0 0 20 20" width="15" height="15"><rect x="3" y="4.5" width="14" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><line x1="7.3" y1="4.5" x2="7.3" y2="15.5" stroke="currentColor" stroke-width="1"/><line x1="12.7" y1="4.5" x2="12.7" y2="15.5" stroke="currentColor" stroke-width="1"/><rect x="6.1" y="4.5" width="2.4" height="6" rx="0.4" fill="currentColor"/><rect x="11.5" y="4.5" width="2.4" height="6" rx="0.4" fill="currentColor"/></svg></span>
-    <span class="idk-lbl" data-i18n="dock.piano">Piano</span>
-  </button>
-  <button class="instr-dock-btn" data-instr="guitar" onclick="gotoInstrument('guitar')" aria-label="Guitar">
-    <span class="idk-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(-38 12 12)"><path d="M10.9 12.6C10 12.8 9 12.9 8.6 12.2 8.2 13.4 8.6 14.8 8.8 16 9 17.2 7.9 17.8 7.6 19 7.3 20.6 9.4 22 12 22 14.6 22 16.7 20.6 16.4 19 16.1 17.8 15 17.2 15.2 16 15.4 14.8 15.8 13.4 15.4 12.2 15 12.9 14 12.8 13.1 12.6Z"/><path d="M11 12.6 11.4 3M13 12.6 12.6 3"/><path d="M11.4 3 12.6 3"/><path d="M11.4 3C10.8 2 11 .9 12 .8 13.2 .7 13.9 1.4 13.6 2.4 13.4 3 12.9 3 12.6 3"/><path d="M9.9 17.4 14.1 17.4M10.3 19.5 13.7 19.5"/><circle cx="12" cy="15.4" r=".55" fill="currentColor" stroke="none"/></g></svg></span>
-    <span class="idk-lbl" data-i18n="dock.guitar">Guitar</span>
-  </button>
 </div>
 
 <!-- MODULATION COACH — where to change key next (filled by ModulationCoach) -->
