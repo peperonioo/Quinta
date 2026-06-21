@@ -1,7 +1,7 @@
 {
-  "name": "easy-fifth-circle",
+  "name": "quinta",
   "version": "3.17.0",
-  "description": "Interactive Circle of Fifths — a visual harmonic companion for musicians and producers.",
+  "description": "Quinta — interactive circle of fifths, chord-progression builder and harmonic companion for musicians and producers.",
   "private": true,
   "scripts": {
     "build": "node build.js",

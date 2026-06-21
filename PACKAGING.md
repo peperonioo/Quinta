@@ -1,4 +1,4 @@
-# Packaging Easy Fifth Circle for the App Stores (Capacitor)
+# Packaging Quinta for the App Stores (Capacitor)
 
 The app is a static PWA built into `dist/`. Capacitor wraps that `dist/` in a
 native iOS/Android shell you can submit to the App Store and Google Play. The web
@@ -9,7 +9,7 @@ This was scaffolded already:
 - `capacitor.config.json` — points Capacitor at `webDir: "dist"`.
 - `package.json` — Capacitor deps + `cap:sync` / `cap:ios` / `cap:android` scripts.
 
-> **Bundle ID:** currently `com.peperonioo.easyfifthcircle` in `capacitor.config.json`.
+> **Bundle ID:** currently `com.peperonioo.quinta` in `capacitor.config.json`.
 > Pick the final value **before** you create the App Store / Play listing — it is
 > permanent once submitted and tied to your developer account.
 
@@ -102,7 +102,7 @@ native plugins. Always run a build first (the scripts above do it for you).
 
 ## 5. Store listing checklist
 
-- [ ] **App name:** Easy Fifth Circle
+- [ ] **App name:** Quinta
 - [ ] **Subtitle / short description:** e.g. "Visual circle of fifths & chord builder"
 - [ ] **Description** (EN + ES — the app is bilingual)
 - [ ] **Keywords:** circle of fifths, music theory, chords, progression, songwriting

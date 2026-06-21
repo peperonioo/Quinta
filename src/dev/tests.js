@@ -477,7 +477,7 @@
 
   window.EFC_CLEANUP_STATUS = {
     version: VERSION,
-    modules: 'src/ directory structure — build.js produces dist/Easy_Fifth_Circle.html',
+    modules: 'src/ directory structure — build.js produces dist/Quinta.html',
     stabilityPass: true,
     tests: 'EFC_DEV.runTests()',
     devPanel: 'Ctrl/Cmd+Shift+D',

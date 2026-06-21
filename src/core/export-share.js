@@ -42,7 +42,7 @@ function buildMIDI() {
   const uspq = Math.round(60000000 / (st.bpm || 100));
   track.push(0x00, 0xff, 0x51, 0x03, (uspq >> 16) & 0xff, (uspq >> 8) & 0xff, uspq & 0xff);
   // track name
-  const name = 'Easy Fifth Circle';
+  const name = 'Quinta';
   track.push(0x00, 0xff, 0x03, name.length, ...[...name].map(c => c.charCodeAt(0)));
 
   let last = 0;

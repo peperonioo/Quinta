@@ -1,6 +1,6 @@
 {
-  "appId": "com.peperonioo.easyfifthcircle",
-  "appName": "Easy Fifth Circle",
+  "appId": "com.peperonioo.quinta",
+  "appName": "Quinta",
   "webDir": "dist",
   "backgroundColor": "#0a0a0b",
   "server": {

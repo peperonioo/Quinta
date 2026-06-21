@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// ── Easy Fifth Circle — build script ─────────────────
-// node build.js  →  dist/Easy_Fifth_Circle.html
+// ── Quinta — build script ─────────────────
+// node build.js  →  dist/Quinta.html
 //
 // Reads src/template.html, injects all CSS and JS,
 // writes a self-contained standalone HTML file.
@@ -141,7 +141,7 @@ function build() {
     .replace('<!-- %%CSS%% -->', css)
     .replace('<!-- %%JS%% -->',  js);
 
-  const dest = path.join(DIST, 'Easy_Fifth_Circle.html');
+  const dest = path.join(DIST, 'Quinta.html');
   fs.writeFileSync(dest, out, 'utf8');
 
   // Also emit index.html at the repo root so GitHub Pages serves the current
@@ -154,7 +154,7 @@ function build() {
     fs.copyFileSync(path.join(ROOT, 'manifest.webmanifest'), path.join(DIST, 'manifest.webmanifest'));
     fs.copyFileSync(path.join(ROOT, 'sw.js'), path.join(DIST, 'sw.js'));
     fs.copyFileSync(path.join(ROOT, 'privacy.html'), path.join(DIST, 'privacy.html'));
-    fs.copyFileSync(path.join(DIST, 'Easy_Fifth_Circle.html'), path.join(DIST, 'index.html'));
+    fs.copyFileSync(path.join(DIST, 'Quinta.html'), path.join(DIST, 'index.html'));
     const distIcons = path.join(DIST, 'icons');
     if (!fs.existsSync(distIcons)) fs.mkdirSync(distIcons);
     for (const f of fs.readdirSync(path.join(ROOT, 'icons'))) {
@@ -163,11 +163,11 @@ function build() {
   } catch (_) { /* PWA assets optional */ }
 
   const kb = Math.round(fs.statSync(dest).size / 1024);
-  console.log(`\n✓  dist/Easy_Fifth_Circle.html  (${kb} KB)`);
+  console.log(`\n✓  dist/Quinta.html  (${kb} KB)`);
   console.log(`✓  index.html  (GitHub Pages entry)`);
 }
 
-console.log('\nEasy Fifth Circle — building...\n');
+console.log('\nQuinta — building...\n');
 try {
   build();
 } catch (err) {

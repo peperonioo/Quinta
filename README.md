@@ -1,4 +1,4 @@
-# Easy Fifth Circle
+# Quinta
 
 A visual, flowstate-oriented harmony tool for musicians and producers.  
 Interactive Circle of Fifths with modes, degrees, progression builder, and Klimper-style suggestion bubbles.
@@ -7,13 +7,13 @@ Interactive Circle of Fifths with modes, degrees, progression builder, and Klimp
 
 ## How to run locally
 
-Open `dist/Easy_Fifth_Circle.html` directly in any browser — it is fully self-contained.
+Open `dist/Quinta.html` directly in any browser — it is fully self-contained.
 
 Or serve it:
 ```
 npm run serve
 ```
-Then open `http://localhost:4242/Easy_Fifth_Circle.html`.
+Then open `http://localhost:4242/Quinta.html`.
 
 ---
 
@@ -25,7 +25,7 @@ Requires Node.js ≥ 16.
 node build.js
 ```
 
-Output: `dist/Easy_Fifth_Circle.html`
+Output: `dist/Quinta.html`
 
 The build script reads `src/template.html`, concatenates CSS from `src/styles/` and JS from `src/` in dependency order, and injects both into the template.
 
@@ -98,7 +98,7 @@ src/
     tests.js         — EFC_DEV stability suite + dev panel
   template.html      — HTML structure (%%CSS%% and %%JS%% replaced by build.js)
 dist/
-  Easy_Fifth_Circle.html  — generated standalone output
+  Quinta.html  — generated standalone output
 build.js             — build script
 ```
 

@@ -1,10 +1,10 @@
 {
-  "name": "Easy Fifth Circle",
-  "short_name": "Fifth Circle",
+  "name": "Quinta — Circle of Fifths",
+  "short_name": "Quinta",
   "description": "Interactive circle of fifths, chord progression builder, harmonic suggestions and production tools.",
   "start_url": "./index.html",
   "scope": "./",
-  "id": "easy-fifth-circle",
+  "id": "quinta",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0a0a0b",
