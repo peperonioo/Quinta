@@ -93,12 +93,10 @@ OverlayManager.register('guitar-shapes', {
   persistent: true,   // inline strip — don't auto-close it when a chord chooser opens
   isOpen:   () => !!document.getElementById('guitarShapeStrip')?.classList.contains('gss-on'),
   close:    () => { if (typeof GuitarShapes === 'object') GuitarShapes.close(); },
-  // The strip lives in the guitar drawer beside the fretboard — playing a fret
-  // note (inside #guitar / .fretboard-wrap) must NOT dismiss it.
-  contains: (t) => !!(t.closest('#guitarShapeStrip') || t.closest('.gss-btn') ||
-                      t.closest('#guitar') || t.closest('.fretboard-wrap') || t.closest('#instrZoomBody') ||
-                      t.closest('#chordVariants') || t.closest('.builder-step') ||
-                      t.closest('#progressionBuilder') || t.closest('#flowRow')),
+  // STICKY: no `contains` predicate on purpose. The strip is only dismissed by
+  // the user — the × button or toggling Shapes off. A click anywhere else (the
+  // wheel, a builder bar, the piano, the fretboard, picking a chord variant)
+  // must NEVER close it. (Escape still closes the topmost overlay.)
 });
 OverlayManager.register('dir-guide', {
   isOpen: () => !!(typeof WheelDirectionGuide === 'object' && WheelDirectionGuide.visible),

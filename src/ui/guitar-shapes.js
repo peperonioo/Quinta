@@ -17,27 +17,38 @@ const GuitarShapes = (() => {
   };
   const T = k => { const o = LBL[k]; return o ? (o[st.lang] || o.en) : k; };
 
-  // Barre shape generators → [e6, a5, d4, g3, b2, e1] fret positions.
-  const eM = f => [f,  f+2, f+2, f+1, f,   f  ];  // E-shape major
-  const aM = f => [-1, f,   f+2, f+2, f+2, f  ];  // A-shape major
-  const em = f => [f,  f+2, f+2, f,   f,   f  ];  // E-shape minor
-  const am = f => [-1, f,   f+2, f+2, f+1, f  ];  // A-shape minor
-  const ed  = f => [f,  f+1, f+2, f,   f-1, f  ];  // E-shape diminished (root, ♭5, root, m3, ♭5, root)
-  const ad  = f => [-1, f,   f+1, f+2, f+1, -1 ];  // A-shape diminished (root, ♭5, root, m3)
-  // 7th chord barre shapes (verified interval by interval)
-  const e7m  = f => [f, f+2, f+2, f,   f+3, f];   // E-shape minor 7th  [root,5,root,m3,m7,root]
-  const e7d  = f => [f, f+2, f,   f+1, f,   f];   // E-shape dominant 7th [root,5,m7,M3,root,root]
-  const e7M  = f => [f, f+2, f+1, f+1, f,   f];   // E-shape major 7th  [root,5,M7,M3,root,root]
-  const e7hd = f => [f, f+1, f+2, f,   f+3, f];   // E-shape half-dim m7♭5 [root,♭5,root,m3,m7,root]
-  const e7di = f => [f, f+1, f+2, f,   f+2, f];   // E-shape dim7 [root,♭5,root,m3,bb7,root]
-  const a7m  = f => [-1, f, f+2, f,   f+1, f];    // A-shape minor 7th
-  const a7d  = f => [-1, f, f+2, f,   f+2, f];    // A-shape dominant 7th
-  const a7M  = f => [-1, f, f+2, f+1, f+2, f];    // A-shape major 7th
+  // ── Curated movable chord shapes (CAGED) ───────────
+  // Each shape is a REAL, idiomatic guitar voicing — an open-chord form made
+  // movable (E/A/D anchor) — verified note-by-note against standard chord
+  // references. Offsets are [s6,s5,s4,s3,s2,s1] from the anchor's root fret;
+  // -1 = string muted. Keyed by the chord's interval SIGNATURE (semitones from
+  // root, sorted) so the same notes always map to the same correct shapes,
+  // independent of how the chord was named/spelled.
+  const ANCHOR = { E: { open: 4, label: 'barreE' }, A: { open: 9, label: 'barreA' }, D: { open: 2, label: 'high' } };
+  const X = null;   // muted string (distinct from a real negative fret offset)
+  const SHAPES = {
+    // ── Major family ──
+    '0,4,7':      [['E',[0,2,2,1,0,0]],  ['A',[X,0,2,2,2,0]],  ['D',[X,X,0,2,3,2]]],   // major
+    '0,4,7,11':   [['E',[0,2,1,1,0,0]],  ['A',[X,0,2,1,2,0]],  ['D',[X,X,0,2,2,2]]],   // maj7
+    '0,4,7,10':   [['E',[0,2,0,1,0,0]],  ['A',[X,0,2,0,2,0]],  ['D',[X,X,0,2,1,2]]],   // dom7
+    '0,4,7,9':    [['E',[0,2,2,1,2,0]],  ['A',[X,0,2,2,2,2]],  ['D',[X,X,0,2,0,2]]],   // 6
+    '0,2,4,7':    [['E',[0,2,2,1,0,2]],  ['A',[X,0,-1,-3,0,-3]]],                      // add9
+    '0,2,7':      [['A',[X,0,2,2,0,0]],  ['D',[X,X,0,2,3,0]]],                         // sus2
+    '0,5,7':      [['E',[0,2,2,2,0,0]],  ['A',[X,0,2,2,3,0]],  ['D',[X,X,0,2,3,3]]],   // sus4
+    '0,2,4,7,10': [['A',[X,0,-1,0,0,0]], ['E',[0,2,0,1,0,2]]],                         // 9
+    // ── Minor family ──
+    '0,3,7':      [['E',[0,2,2,0,0,0]],  ['A',[X,0,2,2,1,0]],  ['D',[X,X,0,2,3,1]]],   // minor
+    '0,3,7,10':   [['E',[0,2,0,0,0,0]],  ['A',[X,0,2,0,1,0]],  ['D',[X,X,0,2,1,1]]],   // m7
+    '0,2,3,7,10': [['E',[0,2,0,0,0,2]],  ['A',[X,0,-2,0,0,0]]],                        // m9
+    '0,3,7,9':    [['A',[X,0,2,2,1,2]],  ['E',[0,2,2,0,2,0]],  ['D',[X,X,0,2,0,1]]],   // m6
+    '0,2,3,7':    [['E',[0,2,2,0,0,2]]],                                              // m(add9)
+    // ── Diminished family ──
+    '0,3,6':      [['A',[X,0,1,2,1,X]],  ['E',[0,1,2,0,-1,0]]],                        // dim triad
+    '0,3,6,10':   [['A',[X,0,1,0,1,X]],  ['E',[0,1,0,0,X,X]]],                         // m7♭5 (half-dim)
+    '0,3,6,9':    [['A',[X,0,1,-1,1,2]]],                                            // dim7
+  };
 
-  const EF = r => (NI[r] - 4 + 12) % 12;   // root fret on low-E string
-  const AF = r => (NI[r] - 9 + 12) % 12;   // root fret on A string
-
-  // Idiomatic open voicings (differ from the pure barre formula).
+  // Idiomatic OPEN voicings for plain triads (clearer than a barre for beginners).
   const SPEC = {
     'C:maj':[-1,3,2,0,1,0], 'A:maj':[-1,0,2,2,2,0], 'G:maj':[3,2,0,0,0,3],
     'E:maj':[0,2,2,1,0,0],  'D:maj':[-1,-1,0,2,3,2],
@@ -45,39 +56,50 @@ const GuitarShapes = (() => {
   };
 
   const keyOf = fr => fr.join(',');
+  // Interval signature: sorted, unique semitones from root (mod 12).
+  const sigOf = iv => [...new Set(iv.map(x => ((x % 12) + 12) % 12))].sort((a, b) => a - b).join(',');
+
+  // Place a movable shape at the correct fret for `rootPC`. Bumps up an octave
+  // so no string lands on a negative fret; drops an octave if it climbs off the
+  // neck. The anchor string carries the root (its offset is 0 in every shape).
+  function placeShape(name, off, rootPC) {
+    const a = ANCHOR[name];
+    let R = (rootPC - a.open + 12) % 12;
+    const minOff = Math.min(...off.filter(o => o !== null));   // real offsets only (null = muted)
+    while (R + minOff < 0) R += 12;
+    let frets = off.map(o => o === null ? -1 : R + o);
+    if (Math.max(...frets) > 15) {
+      const lowered = off.map(o => o === null ? -1 : R - 12 + o);
+      if (lowered.filter(f => f !== -1).every(f => f >= 0)) frets = lowered;
+    }
+    return frets;
+  }
 
   // ── Full chord voicings ───────────────────────────
   function chordVoicings(root, qual, variant) {
-    const r = ENH[root] || root;
+    const r = ENH[root] || root, rootPC = NI[r] ?? 0;
     const out = [], seen = new Set();
     const add = (fr, label) => {
-      if (!fr || Math.max(...fr) > 16) return;
+      if (!fr || fr.some(f => f > 16) || fr.filter(f => f >= 0).length < 3) return;
       const k = keyOf(fr); if (seen.has(k)) return;
       seen.add(k); out.push({ frets: fr, label });
     };
-    // Open voicings only for plain triads (variant shapes use barre positions)
-    if (SPEC[`${r}:${qual}`] && (!variant || variant === 'triad')) add(SPEC[`${r}:${qual}`], T('open'));
-    const ef = EF(r), af = AF(r);
-    let sE, sA;
-    if (variant && variant !== 'triad') {
-      if (qual === 'min') {
-        sE = (variant === 'm7' || variant === 'm9') ? e7m : variant === 'm7b5' ? e7hd : em;
-        sA = (variant === 'm7' || variant === 'm9') ? a7m : am;
-      } else if (qual === 'dim') {
-        sE = variant === 'dim7' ? e7di : variant === 'm7b5' ? e7hd : ed;
-        sA = ad;
-      } else {
-        sE = variant === 'maj7' ? e7M : (variant === '7' || variant === '9') ? e7d : eM;
-        sA = variant === 'maj7' ? a7M : (variant === '7' || variant === '9') ? a7d : aM;
-      }
+    // Resolve the chord's interval set from its variant (falls back to the triad).
+    let iv;
+    if (variant && variant !== 'triad' && typeof variantDef === 'function') {
+      const Q = qual === 'min' ? 'Min' : qual === 'dim' ? 'Dim' : 'Maj';
+      iv = variantDef(Q, variant).iv;
     } else {
-      sE = qual === 'min' ? em : qual === 'dim' ? ed : eM;
-      sA = qual === 'min' ? am : qual === 'dim' ? ad : aM;
+      iv = qual === 'min' ? [0, 3, 7] : qual === 'dim' ? [0, 3, 6] : [0, 4, 7];
     }
-    add(sE(ef === 0 ? 12 : ef), T('barreE'));
-    add(sA(af === 0 ? 12 : af), T('barreA'));
-    if (af + 12 <= 14) add(sA(af + 12), T('high'));
-    else if (ef + 12 <= 14) add(sE(ef + 12), T('high'));
+    const sig = sigOf(iv);
+    // Idiomatic open voicing first (plain triads only).
+    if ((!variant || variant === 'triad') && SPEC[`${r}:${qual}`]) add(SPEC[`${r}:${qual}`], T('open'));
+    // Curated movable shapes for this exact interval signature (fall back to the
+    // plain triad if a signature has no table yet, so we never show wrong notes).
+    const triadSig = sigOf(qual === 'min' ? [0, 3, 7] : qual === 'dim' ? [0, 3, 6] : [0, 4, 7]);
+    const shapes = SHAPES[sig] || SHAPES[triadSig];
+    shapes.forEach(([name, off]) => add(placeShape(name, off, rootPC), T(ANCHOR[name].label)));
     return out.slice(0, 4);
   }
 
