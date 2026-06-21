@@ -24,25 +24,22 @@
   .main-row       { grid-template-columns:1fr; gap:6px; margin-bottom:8px }
   .side           { display:none }
   /* ── Collapsing wheel (scroll-linked) ───────────────────
-     The wheel is the protagonist at the top; as you scroll down it "zooms out"
-     (shrinks toward the top) while a negative margin pulls the lower surfaces
-     up — driven by --sp (0→1, set by MobileOptimizer on scroll). Only transform
-     and opacity animate (GPU) so it stays smooth on phones. The builder below
-     scales up a touch as you scroll so the bottom "grows" into focus.
-     (No position:sticky — its containing block here is only the wheel's height,
-     so it can't pin; we get the same feel with transform + margin instead.) */
+     As you scroll down, the wheel "zooms out" — it shrinks, lifts and fades as
+     it leaves, so the lower surfaces take over the screen. Driven by --sp (0→1,
+     set by MobileOptimizer on scroll). CRITICAL for smoothness: ONLY transform
+     and opacity are touched (both GPU-composited, no reflow) — no margins, no
+     filters on the moving element, no document-height changes. That is what
+     keeps it buttery and kills the scroll-fight flicker. */
   .circle-wrap    {
-    order:0; transform-origin:top center;
-    transform:scale(calc(1 - .42 * var(--sp,0)));
-    opacity:calc(1 - .12 * var(--sp,0));
-    margin-bottom:calc(-.40 * var(--sp,0) * min(97vw,560px));
-    will-change:transform;
+    order:0; transform-origin:50% 38%;
+    transform:translate3d(0, calc(-30px * var(--sp,0)), 0) scale(calc(1 - .36 * var(--sp,0)));
+    opacity:calc(1 - .8 * var(--sp,0));
+    will-change:transform, opacity;
+    backface-visibility:hidden;
   }
-  #wheelSvg       { width:min(97vw,560px) !important; height:min(97vw,560px) !important;
-                    filter:drop-shadow(0 8px 26px rgba(0,0,0,.32)) }
-  /* The lower surfaces gain prominence as you scroll in (the "grow" half). */
-  .theory-bottom  { transform-origin:top center; transform:scale(calc(.965 + .035 * var(--sp,0))) }
-  /* Building no longer hard-jumps the wheel size — the scroll progress owns it. */
+  /* No drop-shadow filter on mobile — re-rasterising a filter while the wheel
+     scales every frame is the other big jank source. */
+  #wheelSvg       { width:min(97vw,560px) !important; height:min(97vw,560px) !important; filter:none !important }
   body.building .wheel-toggle-row { margin-top:6px }
   /* Surface the Major/Minor toggle on mobile (the side cards are hidden) */
   .wheel-toggle-row { display:flex; gap:8px; align-items:stretch; justify-content:center; width:min(344px,92vw); margin:12px auto 2px }
