@@ -23,14 +23,26 @@
   .tab-btn        { padding:8px 11px; font-size:11px }
   .main-row       { grid-template-columns:1fr; gap:6px; margin-bottom:8px }
   .side           { display:none }
-  .circle-wrap    { order:0 }
-  /* The wheel is the protagonist on mobile — make it big */
+  /* ── Collapsing wheel (scroll-linked) ───────────────────
+     The wheel is the protagonist at the top; as you scroll down it "zooms out"
+     (shrinks toward the top) while a negative margin pulls the lower surfaces
+     up — driven by --sp (0→1, set by MobileOptimizer on scroll). Only transform
+     and opacity animate (GPU) so it stays smooth on phones. The builder below
+     scales up a touch as you scroll so the bottom "grows" into focus.
+     (No position:sticky — its containing block here is only the wheel's height,
+     so it can't pin; we get the same feel with transform + margin instead.) */
+  .circle-wrap    {
+    order:0; transform-origin:top center;
+    transform:scale(calc(1 - .42 * var(--sp,0)));
+    opacity:calc(1 - .12 * var(--sp,0));
+    margin-bottom:calc(-.40 * var(--sp,0) * min(97vw,560px));
+    will-change:transform;
+  }
   #wheelSvg       { width:min(97vw,560px) !important; height:min(97vw,560px) !important;
-                    filter:drop-shadow(0 8px 26px rgba(0,0,0,.32));
-                    transition:width .42s var(--ease), height .42s var(--ease) }
-  /* Once you're building, the wheel steps back so the builder owns the screen. It
-     keeps the key/mode in its centre (your compact reference) and stays tappable. */
-  body.building #wheelSvg { width:min(60vw,320px) !important; height:min(60vw,320px) !important }
+                    filter:drop-shadow(0 8px 26px rgba(0,0,0,.32)) }
+  /* The lower surfaces gain prominence as you scroll in (the "grow" half). */
+  .theory-bottom  { transform-origin:top center; transform:scale(calc(.965 + .035 * var(--sp,0))) }
+  /* Building no longer hard-jumps the wheel size — the scroll progress owns it. */
   body.building .wheel-toggle-row { margin-top:6px }
   /* Surface the Major/Minor toggle on mobile (the side cards are hidden) */
   .wheel-toggle-row { display:flex; gap:8px; align-items:stretch; justify-content:center; width:min(344px,92vw); margin:12px auto 2px }
