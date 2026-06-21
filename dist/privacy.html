@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Easy Fifth Circle</title>
+<meta name="description" content="Privacy Policy for Easy Fifth Circle. The app collects no personal data and stores everything locally on your device.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0a0f; --surface:#141119; --ink:#f0ede8; --muted:#9b94a6;
+    --accent:#e8441a; --accent2:#ff7048; --line:rgba(255,255,255,.09);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:radial-gradient(120% 80% at 50% -10%, #1a1424, var(--bg) 60%);
+    color:var(--ink); font-family:'DM Sans',system-ui,sans-serif; line-height:1.62;
+    -webkit-font-smoothing:antialiased; padding:0 20px 80px;
+  }
+  .wrap{max-width:720px; margin:0 auto}
+  header{padding:54px 0 22px; text-align:center}
+  .badge{display:inline-flex; align-items:center; gap:8px; font-family:'DM Mono',monospace;
+    font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
+    border:1px solid var(--line); border-radius:999px; padding:6px 13px}
+  h1{font-family:'DM Serif Display',serif; font-size:clamp(34px,7vw,52px); letter-spacing:-.02em;
+    margin:20px 0 6px; line-height:1.04}
+  h1 .accent{color:var(--accent2)}
+  .updated{font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); letter-spacing:.04em}
+  .tldr{background:linear-gradient(180deg,rgba(232,68,26,.12),rgba(232,68,26,.05));
+    border:1px solid rgba(232,68,26,.28); border-radius:18px; padding:20px 22px; margin:30px 0 8px}
+  .tldr b{color:var(--accent2)}
+  .langs{display:flex; gap:6px; justify-content:center; margin:26px 0 10px}
+  .langs button{font-family:'DM Mono',monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+    background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:999px;
+    padding:8px 16px; cursor:pointer; transition:.15s}
+  .langs button.on{background:var(--accent); border-color:transparent; color:#fff}
+  section.doc{display:none}
+  section.doc.on{display:block}
+  h2{font-family:'DM Serif Display',serif; font-size:23px; letter-spacing:-.01em; margin:38px 0 8px}
+  p,li{color:#d8d3df}
+  a{color:var(--accent2)}
+  ul{padding-left:20px}
+  li{margin:6px 0}
+  .key{font-family:'DM Mono',monospace; font-size:.86em; background:rgba(255,255,255,.06);
+    border:1px solid var(--line); border-radius:6px; padding:1px 6px; color:var(--ink)}
+  hr{border:0; border-top:1px solid var(--line); margin:40px 0}
+  footer{text-align:center; color:var(--muted); font-size:13px; margin-top:46px}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">◎ Easy Fifth Circle</span>
+    <h1>Privacy <span class="accent">Policy</span></h1>
+    <div class="updated">Last updated · 22 June 2026</div>
+    <div class="langs">
+      <button id="btn-en" class="on" onclick="setLang('en')">English</button>
+      <button id="btn-es" onclick="setLang('es')">Español</button>
+    </div>
+  </header>
+
+  <!-- ENGLISH -->
+  <section class="doc on" id="doc-en">
+    <div class="tldr">
+      <b>The short version:</b> Easy Fifth Circle collects <b>no personal data</b>.
+      Everything you do stays on your device. Nothing is sent to us, and there are
+      no accounts, no ads, and no third-party trackers.
+    </div>
+
+    <h2>Who we are</h2>
+    <p>Easy Fifth Circle (“the app”) is a music-theory tool — an interactive circle
+    of fifths, chord-progression builder and practice instruments. This policy
+    explains how the app handles information.</p>
+
+    <h2>Information we collect</h2>
+    <p><b>None that leaves your device.</b> The app does not require an account and
+    never asks for your name, email, location, contacts, photos, or any other
+    personal information.</p>
+    <p>The app saves a few things in your device’s local storage so it can remember
+    your work between sessions:</p>
+    <ul>
+      <li><span class="key">easy-fifth-circle:v1</span> — your current key, mode, tempo,
+      the chord progression you’re building, and your preferences (language, theme, etc.).</li>
+      <li><span class="key">easy-fifth-circle:library</span> — progressions you choose to save.</li>
+      <li><span class="key">efc:telemetry</span> — an anonymous, on-device tally of how often
+      certain features are used (e.g. “played progression”). It contains no personal data
+      and is never transmitted.</li>
+    </ul>
+    <p>This data lives only in your browser/app storage. We cannot see it, and it is
+    never uploaded to any server.</p>
+
+    <h2>Analytics &amp; tracking</h2>
+    <p>The app ships with <b>no active analytics</b> and contacts no analytics or
+    advertising services. It includes a privacy-first usage-counter that is
+    <b>disabled</b> (it has no collection endpoint), honours your browser’s
+    “Do&nbsp;Not&nbsp;Track” setting, uses only an ephemeral per-session id, and would
+    never carry personal data. If a future version were to enable anonymous,
+    aggregate usage statistics, this policy and the “last updated” date would be
+    revised first.</p>
+
+    <h2>Network &amp; offline</h2>
+    <p>The app runs entirely in the browser. A service worker stores the app’s files
+    on your device so it works offline — this is local caching, not data collection.
+    The app makes no calls that send your information anywhere.</p>
+
+    <h2>Children’s privacy</h2>
+    <p>The app is suitable for all ages and collects no personal information from
+    anyone, including children.</p>
+
+    <h2>Your control &amp; data deletion</h2>
+    <p>You are always in control. To erase everything the app has stored, clear the
+    app’s site data in your browser settings, or uninstall the app. There is nothing
+    stored anywhere else to delete.</p>
+
+    <h2>Changes to this policy</h2>
+    <p>If this policy changes, we’ll post the new version here and update the date at
+    the top.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about privacy? Email
+    <a href="mailto:pedroipince94@gmail.com">pedroipince94@gmail.com</a>.</p>
+  </section>
+
+  <!-- ESPAÑOL -->
+  <section class="doc" id="doc-es">
+    <div class="tldr">
+      <b>En resumen:</b> Easy Fifth Circle <b>no recopila ningún dato personal</b>.
+      Todo lo que haces se queda en tu dispositivo. No se nos envía nada, y no hay
+      cuentas, ni anuncios, ni rastreadores de terceros.
+    </div>
+
+    <h2>Quiénes somos</h2>
+    <p>Easy Fifth Circle (“la app”) es una herramienta de teoría musical — un círculo
+    de quintas interactivo, un constructor de progresiones de acordes e instrumentos
+    de práctica. Esta política explica cómo la app gestiona la información.</p>
+
+    <h2>Información que recopilamos</h2>
+    <p><b>Ninguna que salga de tu dispositivo.</b> La app no requiere cuenta y nunca
+    te pide tu nombre, correo, ubicación, contactos, fotos ni ningún otro dato
+    personal.</p>
+    <p>La app guarda algunas cosas en el almacenamiento local de tu dispositivo para
+    recordar tu trabajo entre sesiones:</p>
+    <ul>
+      <li><span class="key">easy-fifth-circle:v1</span> — tu tonalidad, modo y tempo
+      actuales, la progresión que estás creando y tus preferencias (idioma, tema, etc.).</li>
+      <li><span class="key">easy-fifth-circle:library</span> — las progresiones que decides guardar.</li>
+      <li><span class="key">efc:telemetry</span> — un conteo anónimo, en el propio dispositivo,
+      de con qué frecuencia se usan ciertas funciones (p. ej. “reproducir progresión”). No
+      contiene datos personales y nunca se transmite.</li>
+    </ul>
+    <p>Estos datos viven solo en el almacenamiento de tu navegador/app. No podemos
+    verlos y nunca se suben a ningún servidor.</p>
+
+    <h2>Analítica y rastreo</h2>
+    <p>La app no incluye <b>ninguna analítica activa</b> ni contacta con servicios de
+    analítica o publicidad. Incorpora un contador de uso respetuoso con la privacidad
+    que está <b>desactivado</b> (no tiene endpoint de recogida), respeta la opción
+    “No rastrear” de tu navegador, usa solo un id de sesión efímero y nunca llevaría
+    datos personales. Si una futura versión activara estadísticas de uso anónimas y
+    agregadas, primero se revisaría esta política y la fecha de actualización.</p>
+
+    <h2>Red y uso sin conexión</h2>
+    <p>La app funciona enteramente en el navegador. Un service worker guarda los
+    archivos de la app en tu dispositivo para que funcione sin conexión — esto es
+    caché local, no recogida de datos. La app no hace llamadas que envíen tu
+    información a ningún sitio.</p>
+
+    <h2>Privacidad de los menores</h2>
+    <p>La app es apta para todas las edades y no recopila información personal de
+    nadie, incluidos los menores.</p>
+
+    <h2>Tu control y borrado de datos</h2>
+    <p>Tú tienes siempre el control. Para borrar todo lo que la app ha guardado, limpia
+    los datos del sitio en los ajustes de tu navegador, o desinstala la app. No hay
+    nada guardado en ningún otro lugar que borrar.</p>
+
+    <h2>Cambios en esta política</h2>
+    <p>Si esta política cambia, publicaremos aquí la nueva versión y actualizaremos la
+    fecha de arriba.</p>
+
+    <h2>Contacto</h2>
+    <p>¿Dudas sobre privacidad? Escribe a
+    <a href="mailto:pedroipince94@gmail.com">pedroipince94@gmail.com</a>.</p>
+  </section>
+
+  <hr>
+  <footer>
+    Easy Fifth Circle · <a href="./index.html">Open the app</a>
+  </footer>
+</div>
+
+<script>
+  function setLang(l){
+    document.getElementById('doc-en').classList.toggle('on', l==='en');
+    document.getElementById('doc-es').classList.toggle('on', l==='es');
+    document.getElementById('btn-en').classList.toggle('on', l==='en');
+    document.getElementById('btn-es').classList.toggle('on', l==='es');
+    document.documentElement.lang = l;
+    try{ history.replaceState(null,'', l==='es' ? '#es' : '#en'); }catch(_){}
+  }
+  if (location.hash === '#es') setLang('es');
+</script>
+</body>
+</html>

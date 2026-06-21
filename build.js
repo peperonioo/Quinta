@@ -153,6 +153,7 @@ function build() {
   try {
     fs.copyFileSync(path.join(ROOT, 'manifest.webmanifest'), path.join(DIST, 'manifest.webmanifest'));
     fs.copyFileSync(path.join(ROOT, 'sw.js'), path.join(DIST, 'sw.js'));
+    fs.copyFileSync(path.join(ROOT, 'privacy.html'), path.join(DIST, 'privacy.html'));
     fs.copyFileSync(path.join(DIST, 'Easy_Fifth_Circle.html'), path.join(DIST, 'index.html'));
     const distIcons = path.join(DIST, 'icons');
     if (!fs.existsSync(distIcons)) fs.mkdirSync(distIcons);
