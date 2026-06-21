@@ -40,6 +40,8 @@ function _chordPcSet() {
 // Mark the active instrument on the island's piano/guitar tabs.
 function _setInstrUI(which) {
   document.querySelectorAll('.instr-tab').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
+  // Mobile island: the Shapes toggle in the sheet-head is guitar-only.
+  document.body.classList.toggle('instr-on-guitar', which === 'guitar');
 }
 function _instrPager() { return document.querySelector('.instr-pager'); }
 

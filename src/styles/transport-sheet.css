@@ -91,9 +91,14 @@
   .instr-switch { display:flex; gap:3px; padding:3px; border-radius:11px; background:var(--glass-1); border:1px solid var(--glass-border) }
   .instr-tab { width:48px; height:32px; border:0; background:transparent; color:var(--muted); border-radius:8px; cursor:pointer; display:grid; place-items:center; transition:background .15s, color .15s }
   .instr-tab.on { background:var(--accent); color:#fff }
-  .instr-zoom-toggle { width:36px; height:36px; border-radius:10px; border:1px solid var(--glass-border); background:var(--glass-1); color:var(--muted); cursor:pointer; display:grid; place-items:center; transition:transform .12s, color .15s }
-  .instr-zoom-toggle:active { transform:scale(.92) }
-  .instr-zoom-toggle:hover { color:var(--ink) }
+  .sheet-head-actions { display:flex; align-items:center; gap:7px }
+  .instr-zoom-toggle, .instr-shapes-toggle { width:36px; height:36px; border-radius:10px; border:1px solid var(--glass-border); background:var(--glass-1); color:var(--muted); cursor:pointer; display:grid; place-items:center; transition:transform .12s, color .15s, background .15s, border-color .15s }
+  .instr-zoom-toggle:active, .instr-shapes-toggle:active { transform:scale(.92) }
+  .instr-zoom-toggle:hover, .instr-shapes-toggle:hover { color:var(--ink) }
+  /* Shapes toggle is guitar-only; hidden until the guitar instrument is active. */
+  .instr-shapes-toggle { display:none }
+  body.instr-on-guitar .instr-shapes-toggle { display:grid }
+  body.shapes-open .instr-shapes-toggle { background:rgba(232,68,26,.16); border-color:rgba(232,68,26,.42); color:var(--accent2) }
   #tsInstruments .drawer { background:transparent !important; border:0 !important; box-shadow:none !important }
   #tsInstruments .drawer > summary { display:none }   /* no inline collapse — fullscreen is the only enlarge */
   #tsInstruments .drawer-body { padding:0 }

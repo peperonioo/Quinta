@@ -253,7 +253,11 @@
             <button class="instr-tab on" data-instr="piano"  onclick="gotoInstrument('piano')"  aria-label="Piano"><span data-ico="piano" data-ico-size="17"></span></button>
             <button class="instr-tab"    data-instr="guitar" onclick="gotoInstrument('guitar')" aria-label="Guitar"><span data-ico="guitar" data-ico-size="17"></span></button>
           </div>
-          <button class="instr-zoom-toggle" onclick="InstrumentZoom.show((document.querySelector('.instr-tab.on')&&document.querySelector('.instr-tab.on').dataset.instr)||'piano')" aria-label="Fullscreen"><span data-ico="expand" data-ico-size="17"></span></button>
+          <div class="sheet-head-actions">
+            <!-- Shapes toggle for mobile — the drawer summary (which holds the desktop Shapes button) is hidden in the island; shown only when the guitar is active. -->
+            <button class="instr-shapes-toggle" onclick="GuitarShapes.toggle()" aria-label="Chord shapes" title="Chord shapes"><span data-ico="shapes" data-ico-size="16"></span></button>
+            <button class="instr-zoom-toggle" onclick="InstrumentZoom.show((document.querySelector('.instr-tab.on')&&document.querySelector('.instr-tab.on').dataset.instr)||'piano')" aria-label="Fullscreen"><span data-ico="expand" data-ico-size="17"></span></button>
+          </div>
         </div>
         <div class="instr-pager">
         <details class="drawer" open>
