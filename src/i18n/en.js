@@ -50,6 +50,7 @@ const I18N_EN = {
   'production.tips':   'Arrangement & Fills',
   'production.rhythmGrid': 'Rhythm Grid — 1 bar · 16 steps',
   'settings.lang':     'Language',
+  'settings.mode':     'Mode',
   'settings.plasma':   'Plasma',
   'settings.intensity':'Intensity',
   'settings.title':    'Settings',

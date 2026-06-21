@@ -50,6 +50,7 @@ const I18N_ES = {
   'production.tips':   'Arreglo y Fills',
   'production.rhythmGrid': 'Rejilla rítmica — 1 compás · 16 pasos',
   'settings.lang':     'Idioma',
+  'settings.mode':     'Modo',
   'settings.plasma':   'Plasma',
   'settings.intensity':'Intensidad',
   'settings.title':    'Ajustes',

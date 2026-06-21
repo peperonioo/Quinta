@@ -67,12 +67,7 @@ document.addEventListener('click', e => {
 OverlayManager.register('mode-menu', {
   isOpen:   () => !!document.getElementById('modeMenu')?.classList.contains('portal-open'),
   close:    () => { if (typeof _closeModeMenu === 'function') _closeModeMenu(); },
-  contains: (t) => !!(t.closest('#modeControl') || t.closest('#modeMenu') || t.closest('#mmsModeBtn')),
-});
-OverlayManager.register('mobile-mode', {
-  isOpen:   () => !!document.getElementById('mobileModeSheet')?.classList.contains('open'),
-  close:    () => { if (typeof MobileModePanel !== 'undefined') MobileModePanel.close(); },
-  contains: (t) => !!(t.closest('#mobileModeSheet') || t.closest('#modeFab')),
+  contains: (t) => !!(t.closest('#modeControl') || t.closest('#modeMenu') || t.closest('#setModeBtn')),
 });
 OverlayManager.register('metronome', {
   isOpen:   () => !!(typeof Metronome === 'object' && Metronome.open),

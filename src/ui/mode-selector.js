@@ -10,6 +10,8 @@ function renderModeMenu() {
   const current = modeFriendly(st.mode);
   main.textContent = current[0];
   sub.textContent  = current[1];
+  const sm = document.getElementById('setModeMain'); if (sm) sm.textContent = current[0];
+  const ss = document.getElementById('setModeSub');  if (ss) ss.textContent  = current[1];
   menu.innerHTML = MODE_ORDER.map(id => {
     const [name, desc] = modeFriendly(id);
     const m = MODES.find(x => x.id === id);
@@ -25,7 +27,7 @@ function _placeModeMenu() {
   // On mobile the sidebar is hidden; fall back to the FAB's mode button.
   const d1 = document.getElementById('modeDisplay');
   const display = (d1 && d1.getBoundingClientRect().width > 0)
-    ? d1 : (document.getElementById('mmsModeBtn') || d1);
+    ? d1 : (document.getElementById('setModeBtn') || d1);
   const menu    = document.getElementById('modeMenu');
   if (!display || !menu) return;
   if (menu.parentElement !== document.body) document.body.appendChild(menu);
@@ -75,35 +77,6 @@ const ModeMenu = {
   choose(id) {
     AppActions.setMode(id);
     _closeModeMenu();
-  },
-};
-
-// ── Mobile mode quick sheet ────────────────────────────
-const MobileModePanel = {
-  _open: false,
-  toggle() { this._open ? this.close() : this.open(); },
-  open() {
-    this._sync();
-    document.getElementById('mobileModeSheet')?.classList.add('open');
-    if (typeof OverlayManager === 'object') OverlayManager.opened('mobile-mode');
-    this._open = true;
-  },
-  close() {
-    document.getElementById('mobileModeSheet')?.classList.remove('open');
-    this._open = false;
-  },
-  _sync() {
-    const key = (typeof displayKeyLabel === 'function') ? displayKeyLabel() : (st?.key || 'C');
-    const [name, desc] = (typeof modeFriendly === 'function') ? modeFriendly(st?.mode || 'ionian') : ['Major',''];
-    const isMaj = st?.tonality !== 'minor';
-    const el = id => document.getElementById(id);
-    if (el('mmsKeyDisplay'))  el('mmsKeyDisplay').textContent  = key;
-    if (el('mmsModeDisplay')) el('mmsModeDisplay').textContent = name;
-    if (el('mmsModeMain'))    el('mmsModeMain').textContent    = name;
-    if (el('mmsModeSub'))     el('mmsModeSub').textContent     = desc;
-    if (el('modeFabLabel'))   el('modeFabLabel').textContent   = name.slice(0,3);
-    el('mmsMajBtn')?.classList.toggle('active',  isMaj);
-    el('mmsMinBtn')?.classList.toggle('active', !isMaj);
   },
 };
 
