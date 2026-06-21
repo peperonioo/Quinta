@@ -43,7 +43,6 @@
   .wheel-toggle-row { display:flex; gap:8px; align-items:stretch; justify-content:center; width:min(344px,92vw); margin:12px auto 2px }
   .wheel-toggle-mobile { display:flex; flex:1; margin:0 }
   .wheel-toggle-mobile button { font-size:12px; padding:9px 8px }
-  .modulate-btn-mobile { display:inline-flex; margin-top:0; width:auto; flex:0 0 auto; padding:9px 13px; white-space:nowrap }
   /* Lighter wheel on mobile so scrolling stays smooth */
   #wheelSheen     { animation:none !important; opacity:0 !important }
   .theory-bottom  { gap:9px }

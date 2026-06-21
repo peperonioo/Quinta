@@ -97,9 +97,6 @@
             <button id="viewMajorBtn" class="active" data-view="major" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
             <button id="viewMinorBtn" data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
           </div>
-          <button class="modulate-btn" onclick="ModulationCoach.toggle()" aria-haspopup="dialog" aria-label="Modulate to another key">
-            <span class="mod-ico" aria-hidden="true">⇄</span><span data-i18n="modulate.btn">Modulate</span>
-          </button>
         </div>
         <div class="card">
           <div class="lbl" data-i18n="labels.mode">Mode</div>
@@ -376,8 +373,8 @@
   </div>
 </div>
 
-<!-- MODULATION COACH — where to change key next (filled by ModulationCoach) -->
-<div id="modulatePanel" class="modulate-panel" role="dialog" aria-label="Modulate" hidden></div>
+<!-- EMOTION SUGGESTER — seed the builder from a feeling (filled by EmotionSuggester) -->
+<div id="emotionPanel" class="modulate-panel" role="dialog" aria-label="Emotion suggester" hidden></div>
 <div id="colorPanel" class="modulate-panel" role="dialog" aria-label="Colour chords" hidden></div>
 
 <!-- SETTINGS — theme · language · plasma -->
@@ -432,7 +429,7 @@
       <div class="ts-section-label">Harmony</div>
       <div class="ts-tools">
         <button class="ts-tool primary" onclick="ColorChords.toggle()"><span class="mod-ico" aria-hidden="true">✦</span><span data-i18n="color.btn">Colour chords</span></button>
-        <button class="ts-tool ghost" onclick="ModulationCoach.toggle()" data-i18n="key.btn">Key</button>
+        <button class="ts-tool ghost" onclick="EmotionSuggester.toggle()" data-i18n="emotion.btn">Emotion</button>
       </div>
     </div>
   </div>

@@ -113,10 +113,10 @@ OverlayManager.register('transport-sheet', {
   close:    () => { if (typeof TransportSheet === 'object') TransportSheet.collapse(); },
   contains: (t) => !!t.closest('#transportSheet'),
 });
-OverlayManager.register('modulate', {
-  isOpen:   () => !!(typeof ModulationCoach === 'object' && ModulationCoach.isOpen()),
-  close:    () => { if (typeof ModulationCoach === 'object' && ModulationCoach.isOpen()) ModulationCoach.close(); },
-  contains: (t) => !!(t.closest('#modulatePanel') || t.closest('.modulate-btn') || t.closest('[onclick*="ModulationCoach"]')),
+OverlayManager.register('emotion', {
+  isOpen:   () => !!(typeof EmotionSuggester === 'object' && EmotionSuggester.isOpen()),
+  close:    () => { if (typeof EmotionSuggester === 'object' && EmotionSuggester.isOpen()) EmotionSuggester.close(); },
+  contains: (t) => !!(t.closest('#emotionPanel') || t.closest('[onclick*="EmotionSuggester"]')),
 });
 OverlayManager.register('color-chords', {
   isOpen:   () => !!(typeof ColorChords === 'object' && ColorChords.isOpen()),

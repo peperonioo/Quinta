@@ -92,7 +92,7 @@ const JS_FILES = [
   'src/ui/guitar-shapes.js',
   'src/ui/instruments-renderer.js',
   'src/ui/metronome.js',
-  'src/ui/modulation-coach.js',
+  'src/ui/emotion-suggester.js',
   'src/ui/color-chords.js',
   'src/ui/transport-sheet.js',
   'src/ui/settings.js',
