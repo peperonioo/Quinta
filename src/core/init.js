@@ -223,6 +223,13 @@ function toggleTheme() {
   applyI18n();
   if (typeof applyIcons === 'function') applyIcons();   // inject the line-SVG icon set
   if (typeof TransportSheet === 'object') TransportSheet.init();
+  // Lift the metronome to body level: .app has position:relative + z-index, so it
+  // creates a stacking context that traps #metronome (z-index 9000) BELOW the
+  // transport island (a body-level sibling). On mobile that made the metronome
+  // panel open hidden behind the island. It's position:fixed, so relocating it
+  // doesn't change where it appears — only which stacking context it lives in.
+  const _metro = document.getElementById('metronome');
+  if (_metro && _metro.parentElement !== document.body) document.body.appendChild(_metro);
   if (typeof tel === 'function') tel('app_open');
 
   // First-run welcome tour (once; re-openable from the header "?" button).
