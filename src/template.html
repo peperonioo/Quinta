@@ -422,8 +422,8 @@
 <div id="transportSheet" class="transport-sheet" data-state="peek" aria-label="Transport">
   <button class="ts-cap" onclick="TransportSheet.open()" aria-label="Open transport">
     <span class="ts-play" data-ico="play" data-ico-size="16" onclick="event.stopPropagation();toggleProgPlay()" aria-label="Play / stop"></span>
-    <span class="ts-keywrap"><b class="ts-k">C</b><small class="ts-m">major</small></span>
-    <span class="ts-bwrap"><b class="ts-b">100</b></span>
+    <span class="ts-keywrap" onclick="event.stopPropagation();TransportSheet.open()"><b class="ts-k">C</b><small class="ts-m">major</small></span>
+    <span class="ts-bwrap" role="button" tabindex="0" onclick="event.stopPropagation();Metronome.toggleOpen()" aria-label="Tempo · metronome"><b class="ts-b">100</b><small>BPM</small></span>
   </button>
   <div class="ts-panel">
     <div class="ts-head" onclick="TransportSheet.collapse()">
