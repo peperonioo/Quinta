@@ -1,7 +1,7 @@
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V5.53';
+const APP_VERSION = 'V5.54';
 // NOTE: storage key kept as-is across the "Quinta" rebrand so existing saved
 // state/progressions are not wiped. It's an internal key, never shown to users.
 const STORAGE_KEY = 'easy-fifth-circle:v1';
@@ -60,11 +60,18 @@ const MODE_FRIENDLY = {
 };
 
 const PALETTES = [
-  // 3 distinct hues per palette so the plasma flows with real colour
-  {name:'Cosmos', bg:'#0a0a0b', colors:['#ff8a3d','#ff2e63','#7b2ff7']}, // amber → pink → violet
-  {name:'Aurora', bg:'#080d10', colors:['#00e0b8','#2a7bff','#9b3cff']}, // teal → blue → purple
-  {name:'Dusk',   bg:'#0c080f', colors:['#ff5fa2','#a64bff','#ffb347']}, // pink → violet → amber
-  {name:'Amber',  bg:'#0c0a06', colors:['#ffd24a','#ff7a1a','#ff2e6e']}, // gold → orange → magenta
+  // `colors[0]` is the UI accent. `flow` = 5 stops the domain-warped plasma ramps
+  // through (dark → … → bright) for rich, varied colour across the whole screen.
+  {name:'Quinta', bg:'#0b0810', colors:['#ff5a3c','#c4287a','#ffb24a'],          // signature
+    flow:['#241141','#9c1e6e','#ff5a3c','#ffb24a','#1fb6a8']},                   // plum→magenta→coral→amber→teal
+  {name:'Cosmos', bg:'#0a0a0b', colors:['#ff8a3d','#ff2e63','#7b2ff7'],
+    flow:['#1e1140','#7b2ff7','#ff2e63','#ff8a3d','#3ad0ff']},
+  {name:'Aurora', bg:'#080d10', colors:['#00e0b8','#2a7bff','#9b3cff'],
+    flow:['#05202a','#1fa6ff','#9b3cff','#ff5fa2','#00e0b8']},
+  {name:'Dusk',   bg:'#0c080f', colors:['#ff5fa2','#a64bff','#ffb347'],
+    flow:['#180b24','#a64bff','#ff5fa2','#ffb347','#46e0c0']},
+  {name:'Amber',  bg:'#0c0a06', colors:['#ffd24a','#ff7a1a','#ff2e6e'],
+    flow:['#1c0e06','#ff2e6e','#ff7a1a','#ffd24a','#7b2ff7']},
 ];
 
 const defaultState = {
