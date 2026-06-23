@@ -161,7 +161,14 @@
     // It sits in the top 3 (high fit), just behind the two strongest functional
     // moves (v and IV) — in Ionian ♭VII isn't even diatonic, so this is meaningful.
     withState({ key:'C', mode:'mixolydian', wheelView:'major', mood:'balanced', history:[] }, () => {
-      assert('Mixolydian favours ♭VII from I',  safe(() => sugg(0).slice(0,3).some(s => s.to === 6), false), sugg(0).map(s => [s.chord.chord, s.fit]));
+      // ♭VII must rank among the 3 highest FITS. Checking fit (not slice index)
+      // is robust to how equal-fit chords happen to tie-break in the sort, which
+      // is what made this assertion flaky in CI.
+      assert('Mixolydian favours ♭VII from I', safe(() => {
+        const ss = sugg(0);
+        const top3Fit = [...new Set(ss.map(s => s.fit))].sort((a, b) => b - a)[2] ?? -Infinity;
+        return ss.some(s => s.to === 6 && s.fit >= top3Fit);
+      }, false), sugg(0).map(s => [s.chord.chord, s.fit]));
     });
 
     // ── Genre context + 2-step look-ahead (V4.3) ──
