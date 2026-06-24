@@ -52,10 +52,11 @@ function _renderRuler(gridBeats) {
 // the protagonist. Hysteresis (enter at 34% of the viewport, leave at 56%) avoids
 // flicker at the boundary. Only kicks in when you're actually building.
 function initBuilderFocus() {
-  const el = document.getElementById('progressionBuilder'); if (!el) return;
-  let ticking = false;
-  const update = () => {
-    ticking = false;
+  const el = document.getElementById('progressionBuilder'); if (!el || el._focusWired) return;
+  el._focusWired = true;
+  // Cheap enough to run straight on scroll (one getBoundingClientRect + a class
+  // toggle) — no rAF, which can be throttled and miss updates.
+  const apply = () => {
     const body = document.body;
     if (!body.classList.contains('building')) { body.classList.remove('focus-builder'); return; }
     const top = el.getBoundingClientRect().top, vh = innerHeight || 1;
@@ -63,9 +64,10 @@ function initBuilderFocus() {
     if (!on && top < vh * 0.34) body.classList.add('focus-builder');
     else if (on && top > vh * 0.56) body.classList.remove('focus-builder');
   };
-  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-  addEventListener('resize', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-  update();
+  addEventListener('scroll', apply, { passive: true });
+  addEventListener('resize', apply, { passive: true });
+  try { new IntersectionObserver(apply, { threshold: [0, 0.25, 0.5, 0.75, 1] }).observe(el); } catch (_) {}
+  apply();
 }
 
 // Horizontal pixels per beat (set in CSS on the timeline row).
@@ -271,6 +273,7 @@ const HistoryEngine = {
     // builder gets the screen). Empty progression → the wheel is the protagonist.
     document.body.classList.toggle('building', h.length > 0);
     if (typeof renderInstrProgStrip === 'function') renderInstrProgStrip();
+    if (typeof initBuilderFocus === 'function') initBuilderFocus();   // wire scroll-focus once (idempotent)
 
     // Clear __justAdded flag + migrate older items (no duration yet).
     h.forEach(it => { delete it.__justAdded; if (it.beats == null) it.beats = 2; });
