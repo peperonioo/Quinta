@@ -7,16 +7,17 @@
   box-shadow:0 4px 16px rgba(0,0,0,.15);
   position:relative; overflow:visible !important;
   will-change:transform,opacity;
-  transition:min-height .38s var(--ui-ease), box-shadow .38s var(--ui-ease);
+  transition:padding .38s var(--ui-ease), box-shadow .38s var(--ui-ease);
 }
 body.light .progression-builder { background:rgba(250,247,241,.92) }
 
-/* Scroll-into-focus: the builder becomes the protagonist and fills the screen. */
+/* Scroll-into-focus: the builder steps forward and the grid grows — taller clips
+   (capped so they stay DAW-proportioned, never stretched), more breathing room. */
 body.focus-builder .progression-builder {
-  min-height:90svh; display:flex; flex-direction:column;
-  box-shadow:0 10px 40px -12px rgba(0,0,0,.5);
+  padding:20px 15px 30px;
+  box-shadow:0 12px 44px -14px rgba(0,0,0,.55);
 }
-body.focus-builder #flowRow.is-timeline { flex:1 1 auto; height:auto; min-height:120px; transition:none }
+body.focus-builder #flowRow.is-timeline { height:clamp(120px, 26svh, 210px); transition:height .38s var(--ui-ease) }
 body.focus-builder #wheelSvg { opacity:.5; transition:opacity .45s var(--ui-ease) }   /* fade the wheel above as you commit to building */
 .builder-head    { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px }
 .builder-title   { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-weight:500 }
