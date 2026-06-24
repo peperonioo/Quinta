@@ -23,7 +23,12 @@
 .midi-grid     { padding:8px 16px 14px; display:flex; flex-direction:column; gap:4px }
 .midi-row      { display:grid; align-items:center; gap:3px }
 .midi-label    { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); text-align:right; padding-right:6px }
-.step          { height:18px; border-radius:4px; background:var(--sel-bg); border:1px solid var(--line) }
+.step          { height:18px; border-radius:4px; background:var(--sel-bg); border:1px solid var(--line); cursor:pointer; transition:background .1s, border-color .1s }
+.step:hover     { border-color:rgba(232,68,26,.45) }
+.midi-title     { display:flex; align-items:center; gap:8px }
+.grid-reset     { width:22px; height:22px; border-radius:7px; border:1px solid var(--line); background:var(--sel-bg);
+                  color:var(--muted); font-size:13px; line-height:1; cursor:pointer; transition:color .15s, border-color .15s }
+.grid-reset:hover { color:var(--ink); border-color:rgba(232,68,26,.45) }
 .step.on       { background:var(--accent); border-color:transparent; box-shadow:0 0 5px rgba(232,68,26,.25) }
 .step.on.clap  { background:rgba(180,180,190,.55) }
 .step.on.hat-o,.step.on.hat-c { background:rgba(140,140,155,.45) }

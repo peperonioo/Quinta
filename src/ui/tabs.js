@@ -40,6 +40,32 @@ function _ae(e) {
   return `<div class="element-item"><div class="element-icon">${icon}</div><div class="el-body"><div class="el-name">${PL(e.name)}${gear}</div><div class="el-desc">${PL(e.desc)}</div></div></div>`;
 }
 
+// ── Editable rhythm grid (V5.68) ──────────────────────
+// The genre patterns are read-only constants; a user's edits live in
+// st.userPatterns[genre] as an overlay (a copy of each lane's 16 steps), so they
+// persist and never mutate the shared defaults. Playback + render use this overlay.
+function _genrePattern(key) {
+  const g = GENRES[key]; if (!g) return [];
+  const ov = st.userPatterns && st.userPatterns[key];
+  return g.pattern.map((row, ri) => (ov && ov[ri]) ? { ...row, p: ov[ri] } : row);
+}
+function toggleStep(ri, i) {
+  const key = curGenre, g = GENRES[key]; if (!g || !g.pattern[ri]) return;
+  if (!st.userPatterns) st.userPatterns = {};
+  if (!st.userPatterns[key]) st.userPatterns[key] = g.pattern.map(r => r.p.slice());  // fork the default on first edit
+  const p = st.userPatterns[key][ri];
+  p[i] = p[i] ? 0 : 1;
+  saveState();
+  const cell = document.getElementById(`s-${ri}-${i}`);
+  if (cell) cell.className = `step${p[i] ? ' on ' + g.pattern[ri].cl : ''} ${i % 4 === 0 ? 'beat-1' : ''}`;
+  if (p[i] && typeof AudioEngine === 'object') AudioEngine.drumHit(g.pattern[ri].snd, 0, false);   // audition the hit
+  const gr = document.getElementById('gridReset'); if (gr) gr.hidden = false;
+}
+function resetPattern() {
+  if (st.userPatterns) { delete st.userPatterns[curGenre]; saveState(); }
+  renderProduction();
+}
+
 function renderProduction() {
   const g = GENRES[curGenre]; if (!g) return;
   const ptEl = document.getElementById('prodTitle');
@@ -69,14 +95,17 @@ function renderProduction() {
     `<div class="prod-card"><h3>${PL(c.h)}</h3><div class="bigline">${PL(c.b)}</div><p>${PL(c.p)}</p></div>`
   ).join('');
   const mg = document.getElementById('midiGrid');
-  if (mg) mg.innerHTML = g.pattern.map((r, ri) =>
+  const pat = _genrePattern(curGenre);                    // user-edited overlay or the genre default
+  if (mg) mg.innerHTML = pat.map((r, ri) =>
     `<div class="midi-row" style="grid-template-columns:60px repeat(16,1fr);gap:3px">
       <div class="midi-label">${PL(r.label)}</div>
       ${r.p.map((v, i) =>
-        `<div class="step${v ? ' on '+r.cl : ''} ${i % 4 === 0 ? 'beat-1' : ''}" id="s-${ri}-${i}"></div>`
+        `<div class="step${v ? ' on '+r.cl : ''} ${i % 4 === 0 ? 'beat-1' : ''}" id="s-${ri}-${i}" role="button" aria-label="${PL(r.label)} step ${i+1}" onclick="toggleStep(${ri},${i})"></div>`
       ).join('')}
     </div>`
   ).join('');
+  const gr = document.getElementById('gridReset');
+  if (gr) gr.hidden = !(st.userPatterns && st.userPatterns[curGenre]);   // only show once edited
   const es = document.getElementById('elementsSection');
   if (es) es.innerHTML = `
     <div class="elements-card"><h3>${t('production.instruments')}</h3>${g.elements.slice(0,3).map(_ae).join('')}</div>
@@ -146,7 +175,7 @@ function _prodSchedule() {
 
 function _prodPlayStep(g, step, bar, when, sec16) {
   const accent = step % 4 === 0;
-  g.pattern.forEach(row => { if (row.p[step] && row.snd) AudioEngine.drumHit(row.snd, when, accent); });
+  _genrePattern(curGenre).forEach(row => { if (row.p[step] && row.snd) AudioEngine.drumHit(row.snd, when, accent); });
 
   const h = Array.isArray(st.history) ? st.history : [];
   const item = h.length ? h[bar % h.length] : null;
@@ -171,6 +200,6 @@ function _prodFlash(step, delay) {
     if (!playing) return;
     const g = GENRES[curGenre]; if (!g) return;
     document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
-    g.pattern.forEach((r, ri) => { if (r.p[step]) document.getElementById(`s-${ri}-${step}`)?.classList.add('playing'); });
+    _genrePattern(curGenre).forEach((r, ri) => { if (r.p[step]) document.getElementById(`s-${ri}-${step}`)?.classList.add('playing'); });
   }, Math.max(0, delay * 1000));
 }

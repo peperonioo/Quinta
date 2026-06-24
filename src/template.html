@@ -321,7 +321,10 @@
     <div id="prodCards" class="prod-grid"></div>
     <div class="midi-section">
       <div class="midi-header">
-        <h3 data-i18n="production.rhythmGrid">Rhythm Grid — 1 bar · 16 steps</h3>
+        <div class="midi-title">
+          <h3 data-i18n="production.rhythmGrid">Rhythm Grid — 1 bar · 16 steps</h3>
+          <button class="grid-reset" id="gridReset" onclick="resetPattern()" hidden title="Reset to the genre default">↺</button>
+        </div>
         <div style="display:flex;gap:7px;align-items:center">
           <span id="bpmBadge" class="bpm-badge">124 BPM</span>
           <button id="bpmSuggest" class="bpm-suggest" title="Use the suggested tempo">≈ 124</button>
