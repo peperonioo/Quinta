@@ -101,30 +101,30 @@ function _layout(h) {
 // Beat → pixels is a straight multiply now that clips are absolutely positioned.
 function _beatToPx(beat) { return beat * _pxBeat(); }
 
-// While dragging a clip, push the clips it overlaps out of the way — in the drag
-// direction — and let that cascade, so clips behave like solid objects ("physics").
-// Mutates `pos` (a copy of the starts array); `di` is the dragged clip's index.
-function _pushCollisions(pos, h, di, dir) {
+// Lay the other clips out around the dragged one while it's at `T` (its free,
+// snapped target). Clips behave like solid objects with physics AND you can pass
+// one to the other side: a clip's side is decided by the dragged clip's centre vs
+// the clip's ORIGINAL centre, so once you drag past its midpoint it drops into the
+// space you vacated. Pushes ratchet (no trail-back on small retreats); 0 is a wall.
+//   pos  — working positions (persists across moves)   di — dragged index
+//   orig — snapshot of starts at drag start            T  — dragged clip's target
+function _reflowDrag(pos, h, di, orig, T) {
   const len = k => Math.max(0.25, h[k].beats || 2);
-  const others = h.map((_, k) => k).filter(k => k !== di);
-  if (dir >= 0) {                                        // dragging right → shove right
-    let frontier = pos[di] + len(di);
-    others.sort((a, b) => pos[a] - pos[b]).forEach(k => {
-      if (pos[k] < frontier && pos[k] + len(k) > pos[di]) { pos[k] = frontier; frontier = pos[k] + len(k); }
-    });
-  } else {                                               // dragging left → shove left; the start (0) is a hard wall
-    let frontier = pos[di];
-    const moved = [];
-    others.sort((a, b) => pos[b] - pos[a]).forEach(k => {
-      if (pos[k] + len(k) > frontier && pos[k] < pos[di] + len(di)) { pos[k] = frontier - len(k); moved.push(k); frontier = pos[k]; }
-    });
-    // No room left before the start → push the dragged clip (and the shoved chain)
-    // back by the overflow so clips hit a wall instead of piling up on top of each other.
-    if (moved.length) {
-      const overflow = -Math.min(...moved.map(k => pos[k]));
-      if (overflow > 0) { pos[di] += overflow; moved.forEach(k => pos[k] += overflow); }
-    }
-  }
+  pos[di] = T;
+  const dragCentre = T + len(di) / 2;
+  const others = h.map((_, k) => k).filter(k => k !== di).sort((a, b) => orig[a] - orig[b]);
+  const leftIds  = others.filter(k => (orig[k] + len(k) / 2) <  dragCentre);   // dragged clip is past these
+  const rightIds = others.filter(k => (orig[k] + len(k) / 2) >= dragCentre);
+  // Left of it: clips you've passed fall into place; pushes ratchet leftward.
+  let frontier = T, minLeft = 0;
+  for (let j = leftIds.length - 1; j >= 0; j--) { const k = leftIds[j]; pos[k] = Math.min(pos[k], frontier - len(k)); frontier = pos[k]; minLeft = Math.min(minLeft, pos[k]); }
+  // Nothing can sit before 0 → the left chain pushes the dragged clip back (a wall).
+  const overflow = minLeft < 0 ? -minLeft : 0;
+  pos[di] = T + overflow;
+  if (overflow) for (const k of leftIds) pos[k] += overflow;
+  // Right of the dragged clip: shove right, ratcheting so they stay put on a retreat.
+  frontier = pos[di] + len(di);
+  for (const k of rightIds) { pos[k] = Math.max(pos[k], frontier); frontier = pos[k] + len(k); }
 }
 
 function _updatePlayheadPos() {
@@ -430,8 +430,7 @@ const BarDrag = {
       if (Math.abs(dx) > 2) moved = true;
       ev.preventDefault();
       const snapped = Math.max(0, _snapTo(startStart + dx / pxBeat));   // snap per the ruler setting
-      pos[i] = snapped;                                  // pos persists across moves (push is a ratchet)
-      _pushCollisions(pos, h, i, snapped >= startStart ? 1 : -1);   // shove overlapped clips aside; they stay shoved
+      _reflowDrag(pos, h, i, orig, snapped);             // physics + pass-to-the-other-side; pos persists (ratchet)
       apply(pos);
     };
     const up = () => {
