@@ -429,9 +429,12 @@ const BarDrag = {
       if (!dragging && !lifted) return;                 // still just a press — let it become a lift
       if (Math.abs(dx) > 2) moved = true;
       ev.preventDefault();
-      const snapped = Math.max(0, _snapTo(startStart + dx / pxBeat));   // snap per the ruler setting
-      _reflowDrag(pos, h, i, orig, snapped);             // physics + pass-to-the-other-side; pos persists (ratchet)
+      const rawT = Math.max(0, startStart + dx / pxBeat);                // where the finger is (free)
+      _reflowDrag(pos, h, i, orig, Math.max(0, _snapTo(rawT)));          // others open a gap at the snapped slot
       apply(pos);
+      // When lifted, the clip floats freely under the finger (a "puppet") while the
+      // others make space; on drop it snaps into the gap. A plain drag stays on-grid.
+      if (lifted && els[i]) els[i].style.setProperty('--start', rawT);
     };
     const up = () => {
       clearTimeout(holdT);
