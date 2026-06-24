@@ -384,9 +384,12 @@ const BuilderEngine = {
   },
 };
 
-// ── Bar free-drag + tap (V5.61) ───────────────────────
-// Drag a clip sideways to place it anywhere on the grid (snaps to 1/4-beat, so it
-// can land off the beat); a tap (no drag) plays the chord and opens its chooser.
+// ── Bar free-drag + hold-to-lift + tap (V5.73) ────────
+// Three gestures on a clip:
+//  · quick drag  → grab it immediately and slide it; other clips shove aside (physics).
+//  · hold (~260ms) → it "lifts" into your hand (pops up + a haptic + sounds); then
+//                    carry it anywhere and drop it, others shoving out of the way.
+//  · tap         → play the chord + open its chooser.
 const BarDrag = {
   start(e, i) {
     if (e.target.closest('.step-resize')) return;   // resize is its own gesture
@@ -399,8 +402,17 @@ const BarDrag = {
     const pxBeat = _pxBeat();
     const startX = e.clientX, startStart = item.start || 0;
     const orig = h.map(it => it.start || 0);            // snapshot — recompute from this each move
-    let dragging = false, pos = orig.slice();
+    let dragging = false, lifted = false, moved = false, pos = orig.slice();
     try { bar.setPointerCapture(e.pointerId); } catch (_) {}
+
+    // Press-and-hold lifts the clip into your hand (if you didn't start dragging first).
+    const holdT = setTimeout(() => {
+      if (dragging) return;
+      lifted = true;
+      bar.classList.add('lifted'); bar.style.zIndex = '8';
+      if (navigator.vibrate) { try { navigator.vibrate(12); } catch (_) {} }
+      if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(item));
+    }, 260);
 
     const apply = p => {
       for (let k = 0; k < h.length; k++) if (els[k]) {
@@ -410,8 +422,12 @@ const BarDrag = {
     };
     const move = ev => {
       const dx = ev.clientX - startX;
-      if (!dragging && Math.abs(dx) > 6) { dragging = true; bar.classList.add('dragging'); bar.style.zIndex = '6'; }
-      if (!dragging) return;
+      if (!dragging && !lifted && Math.abs(dx) > 6) {   // moved before the hold fired → quick drag
+        dragging = true; clearTimeout(holdT);
+        bar.classList.add('dragging'); bar.style.zIndex = '6';
+      }
+      if (!dragging && !lifted) return;                 // still just a press — let it become a lift
+      if (Math.abs(dx) > 2) moved = true;
       ev.preventDefault();
       const snapped = Math.max(0, _snapTo(startStart + dx / pxBeat));   // snap per the ruler setting
       pos[i] = snapped;                                  // pos persists across moves (push is a ratchet)
@@ -419,17 +435,19 @@ const BarDrag = {
       apply(pos);
     };
     const up = () => {
+      clearTimeout(holdT);
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
-      bar.classList.remove('dragging'); bar.style.zIndex = '';
-      if (dragging) {
+      bar.classList.remove('dragging', 'lifted'); bar.style.zIndex = '';
+      if (dragging || (lifted && moved)) {
         for (let k = 0; k < h.length; k++) h[k].start = pos[k];
         HistoryEngine.render(); renderProgressionStory(); saveState();
         if (typeof AudioEngine === 'object') AudioEngine.tick(360, 0.06);
+      } else if (lifted) {
+        HistoryEngine.render();                          // lifted but not moved → just set it back down
       } else {
         // Tap → sound the chord + open its chooser.
-        const it = (st.history || [])[i];
-        if (it && typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(it));
+        if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(item));
         if (typeof ChordVariants === 'object') ChordVariants.openForBar(i);
       }
     };

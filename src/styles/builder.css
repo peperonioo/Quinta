@@ -184,6 +184,14 @@ body.light .builder-row.is-timeline .builder-step {
 .builder-step.off { box-shadow:inset 2px 0 0 var(--accent2) }   /* off-beat (not on a downbeat) marker */
 .builder-row.is-timeline .builder-step { cursor:grab }
 .builder-step.dragging { cursor:grabbing }
+/* Held-to-lift: the clip pops up into your hand. `left` is NOT transitioned here so
+   it tracks the finger instantly (the pushed clips keep their .13s slide). */
+.builder-row.is-timeline .builder-step.lifted {
+  transition:transform .15s var(--ui-ease), box-shadow .15s var(--ui-ease) !important;
+  transform:translateY(-7px) scale(1.06);
+  box-shadow:0 18px 36px -10px rgba(0,0,0,.6), 0 0 0 1px rgba(255,178,74,.55);
+  cursor:grabbing;
+}
 
 /* Sweeping playhead — always visible (dim when idle, bright when playing) */
 .builder-playhead {

@@ -1,6 +1,6 @@
 // Service worker — makes Easy Fifth Circle installable and offline-capable.
 // Bump CACHE on each release so clients pick up the new HTML.
-const CACHE = 'efc-v5.72';
+const CACHE = 'efc-v5.73';
 const ASSETS = [
   './',
   './index.html',
