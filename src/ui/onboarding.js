@@ -10,39 +10,47 @@ const Onboarding = (() => {
 
   // Each step spotlights a real element. `sel` = target, `pad` = halo padding,
   // `radius` = spotlight corner radius, `place` = preferred tooltip side.
+  // Interactive tour: `interactive` steps let you actually touch the highlighted
+  // element (the click-catcher goes click-through); `try` is the do-this prompt.
   const steps = [
     { sel: '#wheelSvg', pad: 6, radius: '50%',
       title: { en: 'Welcome to Quinta', es: 'Bienvenido a Quinta' },
-      body:  { en: 'This is the circle of fifths — the closest thing music has to a map. In the next few taps you’ll see how it turns “what chord comes next?” into something you can just look up.',
-               es: 'Esto es el círculo de quintas — lo más parecido a un mapa que tiene la música. En unos toques verás cómo convierte el “¿qué acorde viene ahora?” en algo que simplemente puedes mirar.' } },
-    { sel: '#wheelSvg', pad: 6, radius: '50%',
-      title: { en: 'Why the circle works', es: 'Por qué funciona la rueda' },
-      body:  { en: 'All 12 keys, arranged so neighbours are the most closely related — they share almost every note. That’s the secret: chords from the same neighbourhood almost always sound right together. Outer ring = major keys, inner ring = their relative minors.',
-               es: 'Las 12 tonalidades, ordenadas para que las vecinas sean las más emparentadas — comparten casi todas sus notas. Ese es el truco: los acordes del mismo vecindario casi siempre suenan bien juntos. Anillo exterior = tonalidades mayores, interior = sus relativas menores.' } },
-    { sel: '#wheelSvg', pad: 6, radius: '50%',
-      title: { en: 'Make it yours', es: 'Hazla tuya' },
-      body:  { en: 'Spin to pick your key, tap any chord to hear it, and tap the centre to lock it in. The whole wheel lights up to show which chords belong to your song — and which nearby ones you can borrow for colour.',
-               es: 'Gira para elegir tu tonalidad, toca cualquier acorde para oírlo y toca el centro para bloquearla. Toda la rueda se ilumina para mostrarte qué acordes pertenecen a tu canción — y cuáles de al lado puedes tomar prestados para dar color.' } },
-    { sel: '#degrees', pad: 8,
+      body:  { en: 'This is the circle of fifths — music’s map. And this isn’t a video: you can touch everything as we go.',
+               es: 'Esto es el círculo de quintas — el mapa de la música. Y esto no es un vídeo: puedes tocar todo mientras avanzamos.' } },
+    { sel: '#wheelSvg', pad: 6, radius: '50%', interactive: true,
+      title: { en: 'Right = up a fifth', es: 'Derecha = una quinta arriba' },
+      body:  { en: 'Every step clockwise jumps up a fifth — C → G → D → A. Neighbours share almost every note, so they always sound good together.',
+               es: 'Cada paso a la derecha sube una quinta — C → G → D → A. Las vecinas comparten casi todas sus notas, por eso suenan siempre bien juntas.' },
+      try:   { en: 'Spin the wheel one step right: from C you land on G, its fifth.',
+               es: 'Gira la rueda un paso a la derecha: de C caes en G, su quinta.' } },
+    { sel: '#wheelSvg', pad: 6, radius: '50%', interactive: true,
+      title: { en: 'Hear it, lock it', es: 'Óyelo, fíjalo' },
+      body:  { en: 'Tap any chord on the wheel to hear it. Tap the centre to lock that key — the whole wheel lights up to show what belongs.',
+               es: 'Toca cualquier acorde de la rueda para oírlo. Toca el centro para fijar esa tonalidad — toda la rueda se ilumina con lo que pertenece.' },
+      try:   { en: 'Tap a couple of chords, then tap the centre.',
+               es: 'Toca un par de acordes y luego toca el centro.' } },
+    { sel: '#degrees', pad: 8, interactive: true,
       title: { en: 'The chords in your key', es: 'Los acordes de tu tonalidad' },
-      body:  { en: 'Right below the wheel are your diatonic chords — the degrees I to vii°. Tap any one to add it to your progression.',
-               es: 'Justo debajo de la rueda están tus acordes diatónicos — los grados I a vii°. Toca cualquiera para añadirlo a tu progresión.' } },
-    { sel: '#progressionBuilder', pad: 8,
-      title: { en: 'Build your progression', es: 'Construye tu progresión' },
-      body:  { en: 'Your chords land here. Drag bars to reorder, set each chord’s length, then hit Play. Export to MIDI, share a link or save it to your library.',
-               es: 'Tus acordes aparecen aquí. Arrastra para reordenar, ajusta la duración de cada acorde y pulsa Play. Exporta a MIDI, comparte un link o guárdalo en tu biblioteca.' } },
-    { sel: '#progressionStory', pad: 8,
+      body:  { en: 'Right under the wheel are your in-key chords (I to vii°) — the safe building blocks of your song.',
+               es: 'Justo debajo están tus acordes en tonalidad (I a vii°) — los ladrillos seguros de tu canción.' },
+      try:   { en: 'Tap one to drop it into your progression.',
+               es: 'Toca uno para soltarlo en tu progresión.' } },
+    { sel: '#progressionBuilder', pad: 8, interactive: true,
+      title: { en: 'Build & play', es: 'Construye y suena' },
+      body:  { en: 'Your chords land here on a grid. Drag to move them, hold one to lift it, set lengths — then hit Play.',
+               es: 'Tus acordes caen aquí en un grid. Arrastra para moverlos, mantén pulsado para levantar uno, ajusta duraciones — y pulsa Play.' },
+      try:   { en: 'Add a few chords and press Play.',
+               es: 'Añade unos acordes y pulsa Play.' } },
+    { sel: '#progressionStory', pad: 8, interactive: true,
       title: { en: 'Let it guide you', es: 'Deja que te guíe' },
-      body:  { en: 'Not sure what comes next? These bubbles suggest the strongest moves for your genre and mood — the biggest bubble is the best one.',
-               es: '¿No sabes qué sigue? Estas burbujas sugieren los movimientos más fuertes según tu género y mood — la burbuja más grande es la mejor.' } },
-    { sel: '.drawers', pad: 8,
-      title: { en: 'See it on real instruments', es: 'Míralo en instrumentos reales' },
-      body:  { en: 'Every chord lights up on the piano and the nylon guitar, so you see exactly how to play it — with chord shapes and triads right on the fretboard.',
-               es: 'Cada acorde se ilumina en el piano y en la guitarra de nylon, así ves cómo tocarlo — con diagramas de acordes y tríadas en el mástil.' } },
+      body:  { en: 'Stuck on what’s next? These bubbles suggest the strongest moves — the biggest one is the best bet.',
+               es: '¿No sabes qué sigue? Estas burbujas sugieren los movimientos más fuertes — la más grande es la mejor apuesta.' },
+      try:   { en: 'Tap a bubble to add that chord.',
+               es: 'Toca una burbuja para añadir ese acorde.' } },
     { sel: '.tabs', pad: 8, place: 'below',
-      title: { en: 'Produce & export', es: 'Produce y exporta' },
-      body:  { en: 'Switch to Production for 808/909 drums and a groove synced to your tempo. Then take your idea anywhere. You’re ready — start creating!',
-               es: 'Cambia a Producción para batería 808/909 y un groove sincronizado a tu tempo. Luego llévate tu idea a donde quieras. ¡Listo — a crear!' } },
+      title: { en: 'Produce & take it anywhere', es: 'Produce y llévatelo' },
+      body:  { en: 'Switch to Production for drums and a groove synced to your tempo. You’re ready — start sketching!',
+               es: 'Cambia a Producción para batería y un groove a tu tempo. ¡Listo — a bocetar!' } },
   ];
 
   let idx = 0, _reflowRAF = 0, _scrollT = 0;
@@ -103,6 +111,11 @@ const Onboarding = (() => {
     if ($('obStep'))  $('obStep').textContent = `${String(idx + 1).padStart(2, '0')} · ${String(n).padStart(2, '0')}`;
     if ($('obTitle')) $('obTitle').textContent = L(s.title);
     if ($('obText'))  $('obText').textContent = L(s.body);
+    // Interactive steps let you touch the highlighted element (CSS makes the
+    // click-catcher click-through); show the "try this" prompt.
+    const ov = $('onboarding'); if (ov) ov.classList.toggle('ob-interactive', !!s.interactive);
+    const tryEl = $('obTry');
+    if (tryEl) { tryEl.hidden = !s.try; if (s.try) tryEl.textContent = L(s.try); }
     const tip = $('obTip');
     if (tip) { tip.classList.remove('ob-fade'); void tip.offsetWidth; tip.classList.add('ob-fade'); }
     if ($('obDots')) $('obDots').innerHTML = steps.map((_, i) =>
