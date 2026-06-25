@@ -318,6 +318,28 @@
       }, false));
     });
 
+    // ── Builder grid: drag physics (V5.82) ──
+    // Regression cover for _reflowDrag/_layout — the area where several bugs lived
+    // (overlap, trail-back, can't-pass, the start wall) before we nailed them down.
+    if (typeof _reflowDrag === 'function' && typeof _layout === 'function') {
+      const H3 = [{ beats: 2 }, { beats: 2 }, { beats: 2 }];
+      const reflow = (pos, di, orig, T) => { const p = pos.slice(); _reflowDrag(p, H3, di, orig, T); return p; };
+      const eqArr = (a, b) => a.length === b.length && a.every((v, i) => Math.abs(v - b[i]) < 1e-9);
+
+      assert('Grid: dragging onto a clip shoves it right (cascades)',
+        safe(() => eqArr(reflow([0, 2, 4], 0, [0, 2, 4], 1), [1, 3, 5]), false), () => reflow([0, 2, 4], 0, [0, 2, 4], 1));
+      assert('Grid: dragging past a clip lands on the other side',
+        safe(() => { const p = reflow([0, 2, 4], 0, [0, 2, 4], 2.5); return p[0] === 2.5 && p[1] < p[0]; }, false));
+      assert('Grid: a shoved clip stays put on a small retreat (ratchet)',
+        safe(() => { const p = [0, 2, 4]; _reflowDrag(p, H3, 0, [0, 2, 4], 1); _reflowDrag(p, H3, 0, [0, 2, 4], 0.5); return p[1] === 3; }, false));
+      assert('Grid: the start (0) is a hard wall — clips never overlap',
+        safe(() => { const p = reflow([0, 2, 4], 1, [0, 2, 4], 0.5); return p[0] >= 0 && p[1] >= p[0] + 2 - 1e-9 && p[2] >= p[1] + 2 - 1e-9; }, false));
+      assert('Grid: clips with gaps you don’t touch stay put',
+        safe(() => eqArr(reflow([0, 5, 10], 0, [0, 5, 10], 1), [1, 5, 10]), false));
+      assert('Grid: _layout assigns missing starts + total',
+        safe(() => { const hh = [{ beats: 2 }, { beats: 2 }]; const r = _layout(hh); return hh[0].start === 0 && hh[1].start === 2 && r.total === 4; }, false));
+    }
+
     // ── Overlay manager (Audit §8.2 / V3.21) ──
     assert('OverlayManager exists', typeof OverlayManager === 'object' && typeof OverlayManager.opened === 'function');
     if (typeof OverlayManager === 'object' && typeof WheelDirectionGuide === 'object') {
