@@ -352,6 +352,17 @@
 
 <div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
 
+<!-- Share-a-loop: shown when opened from a shared link -->
+<div id="sharedBanner" class="shared-banner" hidden role="dialog" aria-label="Shared loop">
+  <span class="sb-ico" aria-hidden="true"></span>
+  <div class="sb-text">
+    <div class="sb-title">Someone shared a loop</div>
+    <div class="sb-sub"></div>
+  </div>
+  <button class="sb-play" onclick="playSharedLoop()">Play</button>
+  <button class="sb-x" onclick="dismissSharedBanner()" aria-label="Dismiss">✕</button>
+</div>
+
 <!-- INSTRUMENT FULLSCREEN / ENLARGE -->
 <div id="instrZoom" class="instr-zoom" onclick="if(event.target===this)InstrumentZoom.close()">
   <!-- Close lives OUTSIDE the (rotated) panel so it stays at a fixed screen corner -->

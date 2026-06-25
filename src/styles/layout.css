@@ -161,6 +161,32 @@ body.light .drawer:not([open]) { background:rgba(255,255,255,.48) }
 }
 .copy-toast.show { opacity:1; transform:translateY(0) }
 
+/* Share-a-loop banner — slides down from the top when opened from a shared link */
+.shared-banner {
+  position:fixed; top:14px; left:50%; z-index:9500;
+  display:flex; align-items:center; gap:12px;
+  padding:10px 10px 10px 14px; border-radius:15px;
+  border:1px solid var(--card-bd); background:var(--popup-bg); backdrop-filter:blur(18px);
+  box-shadow:0 14px 40px -10px rgba(0,0,0,.5); color:var(--ink);
+  max-width:calc(100vw - 24px);
+  transform:translateX(-50%) translateY(-150%); opacity:0;
+  transition:transform .42s var(--ease), opacity .3s var(--ease);
+}
+.shared-banner[hidden] { display:none }
+.shared-banner.show { transform:translateX(-50%) translateY(0); opacity:1 }
+.sb-ico { width:9px; height:9px; flex:0 0 auto; border-radius:50%; background:var(--accent); box-shadow:0 0 10px 2px rgba(232,68,26,.5) }
+.sb-text { line-height:1.25; min-width:0 }
+.sb-title { font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; white-space:nowrap }
+.sb-sub { font-family:'DM Mono',monospace; font-size:10.5px; color:var(--muted); white-space:nowrap }
+.sb-play {
+  flex:0 0 auto; border:0; cursor:pointer; border-radius:999px; padding:8px 18px;
+  background:var(--accent); color:#fff; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600;
+  box-shadow:0 5px 16px rgba(232,68,26,.32); transition:filter .15s, transform .12s var(--ease);
+}
+.sb-play:hover { filter:brightness(1.07) } .sb-play:active { transform:scale(.97) }
+.sb-x { flex:0 0 auto; width:26px; height:26px; border:0; background:none; cursor:pointer; color:var(--muted); font-size:13px; border-radius:50% }
+.sb-x:hover { color:var(--ink) }
+
 /* Scale orbs strip */
 .scale-orbs { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px }
 .scale-orbs .chip { font-family:'DM Mono',monospace; font-size:10px; padding:2px 6px; border:1px solid var(--line); border-radius:5px }

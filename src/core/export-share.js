@@ -171,3 +171,30 @@ function _shareToast(msg) {
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 1800);
 }
+
+// ----- Share-a-loop: opened from a shared link -----------------------------
+// Browsers block autoplay, so the loop can't sound on its own — show a banner and
+// play it on the first tap (a real user gesture).
+function showSharedBanner() {
+  const b = document.getElementById('sharedBanner'); if (!b) return;
+  const espa = (typeof st === 'object' && st.lang === 'es');
+  const set = (cls, txt) => { const el = b.querySelector('.' + cls); if (el) el.textContent = txt; };
+  set('sb-title', espa ? 'Alguien te compartió un loop' : 'Someone shared a loop');
+  const keyLbl = (typeof displayKeyLabel === 'function') ? displayKeyLabel() : (st.key || '');
+  const modeLbl = (typeof gm === 'function' && gm()) ? gm().name : '';
+  set('sb-sub', `${keyLbl} ${modeLbl} · ${st.bpm || 100} BPM`.trim());
+  set('sb-play', espa ? 'Reproducir' : 'Play');
+  b.hidden = false;
+  requestAnimationFrame(() => b.classList.add('show'));
+  setTimeout(() => document.getElementById('progressionBuilder')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 320);
+}
+function playSharedLoop() {
+  dismissSharedBanner();
+  if (typeof AudioEngine === 'object') AudioEngine.resume();      // the tap unlocks audio
+  if (typeof toggleProgPlay === 'function') toggleProgPlay();
+}
+function dismissSharedBanner() {
+  const b = document.getElementById('sharedBanner'); if (!b) return;
+  b.classList.remove('show');
+  setTimeout(() => { b.hidden = true; }, 360);
+}

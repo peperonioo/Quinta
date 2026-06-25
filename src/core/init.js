@@ -175,7 +175,7 @@ function toggleTheme() {
 (function init() {
   MobileOptimizer.init();
   // Restore a shared progression from the URL hash before the first render.
-  if (typeof applyShareFromURL === 'function') applyShareFromURL();
+  const _sharedLoop = (typeof applyShareFromURL === 'function') && applyShareFromURL();
   // Single source of truth for the version (badge + title derive from APP_VERSION).
   const verEl = document.querySelector('.version');
   if (verEl) verEl.textContent = APP_VERSION;
@@ -242,8 +242,11 @@ function toggleTheme() {
   if (typeof initBuilderFocus === 'function') initBuilderFocus();   // scroll → builder fills the screen
   if (typeof tel === 'function') tel('app_open');
 
-  // First-run welcome tour (once; re-openable from the header "?" button).
-  if (typeof Onboarding === 'object' && Onboarding.shouldShow()) {
+  // Opened from a shared link → invite them to play the loop (audio needs the tap).
+  if (_sharedLoop && typeof showSharedBanner === 'function') {
+    setTimeout(showSharedBanner, 420);
+  } else if (typeof Onboarding === 'object' && Onboarding.shouldShow()) {
+    // First-run welcome tour (once; re-openable from the header "?" button).
     setTimeout(() => Onboarding.open(), 520);
   }
 })();
