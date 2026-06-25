@@ -29,7 +29,7 @@ const I18N_ES = {
   'library.presets':   'Presets',
   'builder.midi':      'MIDI',
   'builder.clear':     'Limpiar',
-  'builder.empty':     'Sin acordes — toca un grado o una burbuja.',
+  'builder.empty':     'Sin acordes — toca una burbuja de abajo para añadir.',
   'suggestions.title': 'Ideas harmónicas',
   'suggestions.subtitle': 'Generadas desde la tonalidad y el modo seleccionados.',
   'suggest.title':     'Acordes sugeridos',

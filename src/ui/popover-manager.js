@@ -183,6 +183,7 @@ function showDegreePopup(idx) {
   if (!wrap) return;
   if (curDeg === idx) { AppActions.clearDegree(); return; }
   if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(idx));
+  if (typeof haptic === 'function') haptic('sel');
   OverlayManager.opened('degree-popup');
   curDeg = idx;
   fillPopup(idx);

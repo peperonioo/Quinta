@@ -56,6 +56,7 @@ function toggleStep(ri, i) {
   const p = st.userPatterns[key][ri];
   p[i] = p[i] ? 0 : 1;
   saveState();
+  if (typeof haptic === 'function') haptic('sel');
   const cell = document.getElementById(`s-${ri}-${i}`);
   if (cell) cell.className = `step${p[i] ? ' on ' + g.pattern[ri].cl : ''} ${i % 4 === 0 ? 'beat-1' : ''}`;
   if (p[i] && typeof AudioEngine === 'object') AudioEngine.drumHit(g.pattern[ri].snd, 0, false);   // audition the hit
@@ -144,6 +145,7 @@ function startPlay() {
   // the progression, so cancel the dry Theory playback first — otherwise the two
   // run together and the chords double up. (Theory's play does the reverse.)
   if (typeof _progRAF !== 'undefined' && _progRAF && typeof stopProgression === 'function') stopProgression();
+  if (typeof haptic === 'function') haptic('ok');
   playing = true; _prodStep = 0; _prodBar = 0; _prodPrevUpper = null; _prodVoicing = null;
   const playBtn = document.getElementById('playBtn');
   if (playBtn) { playBtn.classList.add('playing'); const l = playBtn.querySelector('span'); if (l) l.textContent = t('play.stop'); if (typeof setIcon === 'function') setIcon(playBtn, 'stop'); }

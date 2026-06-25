@@ -29,7 +29,7 @@ const I18N_EN = {
   'library.presets':   'Presets',
   'builder.midi':      'MIDI',
   'builder.clear':     'Clear',
-  'builder.empty':     'No chords yet — tap a degree or a suggestion bubble.',
+  'builder.empty':     'No chords yet — tap a suggestion bubble below to add one.',
   'suggestions.title': 'Quick harmonic ideas',
   'suggestions.subtitle': 'Generated from the selected key and mode.',
   'suggest.title':     'Suggested next chords',

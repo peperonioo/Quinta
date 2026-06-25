@@ -17,6 +17,7 @@ const ActionDispatcher = {
           closePopup(false);
           RenderEngine.full();
           if (typeof WheelFX === 'object') WheelFX.select();
+          if (typeof haptic === 'function') haptic('sel');
           break;
         }
         case 'SET_MODE': {
@@ -26,6 +27,7 @@ const ActionDispatcher = {
           curDeg = -1;
           closePopup(false);
           RenderEngine.full();
+          if (typeof haptic === 'function') haptic('sel');
           break;
         }
         case 'SET_WHEEL_VIEW': {

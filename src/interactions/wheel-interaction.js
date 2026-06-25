@@ -7,7 +7,12 @@ let suppressWheelClick = false;
 let _lastTopIdx = -1, _lastTickT = 0;
 let wheelLocked = false;            // when true, tapping sectors auditions only — the key stays put
 
-function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {} }
+// Subtle tactile feedback. Accepts a raw ms, or a semantic weight:
+//   'tap' (4) light · 'sel' (8) select/toggle · 'ok' (12) confirm/add/play.
+function haptic(v) {
+  const ms = typeof v === 'string' ? (v === 'ok' ? 12 : v === 'sel' ? 8 : 4) : v;
+  try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {}
+}
 
 // ── Chord lock (V5.12) ─────────────────────────────────
 // Tap the wheel centre (the tonic) to lock the current key. While locked, tapping

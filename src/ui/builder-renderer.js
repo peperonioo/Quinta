@@ -12,7 +12,7 @@ function _snapLabel() { return (SNAP_STEPS.find(s => s.v === _snapVal()) || SNAP
 function cycleSnap() {
   const i = SNAP_STEPS.findIndex(s => s.v === _snapVal());
   const next = SNAP_STEPS[(i + 1) % SNAP_STEPS.length] || SNAP_STEPS[2];
-  st.snap = next.v; saveState();
+  st.snap = next.v; saveState(); haptic('sel');
   const b = document.getElementById('snapBtn'); if (b) b.textContent = next.label;
 }
 
@@ -214,6 +214,7 @@ const HistoryEngine = {
     this.render();
     renderProgressionStory();
     saveState();
+    haptic('ok');
     if (typeof tel === 'function') tel('chord_add');
     if (opts.sourceEl) animateChordToBuilder(opts.sourceEl, idx);
   },
@@ -233,6 +234,7 @@ const HistoryEngine = {
     this.render();
     renderProgressionStory();
     saveState();
+    haptic('ok');
   },
 
   remove(index) {
@@ -510,12 +512,13 @@ function toggleProgPlay() {
   }
   // Chain on → play the whole song from the top (section A).
   if (st.chain && _sectionHas('A') && st.activeSection !== 'A') switchSection('A');
+  haptic('ok');
   playProgression();
 }
 
 // Loop toggle — repeats the progression until you stop it.
 function toggleLoop(el) {
-  st.loop = !st.loop; saveState();
+  st.loop = !st.loop; saveState(); haptic('sel');
   if (el) { el.classList.toggle('active', !!st.loop); el.setAttribute('aria-pressed', !!st.loop); }
 }
 
@@ -536,6 +539,7 @@ function switchSection(name, opts) {
   if (typeof GuitarShapes === 'object') GuitarShapes.onProgressionChange();
   _syncSectionTabs();
   saveState();
+  if (!opts.keepPlaying) haptic('sel');          // user switch, not a chain hand-off
 }
 function _syncSectionTabs() {
   document.querySelectorAll('.sect-tab').forEach(b =>
@@ -546,7 +550,7 @@ function _sectionHas(name) {
 }
 // Chain toggle — when on, Play runs the whole song A→B instead of just one part.
 function toggleChain(el) {
-  st.chain = !st.chain; saveState();
+  st.chain = !st.chain; saveState(); haptic('sel');
   if (el) { el.classList.toggle('active', !!st.chain); el.setAttribute('aria-pressed', !!st.chain); }
 }
 // Reveal/hide the secondary builder actions (keeps the bar clean by default).
