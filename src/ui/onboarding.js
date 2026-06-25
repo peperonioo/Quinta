@@ -53,7 +53,17 @@ const Onboarding = (() => {
                es: 'Cambia a Producción para batería y un groove a tu tempo. ¡Listo — a bocetar!' } },
   ];
 
-  let idx = 0, _reflowRAF = 0, _scrollT = 0;
+  let idx = 0, _reflowRAF = 0, _scrollT = 0, _anchorY = 0, _settling = false;
+  const SCROLL_LIMIT = 60;   // you can nudge the page a little, but not scroll away from the step
+
+  // Keep the page near the current step: allow a short scroll range, then stop.
+  function _clampScroll() {
+    if (_settling) return;
+    const y = window.scrollY || 0;
+    if (y > _anchorY + SCROLL_LIMIT)      window.scrollTo(0, _anchorY + SCROLL_LIMIT);
+    else if (y < _anchorY - SCROLL_LIMIT) window.scrollTo(0, _anchorY - SCROLL_LIMIT);
+  }
+  function _onScroll() { _clampScroll(); _reflow(); }
 
   function shouldShow() { return !st.onboarded; }
   function markSeen() { if (!st.onboarded) { st.onboarded = true; if (typeof saveState === 'function') saveState(); } }
@@ -70,7 +80,7 @@ const Onboarding = (() => {
     requestAnimationFrame(() => ov.classList.add('ob-on'));
     document.addEventListener('keydown', _key, true);
     window.addEventListener('resize', _reflow, true);
-    window.addEventListener('scroll', _reflow, true);
+    window.addEventListener('scroll', _onScroll, true);
     go(0);
   }
   function close() {
@@ -78,7 +88,7 @@ const Onboarding = (() => {
     ov.classList.remove('ob-on');
     document.removeEventListener('keydown', _key, true);
     window.removeEventListener('resize', _reflow, true);
-    window.removeEventListener('scroll', _reflow, true);
+    window.removeEventListener('scroll', _onScroll, true);
     setTimeout(() => { ov.hidden = true; }, 300);
   }
   function skip()   { markSeen(); close(); }
@@ -89,11 +99,15 @@ const Onboarding = (() => {
     idx = Math.max(0, Math.min(steps.length - 1, i));
     render();
     const el = document.querySelector(steps[idx].sel);
+    _settling = true;                                  // don't clamp while we scroll the target into view
     if (el) {
       try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) { el.scrollIntoView(); }
       requestAnimationFrame(position);
-      clearTimeout(_scrollT); _scrollT = setTimeout(position, 400);
-    } else { position(); }
+      clearTimeout(_scrollT);
+      _scrollT = setTimeout(() => { position(); _anchorY = window.scrollY || 0; _settling = false; }, 500);
+    } else {
+      position(); _anchorY = window.scrollY || 0; _settling = false;
+    }
   }
 
   function _key(e) {
