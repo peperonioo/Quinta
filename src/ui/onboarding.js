@@ -35,18 +35,22 @@ const Onboarding = (() => {
                es: 'Justo debajo están tus acordes en tonalidad (I a vii°). Al tocar uno suena y te muestra su papel — qué hace cada acorde en la tonalidad.' },
       try:   { en: 'Tap a chord to hear it and see its role.',
                es: 'Toca un acorde para oírlo y ver su papel.' } },
+    // The instant-reward comes FIRST and spotlights the actual button — so the
+    // builder is still empty (the hero exists) and the tour never asks you to
+    // press a button it just removed. Falls back to the always-present compact
+    // button if the builder already has chords (e.g. re-opening the tour).
+    { sel: '.surprise-btn', selAlt: '#surpriseBtn', pad: 10, radius: '999px', interactive: true,
+      title: { en: 'Instant start', es: 'Empieza al instante' },
+      body:  { en: 'This is your builder — where a song takes shape. The fastest way in: tap Surprise me and a full, in-key progression starts playing.',
+               es: 'Este es tu builder — donde toma forma la canción. La forma más rápida de empezar: toca Sorpréndeme y suena una progresión entera en tu tonalidad.' },
+      try:   { en: 'Tap “Surprise me” — you’ll hear it in seconds.',
+               es: 'Toca «Sorpréndeme» — lo oirás en segundos.' } },
     { sel: '#progressionStory', pad: 8, interactive: true,
-      title: { en: 'Add chords from the suggestions', es: 'Añade desde las sugerencias' },
-      body:  { en: 'These bubbles are how you build: they suggest the strongest next moves for your key and mood — the biggest one is the best bet.',
-               es: 'Estas burbujas son la forma de construir: sugieren los movimientos más fuertes para tu tonalidad y mood — la más grande es la mejor apuesta.' },
-      try:   { en: 'Tap a bubble to drop that chord into your progression.',
-               es: 'Toca una burbuja para soltar ese acorde en tu progresión.' } },
-    { sel: '#progressionBuilder', pad: 8, interactive: true,
-      title: { en: 'Arrange & play', es: 'Ordena y suena' },
-      body:  { en: 'Your chords land here on a grid you can rearrange — drag to move, hold to lift, drag an edge for length. New here? Let Quinta start you off.',
-               es: 'Tus acordes caen aquí en un grid que puedes reordenar — arrastra para mover, mantén para levantar, arrastra un borde para la duración. ¿Es tu primera vez? Deja que Quinta empiece por ti.' },
-      try:   { en: 'Tap “Surprise me” — you’ll hear a full progression in seconds.',
-               es: 'Toca «Sorpréndeme» — oirás una progresión entera en segundos.' } },
+      title: { en: 'Or build your own', es: 'O construye la tuya' },
+      body:  { en: 'Prefer to craft it by hand? These bubbles suggest the strongest next chords for your key and mood — the biggest is the best bet. Drag chords on the grid to rearrange.',
+               es: 'Prefieres crearla a mano? Estas burbujas sugieren los acordes más fuertes para tu tonalidad y mood — la más grande es la mejor apuesta. Arrastra los acordes del grid para reordenar.' },
+      try:   { en: 'Tap a bubble to add the next chord.',
+               es: 'Toca una burbuja para añadir el siguiente acorde.' } },
     { sel: '.tabs', pad: 8, place: 'below',
       title: { en: 'Produce & take it anywhere', es: 'Produce y llévatelo' },
       body:  { en: 'Switch to Production for drums and a groove synced to your tempo. You’re ready — start sketching!',
@@ -68,6 +72,9 @@ const Onboarding = (() => {
   function shouldShow() { return !st.onboarded; }
   function markSeen() { if (!st.onboarded) { st.onboarded = true; if (typeof saveState === 'function') saveState(); } }
   const $ = id => document.getElementById(id);
+  // Resolve a step's target, falling back to selAlt when the primary isn't in the
+  // DOM (e.g. the .surprise-btn hero only exists while the builder is empty).
+  const _targetEl = s => document.querySelector(s.sel) || (s.selAlt ? document.querySelector(s.selAlt) : null);
 
   function open(force) {
     if (!force && !shouldShow()) return;
@@ -98,7 +105,7 @@ const Onboarding = (() => {
   function go(i) {
     idx = Math.max(0, Math.min(steps.length - 1, i));
     render();
-    const el = document.querySelector(steps[idx].sel);
+    const el = _targetEl(steps[idx]);
     _settling = true;                                  // don't clamp while we scroll the target into view
     if (el) {
       try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) { el.scrollIntoView(); }
@@ -142,7 +149,7 @@ const Onboarding = (() => {
 
   function position() {
     const s = steps[idx];
-    const el = document.querySelector(s.sel);
+    const el = _targetEl(s);
     const spot = $('obSpot'), tip = $('obTip');
     if (!spot || !tip) return;
     const r = el && el.getBoundingClientRect();
