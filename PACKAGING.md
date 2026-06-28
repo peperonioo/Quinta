@@ -113,7 +113,7 @@ native plugins. Always run a build first (the scripts above do it for you).
 - [ ] **Description** (EN + ES — the app is bilingual)
 - [ ] **Keywords:** circle of fifths, music theory, chords, progression, songwriting
 - [ ] **Category:** Music (secondary: Education)
-- [ ] **Privacy Policy URL:** `https://peperonioo.github.io/Circle-of-Fifth-Git/privacy.html` ✅ (done)
+- [ ] **Privacy Policy URL:** `https://peperonioo.github.io/Quinta/privacy.html` ✅ (done)
 - [ ] **Privacy "nutrition" answers:** *No data collected* (true — see privacy.html)
 - [ ] **Support URL / contact email**
 - [ ] **Age rating:** 4+ / Everyone
