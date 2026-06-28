@@ -1,14 +1,29 @@
 // ── STATE ─────────────────────────────────────────────
 // Single source of truth. Only mutated through AppActions/ActionDispatcher.
 
+// First-open language: match the device if it's Spanish, otherwise English.
+// Only used when there's no saved choice — a returning user's pick is respected.
+function detectLang() {
+  try {
+    const ls = (navigator.languages && navigator.languages.length)
+      ? navigator.languages
+      : [navigator.language || navigator.userLanguage || ''];
+    return ls.some(l => /^es/i.test(String(l))) ? 'es' : 'en';
+  } catch (_) {
+    return 'en';
+  }
+}
+
 function loadSavedState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...defaultState };
+    if (!raw) return { ...defaultState, lang: detectLang() };
     const saved = JSON.parse(raw);
-    return { ...defaultState, ...saved };
+    const merged = { ...defaultState, ...saved };
+    if (!saved.lang) merged.lang = detectLang();   // older/partial saves with no pick
+    return merged;
   } catch (_) {
-    return { ...defaultState };
+    return { ...defaultState, lang: detectLang() };
   }
 }
 
