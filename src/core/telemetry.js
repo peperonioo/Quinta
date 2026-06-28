@@ -6,7 +6,7 @@
 // (did they come back?) without identifying anyone; a per-load session id (sid)
 // groups one visit. A local tally is always kept: Telemetry.tally().
 const Telemetry = (() => {
-  const ENDPOINT = '';                                  // ← paste your Apps Script /exec URL here to go live
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwA3QUWJUYBQLFZ6q-lDXhemsnskUNPgDdW02uckB0_PIp7fpeRGaNaLt8fBGayIORZ/exec';
   const dnt = (typeof navigator !== 'undefined') && (navigator.doNotTrack === '1' || navigator.doNotTrack === 'yes' || window.doNotTrack === '1');
   const enabled = () => !!ENDPOINT && !dnt;
   const sid = Math.random().toString(36).slice(2, 10);  // per-load session id
