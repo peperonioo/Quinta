@@ -77,6 +77,12 @@ body[data-interaction="wheel"] .active-sector { animation-play-state:paused; }
 }
 .wheel-toggle button.active { background:var(--accent); color:#fff; box-shadow:0 3px 12px rgba(232,68,26,.18) }
 .wheel-toggle-mobile { display:none }   /* shown only on mobile (mobile.css) */
+/* The below-wheel Major/Minor row is a MOBILE surface (the side cards that hold
+   the desktop toggle are hidden on phones). Hide the whole wrapper on desktop so
+   it doesn't duplicate the side-card toggle — mobile.css re-shows it as flex.
+   (Wrapper-level so the late .wheel-toggle recipe in components.css can't unhide
+   the inner toggle on desktop.) */
+.wheel-toggle-row { display:none }
 
 /* SVG text typography — single canonical rule */
 #wg text.wheel-label,
