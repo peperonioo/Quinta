@@ -102,7 +102,18 @@ function _buildBubblesHTML() {
 
   // The bubbles speak for themselves — bigger = stronger move — so the title and
   // the "strongest move" prose are dropped to keep the builder clean.
-  return `<div class="next-orbit">${bubbles}</div>`;
+  // After them, a always-visible entry point to chords OUTSIDE the key (borrow /
+  // modulate). It lives in the build flow — the moment you think "I want a chord
+  // that isn't here" — and shows at every width (the side-card button hides on
+  // narrow screens). Same ✦ glyph as the Color button so they read as one thing.
+  const beyond = `<button class="beyond-key" onclick="ColorChords.toggle()"
+      title="${es ? 'Acordes fuera de tu tonalidad — préstamos y modulación' : 'Chords outside your key — borrow & modulate'}"
+      aria-label="${es ? 'Acordes fuera de la escala' : 'Chords outside the key'}">
+      <span class="bk-ico" aria-hidden="true">✦</span>
+      <span class="bk-text">${es ? 'Fuera de la escala' : 'Outside the key'}</span>
+      <span class="bk-sub">${es ? 'préstamo · modulación' : 'borrow · modulate'}</span>
+    </button>`;
+  return `<div class="next-orbit">${bubbles}</div>${beyond}`;
 }
 
 // ── Tap a suggestion → quick add; drag → place (V4.6) ─
