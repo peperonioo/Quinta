@@ -263,6 +263,11 @@
     // Catches the bug class where a closed overlay's cards form an invisible
     // click-wall over the top bar / wheel.
     (function () {
+      // Boot chrome is not the bug class this guards: drop the splash first
+      // (it's pointer-events:none anyway, but CI can run before its fade ends)
+      // and close a first-run onboarding tour if the timing race opened it.
+      safe(() => { const sp = document.getElementById('splash'); if (sp) sp.remove(); });
+      safe(() => { const ob = document.getElementById('onboarding'); if (ob && !ob.hidden) { if (typeof Onboarding === 'object') Onboarding.close(); ob.hidden = true; } });
       const reachable = (el) => {
         if (!el) return true;
         const b = el.getBoundingClientRect();

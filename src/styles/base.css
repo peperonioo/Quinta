@@ -26,6 +26,7 @@ html,body { -webkit-tap-highlight-color:transparent; overscroll-behavior-y:none;
    Colours are hard-coded (not tokens): it must paint before any theme logic. */
 #splash {
   position:fixed; inset:0; z-index:12000;
+  pointer-events:none;   /* purely visual — never blocks touch (or CI reachability) */
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;
   background:
     radial-gradient(70% 60% at 82% 12%, rgba(255,90,60,.14), transparent 60%),
