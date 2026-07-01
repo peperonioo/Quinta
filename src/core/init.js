@@ -241,6 +241,8 @@ function toggleTheme() {
   if (typeof _syncVoiceUI === 'function') _syncVoiceUI();   // reflect the saved instrument sound
   if (typeof initBuilderFocus === 'function') initBuilderFocus();   // scroll → builder fills the screen
   if (typeof tel === 'function') tel('app_open');
+  st.visits = (st.visits || 0) + 1; saveState();          // install nudge waits for visit 2+
+  setTimeout(() => { try { _maybeInstallNudge(); } catch (_) {} }, 3200);
 
   // Boot complete → fade the splash out (the template has a 4s failsafe too).
   const _splash = document.getElementById('splash');
@@ -256,4 +258,79 @@ function toggleTheme() {
     // First-run welcome tour (once; re-openable from the header "?" button).
     setTimeout(() => Onboarding.open(), 520);
   }
+})();
+
+// ── PWA INSTALL NUDGE + OFFLINE PILL ──────────────────
+// A gentle, dismissible invitation to install — only for returning visitors
+// (2nd+ visit), never inside an already-installed app. Chrome/Android use the
+// native prompt; iOS gets a one-time "how to" hint (no prompt API there).
+let _a2hs = null;
+addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _a2hs = e;
+  _maybeInstallNudge();
+});
+addEventListener('appinstalled', () => { if (typeof tel === 'function') tel('installed'); _hideInstallNudge(); });
+
+function _standalone() {
+  return (matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+}
+function _maybeInstallNudge() {
+  if (_standalone() || st.installDismissed) return;
+  const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent);
+  if (_a2hs && (st.visits || 0) >= 2) _showInstallNudge(false);
+  else if (isIOS && (st.visits || 0) >= 3) _showInstallNudge(true);
+}
+function _showInstallNudge(ios) {
+  if (document.getElementById('installNudge')) return;
+  const el = document.createElement('div');
+  el.id = 'installNudge'; el.className = 'install-nudge';
+  el.innerHTML = `
+    <img class="in-ico" src="icons/favicon.png" alt="" width="30" height="30"/>
+    <div class="in-text">
+      <div class="in-title">${t('install.title')}</div>
+      <div class="in-sub">${ios ? t('install.ios') : t('install.sub')}</div>
+    </div>
+    ${ios ? '' : `<button class="in-btn" onclick="_acceptInstall()">${t('install.btn')}</button>`}
+    <button class="in-x" onclick="_dismissInstall()" aria-label="Dismiss">✕</button>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  if (typeof tel === 'function') tel('install_prompt_shown', { ios: !!ios });
+}
+function _acceptInstall() {
+  if (!_a2hs) return _hideInstallNudge();
+  _a2hs.prompt();
+  _a2hs.userChoice.then(c => { if (typeof tel === 'function') tel(c.outcome === 'accepted' ? 'install_accepted' : 'install_declined'); });
+  _a2hs = null;
+  _hideInstallNudge();
+}
+function _dismissInstall() {
+  st.installDismissed = true; saveState();
+  if (typeof tel === 'function') tel('install_dismissed');
+  _hideInstallNudge();
+}
+function _hideInstallNudge() {
+  const el = document.getElementById('installNudge');
+  if (el) { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }
+}
+
+// Offline pill — a quiet "you're offline (everything still works)" indicator.
+(function offlinePill() {
+  let el = null;
+  const sync = () => {
+    const off = !navigator.onLine;
+    if (off && !el) {
+      el = document.createElement('div');
+      el.className = 'offline-pill';
+      el.textContent = t('offline.pill');
+      document.body.appendChild(el);
+      requestAnimationFrame(() => el.classList.add('show'));
+    } else if (!off && el) {
+      el.classList.remove('show');
+      const dead = el; el = null;
+      setTimeout(() => dead.remove(), 350);
+    }
+  };
+  addEventListener('online', sync); addEventListener('offline', sync);
+  if (!navigator.onLine) setTimeout(sync, 800);
 })();

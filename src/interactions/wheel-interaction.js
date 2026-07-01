@@ -10,6 +10,7 @@ let wheelLocked = false;            // when true, tapping sectors auditions only
 // Subtle tactile feedback. Accepts a raw ms, or a semantic weight:
 //   'tap' (4) light · 'sel' (8) select/toggle · 'ok' (12) confirm/add/play.
 function haptic(v) {
+  if (typeof st === 'object' && st.haptics === false) return;   // user off (Settings)
   const ms = typeof v === 'string' ? (v === 'ok' ? 12 : v === 'sel' ? 8 : 4) : v;
   try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {}
 }

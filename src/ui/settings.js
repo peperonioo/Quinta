@@ -10,6 +10,7 @@ const Settings = (() => {
     el()?.querySelectorAll('[data-theme]').forEach(b => b.classList.toggle('on', (b.dataset.theme === 'light') === light));
     el()?.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.dataset.lang === st.lang));
     el()?.querySelectorAll('[data-rp]').forEach(b => b.classList.toggle('on', (b.dataset.rp === 'real') === (st.realPiano !== false)));
+    el()?.querySelectorAll('[data-hap]').forEach(b => b.classList.toggle('on', (b.dataset.hap === 'on') === (st.haptics !== false)));
   }
 
   function setTheme(tk) {
@@ -31,5 +32,10 @@ const Settings = (() => {
   function close() { const b = el(); if (!b) return; b.classList.remove('open'); _open = false; setTimeout(() => { if (!_open) b.hidden = true; }, 200); }
   function toggle(){ _open ? close() : show(); }
 
-  return { show, close, toggle, setTheme, setLang, setRealPiano, syncActive, isOpen: () => _open };
+  function setHaptics(v) {
+    st.haptics = !!v; saveState(); syncActive();
+    if (st.haptics && typeof haptic === 'function') haptic('sel');   // felt confirmation
+  }
+
+  return { show, close, toggle, setTheme, setLang, setRealPiano, setHaptics, syncActive, isOpen: () => _open };
 })();
