@@ -139,3 +139,5 @@ See `CHANGELOG.md` → Roadmap for version targets. Priority order:
 ## Audio credits
 
 Real piano sound: [Salamander Grand Piano V3](https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html) by Alexander Holm, licensed [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/). A 17-sample subset (C2–C6) is served from `samples/piano/` and pitch-shifted to fill the range; everything else in the app is synthesised with Web Audio.
+
+Real guitar sound: nylon guitar from the [VSCO 2 Community Edition](https://versilian-studios.com/vsco-community/) (CC0, public domain), via the tonejs-instruments compilation. 17 samples (E2–E5) in `samples/guitar/`.

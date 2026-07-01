@@ -177,8 +177,11 @@ const AudioEngine = {
     if (!this._ensure()) return false;
     if (this.ctx.state === 'suspended') this.ctx.resume();
     if (this._iosEl) { try { this._iosEl.play(); } catch (_) {} }
-    // Kick off the real-piano sample load on the first gesture (lazy, ~1.2MB).
-    if ((typeof st !== 'object' || st.realPiano !== false) && typeof SamplePiano === 'object') SamplePiano.ensure();
+    // Kick off the sampled-instrument loads on the first gesture (lazy, ~2.7MB total).
+    if (typeof st !== 'object' || st.realPiano !== false) {
+      if (typeof SamplePiano === 'object') SamplePiano.ensure();
+      if (typeof SampleGuitar === 'object') SampleGuitar.ensure();
+    }
     return true;
   },
 
@@ -369,7 +372,11 @@ const AudioEngine = {
 
   playGuitarNote(pitch) {
     if (!this.resume()) return;
-    this._guitarVoice(this._freq(pitch), this.ctx.currentTime, 1);
+    const freq = this._freq(pitch), t0 = this.ctx.currentTime;
+    // Real nylon guitar (VSCO2) when enabled + loaded; Karplus-Strong fallback.
+    if ((typeof st !== 'object' || st.realPiano !== false) &&
+        typeof SampleGuitar === 'object' && SampleGuitar.play(freq, t0, 1.6, 1)) return;
+    this._guitarVoice(freq, t0, 1);
   },
 
   now() { return this.ctx ? this.ctx.currentTime : 0; },
@@ -679,60 +686,71 @@ function chordPitchesForItem(item) {
   return iv.map(x => root + x);
 }
 
-// ── SAMPLED PIANO (Salamander Grand V3, CC-BY Alexander Holm) ─────────────
-// 17 mp3 samples (C2–C6, one every minor third) fetched lazily from the same
-// origin on the first user gesture (~1.2MB total; the SW keeps them in a
-// persistent cache). play() picks the nearest sample and pitch-shifts via
-// playbackRate — max ±1 semitone, inaudible. Anything not ready falls back to
-// the synth voice, so sound is never blocked on the network.
-const SamplePiano = {
-  BASE: 'samples/piano/',
-  NAMES: ['C2','Ds2','Fs2','A2','C3','Ds3','Fs3','A3','C4','Ds4','Fs4','A4','C5','Ds5','Fs5','A5','C6'],
-  SEMI: { C: 0, Ds: 3, Fs: 6, A: 9 },
-  buffers: {},                     // midi → AudioBuffer
-  state: 'idle',                   // idle | loading | ready(≥1 decoded) | failed
+// ── SAMPLED INSTRUMENTS ───────────────────────────────────────────────────
+// Real recordings, lazily fetched from this origin on the first user gesture
+// and pitch-shifted from the nearest sample via playbackRate (max ±2 semitones,
+// inaudible). The SW keeps them in a persistent cache; the synth voices remain
+// the seamless fallback (while loading, offline, file://, out of range, or when
+// the user picks Synth in Settings).
+//   piano  — Salamander Grand V3 (Yamaha C5) by Alexander Holm, CC-BY 3.0
+//   guitar — VSCO2 Community Edition nylon guitar, CC0
+const _NOTE_SEMI = { C: 0, Cs: 1, D: 2, Ds: 3, E: 4, F: 5, Fs: 6, G: 7, Gs: 8, A: 9, As: 10, B: 11 };
+function _makeSampler(base, names, opts = {}) {
+  return {
+    BASE: base, NAMES: names,
+    gain: opts.gain || 1.1, release: opts.release || 0.45, maxShift: opts.maxShift || 7,
+    buffers: {},                   // midi → AudioBuffer
+    state: 'idle',                 // idle | loading | ready(≥1 decoded) | failed
 
-  _midi(name) { return 12 * (+name.slice(-1) + 1) + this.SEMI[name.slice(0, -1)]; },
+    _midi(name) { return 12 * (+name.slice(-1) + 1) + _NOTE_SEMI[name.slice(0, -1)]; },
 
-  ensure() {
-    if (this.state !== 'idle') return;
-    if (typeof location !== 'undefined' && location.protocol === 'file:') { this.state = 'failed'; return; }
-    if (!AudioEngine.ctx) { return; }                        // resume() calls again once ctx exists
-    this.state = 'loading';
-    this.NAMES.forEach(n => {
-      fetch(this.BASE + n + '.mp3')
-        .then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
-        .then(ab => AudioEngine.ctx.decodeAudioData(ab))
-        .then(buf => { this.buffers[this._midi(n)] = buf; if (this.state === 'loading') this.state = 'ready'; })
-        .catch(() => {});
-    });
-    // If nothing decoded after 20s (offline, blocked), stop pretending.
-    setTimeout(() => { if (!Object.keys(this.buffers).length) this.state = 'failed'; }, 20000);
-  },
+    ensure() {
+      if (this.state !== 'idle') return;
+      if (typeof location !== 'undefined' && location.protocol === 'file:') { this.state = 'failed'; return; }
+      if (!AudioEngine.ctx) { return; }                    // resume() calls again once ctx exists
+      this.state = 'loading';
+      this.NAMES.forEach(n => {
+        fetch(this.BASE + n + '.mp3')
+          .then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+          .then(ab => AudioEngine.ctx.decodeAudioData(ab))
+          .then(buf => { this.buffers[this._midi(n)] = buf; if (this.state === 'loading') this.state = 'ready'; })
+          .catch(() => {});
+      });
+      setTimeout(() => { if (!Object.keys(this.buffers).length) this.state = 'failed'; }, 20000);
+    },
 
-  // Schedule one sampled note. Returns false when it can't (→ caller uses synth).
-  play(freq, t0, dur, gainScale = 1) {
-    if (this.state !== 'ready') return false;
-    const ctx = AudioEngine.ctx; if (!ctx) return false;
-    const midi = Math.round(60 + 12 * Math.log2(freq / 261.63));
-    let best = null, bd = 99;
-    for (const k in this.buffers) { const d = Math.abs(k - midi); if (d < bd) { bd = d; best = +k; } }
-    if (best == null || bd > 7) return false;                // out of sampled range → synth
-    const src = ctx.createBufferSource();
-    src.buffer = this.buffers[best];
-    src.playbackRate.value = Math.pow(2, (midi - best) / 12);
-    const g = ctx.createGain();
-    const peak = 1.15 * gainScale;                           // Salamander is recorded quiet
-    g.gain.setValueAtTime(peak, t0);
-    g.gain.setValueAtTime(peak, t0 + Math.max(0.05, dur));   // natural decay does the shaping
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + 0.45);  // gentle release
-    src.connect(g); g.connect(AudioEngine.voiceBus || AudioEngine.master);
-    src.start(t0); src.stop(t0 + dur + 0.5);
-    if (AudioEngine._active) {                               // progression Stop hard-cuts these too
-      const e = { oscs: [src], amp: g };
-      AudioEngine._active.add(e);
-      src.onended = () => AudioEngine._active && AudioEngine._active.delete(e);
-    }
-    return true;
-  },
-};
+    // Schedule one sampled note. Returns false when it can't (→ caller uses synth).
+    play(freq, t0, dur, gainScale = 1) {
+      if (this.state !== 'ready') return false;
+      const ctx = AudioEngine.ctx; if (!ctx) return false;
+      const midi = Math.round(60 + 12 * Math.log2(freq / 261.63));
+      let best = null, bd = 99;
+      for (const k in this.buffers) { const d = Math.abs(k - midi); if (d < bd) { bd = d; best = +k; } }
+      if (best == null || bd > this.maxShift) return false;   // out of sampled range → synth
+      const src = ctx.createBufferSource();
+      src.buffer = this.buffers[best];
+      src.playbackRate.value = Math.pow(2, (midi - best) / 12);
+      const g = ctx.createGain();
+      const peak = this.gain * gainScale;
+      g.gain.setValueAtTime(peak, t0);
+      g.gain.setValueAtTime(peak, t0 + Math.max(0.05, dur));    // natural decay does the shaping
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + this.release);
+      src.connect(g); g.connect(AudioEngine.voiceBus || AudioEngine.master);
+      src.start(t0); src.stop(t0 + dur + this.release + 0.05);
+      if (AudioEngine._active) {                             // progression Stop hard-cuts these too
+        const e = { oscs: [src], amp: g };
+        AudioEngine._active.add(e);
+        src.onended = () => AudioEngine._active && AudioEngine._active.delete(e);
+      }
+      return true;
+    },
+  };
+}
+
+const SamplePiano = _makeSampler('samples/piano/',
+  ['C2','Ds2','Fs2','A2','C3','Ds3','Fs3','A3','C4','Ds4','Fs4','A4','C5','Ds5','Fs5','A5','C6'],
+  { gain: 1.15 });
+
+const SampleGuitar = _makeSampler('samples/guitar/',
+  ['E2','Fs2','A2','B2','Cs3','D3','Fs3','G3','B3','Cs4','E4','Fs4','A4','B4','Cs5','D5','E5'],
+  { gain: 1.0, release: 0.6, maxShift: 4 });

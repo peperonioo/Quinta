@@ -23,7 +23,10 @@ const Settings = (() => {
   // Real (sampled) piano vs pure synth. Turning it on kicks the lazy sample load.
   function setRealPiano(v) {
     st.realPiano = !!v; saveState(); syncActive();
-    if (st.realPiano && typeof AudioEngine === 'object' && AudioEngine.ctx && typeof SamplePiano === 'object') SamplePiano.ensure();
+    if (st.realPiano && typeof AudioEngine === 'object' && AudioEngine.ctx) {
+      if (typeof SamplePiano === 'object') SamplePiano.ensure();
+      if (typeof SampleGuitar === 'object') SampleGuitar.ensure();
+    }
     if (typeof haptic === 'function') haptic('sel');
   }
 
