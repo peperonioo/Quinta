@@ -28,6 +28,7 @@ const I18N_ES = {
   'library.saved':     'Guardadas',
   'library.presets':   'Presets',
   'builder.midi':      'MIDI',
+  'builder.wav':       'WAV',
   'builder.clear':     'Limpiar',
   'builder.empty':     'Sin acordes — toca una burbuja de abajo para añadir.',
   'builder.surprise':  'Sorpréndeme',

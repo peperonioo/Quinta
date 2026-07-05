@@ -198,3 +198,83 @@ function dismissSharedBanner() {
   b.classList.remove('show');
   setTimeout(() => { b.hidden = true; }, 360);
 }
+
+// ── AUDIO EXPORT — WAV (Studio flagship) ──────────────
+// Renders one full pass of the progression to a downloadable 16-bit stereo WAV.
+// Implementation: a silent ScriptProcessor tap on the master bus captures the
+// live engine (real samples included) while the progression plays once — no
+// parallel offline render path to maintain. Loop and count-in are suspended for
+// the take; the loop plays audibly once, which doubles as "hear what you got".
+function _wavBlob(chunksL, chunksR, sampleRate) {
+  const n = chunksL.reduce((s, c) => s + c.length, 0);
+  const data = new DataView(new ArrayBuffer(44 + n * 4));
+  const ws = (o, s) => { for (let i = 0; i < s.length; i++) data.setUint8(o + i, s.charCodeAt(i)); };
+  ws(0, 'RIFF'); data.setUint32(4, 36 + n * 4, true); ws(8, 'WAVE');
+  ws(12, 'fmt '); data.setUint32(16, 16, true);
+  data.setUint16(20, 1, true);  data.setUint16(22, 2, true);          // PCM · stereo
+  data.setUint32(24, sampleRate, true); data.setUint32(28, sampleRate * 4, true);
+  data.setUint16(32, 4, true); data.setUint16(34, 16, true);          // block align · 16-bit
+  ws(36, 'data'); data.setUint32(40, n * 4, true);
+  let o = 44;
+  for (let c = 0; c < chunksL.length; c++) {
+    const L = chunksL[c], R = chunksR[c];
+    for (let i = 0; i < L.length; i++) {
+      data.setInt16(o,     Math.max(-1, Math.min(1, L[i])) * 0x7fff, true);
+      data.setInt16(o + 2, Math.max(-1, Math.min(1, R[i])) * 0x7fff, true);
+      o += 4;
+    }
+  }
+  return new Blob([data.buffer], { type: 'audio/wav' });
+}
+
+function _captureProgressionWav() {
+  return new Promise(resolve => {
+    try {
+      const ctx = AudioEngine.ctx;
+      const h = Array.isArray(st.history) ? st.history : [];
+      const { total } = _layout(h);
+      const secPerBeat = 60 / (st.bpm || 100);
+      const seconds = 0.15 + total * secPerBeat + 1.8;                // small lead + reverb/decay tail
+      const proc = ctx.createScriptProcessor(4096, 2, 2);
+      const sink = ctx.createGain(); sink.gain.value = 0;             // silent path that keeps proc alive
+      const chunksL = [], chunksR = [];
+      proc.onaudioprocess = e => {
+        chunksL.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+        chunksR.push(new Float32Array(e.inputBuffer.getChannelData(1)));
+      };
+      AudioEngine.master.connect(proc); proc.connect(sink); sink.connect(ctx.destination);
+      const hadLoop = st.loop, hadCountIn = st.countIn;
+      st.loop = false; st.countIn = false;                            // one clean pass, no click
+      playProgression();
+      setTimeout(() => {
+        st.loop = hadLoop; st.countIn = hadCountIn;
+        try { AudioEngine.master.disconnect(proc); proc.disconnect(); sink.disconnect(); } catch (_) {}
+        if (typeof stopProgression === 'function') stopProgression();
+        resolve({ blob: _wavBlob(chunksL, chunksR, ctx.sampleRate), seconds });
+      }, seconds * 1000);
+    } catch (e) { resolve(null); }
+  });
+}
+
+let _wavBusy = false;
+async function exportAudio() {
+  const h = Array.isArray(st.history) ? st.history : [];
+  if (!h.length) { _shareToast(st.lang === 'es' ? 'Añade acordes primero' : 'Add some chords first'); return; }
+  if (_wavBusy) return;
+  if (typeof AudioEngine !== 'object' || !AudioEngine.resume()) return;
+  if (typeof _progRAF !== 'undefined' && _progRAF && typeof stopProgression === 'function') stopProgression();
+  _wavBusy = true;
+  _shareToast(st.lang === 'es' ? 'Grabando una pasada…' : 'Recording one pass…');
+  const res = await _captureProgressionWav();
+  _wavBusy = false;
+  if (!res || !res.blob || res.blob.size <= 44) { _shareToast(st.lang === 'es' ? 'No se pudo exportar' : 'Audio export failed'); return; }
+  const url = URL.createObjectURL(res.blob);
+  const a = document.createElement('a');
+  const minor = (typeof modeIsMinor === 'function' && modeIsMinor(st.mode)) ? 'm' : '';
+  a.href = url; a.download = `quinta-${(st.key || 'C')}${minor}-${st.bpm || 100}bpm.wav`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  _shareToast(st.lang === 'es' ? 'Audio exportado (WAV)' : 'Audio exported (WAV)');
+  if (typeof tel === 'function') tel('export_audio');
+  if (typeof haptic === 'function') haptic('ok');
+}
