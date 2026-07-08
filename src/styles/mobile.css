@@ -122,3 +122,25 @@
   #metronome.open .metro-pill  { transform:scale(.6) }
   #metronome.open .metro-panel { transform:scale(1) }
 }
+
+/* ── Section dots — mobile-only scroll position rail ── */
+.section-dots { display:none }
+@media (max-width:860px) {
+  body[data-tab="theory"] .section-dots {
+    position:fixed; right:5px; top:50%; transform:translateY(-50%); z-index:40;
+    display:flex; flex-direction:column; gap:2px; padding:6px 3px;
+    border-radius:999px; background:rgba(0,0,0,.12); backdrop-filter:blur(8px);
+  }
+  body.light[data-tab="theory"] .section-dots { background:rgba(255,255,255,.35) }
+  .sd-dot {
+    width:20px; height:20px; border:0; padding:0; background:none; cursor:pointer;
+    display:grid; place-items:center;                  /* ≥20px hit area, 5px visual dot */
+  }
+  .sd-dot::after {
+    content:''; width:5px; height:5px; border-radius:99px;
+    background:var(--muted); opacity:.55;
+    transition:height .28s var(--ease), background .2s, opacity .2s;
+  }
+  .sd-dot.on::after { height:15px; background:var(--accent); opacity:1 }
+  @media (prefers-reduced-motion: reduce) { .sd-dot::after { transition:none } }
+}

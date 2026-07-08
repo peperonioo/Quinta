@@ -17,7 +17,7 @@ const PALETTES_DATA = PALETTES;
     // Static (non-interactive) in the app; the interactive version lives on the web.
     const FS = `
       precision mediump float;
-      uniform vec2 u; uniform float t; uniform float d;
+      uniform vec2 u; uniform float t; uniform float d; uniform float lm;
       uniform vec3 cA,cB,cC,cD,cE;
       float h(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
       void main(){
@@ -31,9 +31,11 @@ const PALETTES_DATA = PALETTES;
         col=mix(col,cD,f*0.7);
         col=mix(col,cE,g*0.5);
         col+=0.04*sin(t*0.8+v.yxx*7.0);                 // shimmer
-        col*=1.0-0.4*dot(v,v);                          // vignette
+        col*=1.0-(0.4-0.26*lm)*dot(v,v);                // vignette (gentler in light)
         col+=(h(gl_FragCoord.xy+fract(t))-0.5)*0.012;   // grain (anti-banding)
-        gl_FragColor=vec4(max(col,0.0)*d,1.0);
+        // Light theme: lift toward pastel (keeps hue, kills the grey-olive murk)
+        col=mix(col, 1.0-(1.0-col)*0.38, lm);
+        gl_FragColor=vec4(max(col,0.0)*mix(d, clamp(d*1.9,0.8,1.05), lm),1.0);
       }`;
     const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
     const prog = gl.createProgram();
@@ -51,6 +53,10 @@ const PALETTES_DATA = PALETTES;
     tLoc  = gl.getUniformLocation(prog,'t');
     dLoc  = gl.getUniformLocation(prog,'d');
     cLoc  = ['cA','cB','cC','cD','cE'].map(n => gl.getUniformLocation(prog, n));
+    const lmLoc = gl.getUniformLocation(prog, 'lm');
+    // Pastel plasma in the light theme; wired to the theme toggle below.
+    window._setPlasmaLight = v => { try { gl.uniform1f(lmLoc, v ? 1 : 0); } catch (_) {} };
+    window._setPlasmaLight(typeof st === 'object' && st.theme === 'light');
   }
 
   function hexToVec(hex) {
@@ -157,6 +163,7 @@ function toggleTheme() {
     document.body.classList.toggle('light', isLight);
     const btn = document.getElementById('themeBtn');
     if (btn && typeof setIcon === 'function') setIcon(btn, isLight ? 'moon' : 'sun');
+    if (typeof window._setPlasmaLight === 'function') window._setPlasmaLight(isLight);
     saveState();
     renderWheel();
   };
@@ -336,4 +343,50 @@ function _hideInstallNudge() {
   };
   addEventListener('online', sync); addEventListener('offline', sync);
   if (!navigator.onLine) setTimeout(sync, 800);
+})();
+
+// ── SECTION DOTS (mobile · theory tab) ────────────────
+// A whisper-quiet rail on the right edge showing where you are on the long
+// mobile page — Wheel · Chords · Builder. Tap a dot to jump. Desktop and the
+// Production tab hide it via CSS.
+(function initSectionDots() {
+  const sections = [
+    { sel: '.circle-wrap',        es: 'Rueda',   en: 'Wheel'   },
+    { sel: '#degrees',            es: 'Acordes', en: 'Chords'  },
+    { sel: '#progressionBuilder', es: 'Builder', en: 'Builder' },
+  ];
+  const nav = document.createElement('nav');
+  nav.className = 'section-dots';
+  nav.setAttribute('aria-label', 'Secciones');
+  sections.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.className = 'sd-dot';
+    b.setAttribute('aria-label', (typeof st === 'object' && st.lang === 'es') ? s.es : s.en);
+    b.addEventListener('click', () => {
+      document.querySelector(s.sel)?.scrollIntoView({ behavior: 'smooth', block: i === 2 ? 'start' : 'center' });
+      if (typeof haptic === 'function') haptic('tap');
+    });
+    nav.appendChild(b);
+  });
+  document.body.appendChild(nav);
+  const dots = [...nav.children];
+  let raf = 0;
+  const sync = () => {
+    raf = 0;
+    // You are "in" the last section whose top has crossed the 55% line —
+    // robust for tall sections (the builder), unlike nearest-midpoint.
+    let best = 0;
+    sections.forEach((s, i) => {
+      const el = document.querySelector(s.sel); if (!el) return;
+      if (el.getBoundingClientRect().top <= innerHeight * 0.55) best = i;
+    });
+    dots.forEach((d, i) => {
+      d.classList.toggle('on', i === best);
+      if (i === best) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current');
+    });
+  };
+  const onScroll = () => { if (!raf) raf = requestAnimationFrame(sync); };
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll, { passive: true });
+  sync();
 })();

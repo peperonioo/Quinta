@@ -64,7 +64,14 @@ html,body { -webkit-tap-highlight-color:transparent; overscroll-behavior-y:none;
   pointer-events:none; z-index:0;
   transition:opacity .4s;
 }
-body.light #plasma { opacity:.6 }
+body.light #plasma { opacity:.85 }   /* pastel shader mode carries the colour now */
+
+/* Light theme: shadows tuned for paper — warm, soft, never sooty. The dark-theme
+   rgba(0,0,0,.2+) drop shadows read as dirt on a light background. */
+body.light :is(.card, .drawer, .info-box, .degrees-row, .progression-builder, .tabs, .settings-mini, .bottom-bar) {
+  box-shadow: 0 3px 16px rgba(96, 70, 40, .09);
+}
+body.light .modulate-panel { box-shadow: 0 18px 48px rgba(96, 70, 40, .2) }
 
 /* App layout */
 .app {

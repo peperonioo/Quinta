@@ -6,14 +6,14 @@
 .genre-btn.soon   { opacity:.3; cursor:not-allowed }
 .prod-header  { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; gap:12px }
 .prod-title   { font-family:'DM Serif Display',serif; font-size:30px; letter-spacing:-.03em; color:var(--ink) }
-.prod-meta    { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:4px; letter-spacing:.04em }
+.prod-meta    { font-family:'DM Mono',monospace; font-size:10.5px; color:var(--muted); margin-top:5px; letter-spacing:.04em }
 .key-badge    { padding:8px 14px; border-radius:10px; background:var(--degree-tonic); border:1px solid rgba(232,68,26,.3); color:var(--ink); font-size:12px; font-weight:500; text-align:center; white-space:nowrap }
 .key-badge .kb-note { font-family:'DM Serif Display',serif; font-size:22px; display:block; letter-spacing:-.03em }
 .prod-grid    { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px }
 .prod-card    { padding:14px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px) }
-.prod-card h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px }
+.prod-card h3 { font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:10px }
 .prod-card .bigline { font-family:'DM Serif Display',serif; font-size:17px; margin-bottom:4px; color:var(--ink) }
-.prod-card p  { font-size:11px; color:var(--muted); line-height:1.5 }
+.prod-card p  { font-size:12px; color:var(--muted); line-height:1.55 }
 
 /* MIDI section */
 .midi-section  { border:1px solid var(--card-bd); border-radius:14px; background:var(--card); backdrop-filter:blur(16px); overflow:hidden; margin-bottom:12px }
@@ -54,7 +54,7 @@
 .element-item .el-body { min-width:0 }
 .el-name { font-size:12px; font-weight:500; color:var(--ink); display:flex; align-items:center; gap:7px; flex-wrap:wrap }
 .el-gear { font-family:'DM Mono',monospace; font-size:8.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--accent2); background:var(--degree-tonic); border:1px solid rgba(232,68,26,.22); border-radius:5px; padding:1px 6px }
-.el-desc { font-size:10px; color:var(--muted); margin-top:2px }
+.el-desc { font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.45 }
 
 /* Suggested-tempo button next to the BPM badge */
 .bpm-suggest {
