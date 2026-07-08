@@ -46,6 +46,10 @@ const AudioEngine = {
     // can be hard-stopped (the old duck-and-restore let scheduled chords resume).
     this.voiceBus = ctx.createGain(); this.voiceBus.gain.value = 1;
     this.voiceBus.connect(this.master);
+    // Bass bus — the bass line runs on its own lane so stems export can record
+    // chords and bass separately (both still sum into master for normal play).
+    this.bassBus = ctx.createGain(); this.bassBus.gain.value = 1;
+    this.bassBus.connect(this.master);
     this._active = new Set();
     // Drum bus — percussion runs dry (no reverb wash) at its own level.
     this.drumBus = ctx.createGain(); this.drumBus.gain.value = 0.85;
@@ -499,8 +503,8 @@ const AudioEngine = {
   // ── Acoustic piano — additive, mildly inharmonic partials with a bright,
   // percussive attack that decays into a long, warm sustain. Closest a pure
   // synth gets to a real piano without samples (samples would bloat the build).
-  _voicePiano(freq, t0, dur, gainScale = 1) {
-    const ctx = this.ctx, out = this.voiceBus || this.master;
+  _voicePiano(freq, t0, dur, gainScale = 1, outBus = null) {
+    const ctx = this.ctx, out = outBus || this.voiceBus || this.master;
     const amp = ctx.createGain();
     const lp  = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.5;
     lp.frequency.setValueAtTime(Math.min(8000, freq * 8 + 2600), t0);
@@ -618,7 +622,7 @@ const AudioEngine = {
         // note fits its sampled range (the sampler itself says no otherwise).
         if ((typeof st !== 'object' || st.realPiano !== false) &&
             typeof SampleBass === 'object' && SampleBass.play(freq, t0, dur, 0.85)) return;
-        this._voice(freq, t0, dur, 0.7);
+        this._voicePiano(freq, t0, dur, 0.7, this.bassBus);   // synth bass on the bass lane too
         return;
       }
       const strum = i * (0.011 + Math.random() * 0.007);        // 11-18ms per step, varies
@@ -800,6 +804,7 @@ function _makeSampler(base, names, opts = {}) {
   return {
     BASE: base, NAMES: names,
     gain: opts.gain || 1.1, release: opts.release || 0.45, maxShift: opts.maxShift || 7,
+    busName: opts.busName || null,
     buffers: {},                   // midi → AudioBuffer
     state: 'idle',                 // idle | loading | ready(≥1 decoded) | failed
 
@@ -836,7 +841,7 @@ function _makeSampler(base, names, opts = {}) {
       g.gain.setValueAtTime(peak, t0);
       g.gain.setValueAtTime(peak, t0 + Math.max(0.05, dur));    // natural decay does the shaping
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + this.release);
-      src.connect(g); g.connect(AudioEngine.voiceBus || AudioEngine.master);
+      src.connect(g); g.connect((this.busName && AudioEngine[this.busName]) || AudioEngine.voiceBus || AudioEngine.master);
       src.start(t0); src.stop(t0 + dur + this.release + 0.05);
       if (AudioEngine._active) {                             // progression Stop hard-cuts these too
         const e = { oscs: [src], amp: g };
@@ -860,7 +865,7 @@ const SampleGuitar = _makeSampler('samples/guitar/',
 // voice-led bass note routes here instead of the piano's left hand.
 const SampleBass = _makeSampler('samples/bass/',
   ['E1','G1','As1','Cs2','E2','G2','As2','Cs3','E3','G3'],
-  { gain: 1.25, release: 0.35, maxShift: 3 });
+  { gain: 1.25, release: 0.35, maxShift: 3, busName: 'bassBus' });
 
 // ── Instrument Pack 1 (free in beta; pack-gated, see PACKS) ──
 // Steel acoustic (neo-soul strums, singer-songwriter warmth) + clean electric.

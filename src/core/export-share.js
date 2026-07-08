@@ -227,33 +227,79 @@ function _wavBlob(chunksL, chunksR, sampleRate) {
   return new Blob([data.buffer], { type: 'audio/wav' });
 }
 
-function _captureProgressionWav() {
+// Record one clean pass of the progression from one or more bus taps.
+// taps: [{ node, name, gain }] — each gets its own silent ScriptProcessor.
+function _captureBusesWav(taps) {
   return new Promise(resolve => {
     try {
       const ctx = AudioEngine.ctx;
       const h = Array.isArray(st.history) ? st.history : [];
       const { total } = _layout(h);
       const secPerBeat = 60 / (st.bpm || 100);
-      const seconds = 0.15 + total * secPerBeat + 1.8;                // small lead + reverb/decay tail
-      const proc = ctx.createScriptProcessor(4096, 2, 2);
-      const sink = ctx.createGain(); sink.gain.value = 0;             // silent path that keeps proc alive
-      const chunksL = [], chunksR = [];
-      proc.onaudioprocess = e => {
-        chunksL.push(new Float32Array(e.inputBuffer.getChannelData(0)));
-        chunksR.push(new Float32Array(e.inputBuffer.getChannelData(1)));
-      };
-      AudioEngine.master.connect(proc); proc.connect(sink); sink.connect(ctx.destination);
+      const seconds = 0.15 + total * secPerBeat + 1.8;                // small lead + decay tail
+      const recs = taps.map(tp => {
+        const g = ctx.createGain(); g.gain.value = tp.gain != null ? tp.gain : 1;
+        const proc = ctx.createScriptProcessor(4096, 2, 2);
+        const sink = ctx.createGain(); sink.gain.value = 0;           // silent path keeps proc alive
+        const L = [], R = [];
+        proc.onaudioprocess = e => {
+          L.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+          R.push(new Float32Array(e.inputBuffer.getChannelData(1)));
+        };
+        tp.node.connect(g); g.connect(proc); proc.connect(sink); sink.connect(ctx.destination);
+        return { tp, g, proc, sink, L, R };
+      });
       const hadLoop = st.loop, hadCountIn = st.countIn;
       st.loop = false; st.countIn = false;                            // one clean pass, no click
       playProgression();
       setTimeout(() => {
         st.loop = hadLoop; st.countIn = hadCountIn;
-        try { AudioEngine.master.disconnect(proc); proc.disconnect(); sink.disconnect(); } catch (_) {}
+        recs.forEach(r => { try { r.tp.node.disconnect(r.g); r.g.disconnect(); r.proc.disconnect(); r.sink.disconnect(); } catch (_) {} });
         if (typeof stopProgression === 'function') stopProgression();
-        resolve({ blob: _wavBlob(chunksL, chunksR, ctx.sampleRate), seconds });
+        resolve(recs.map(r => ({ name: r.tp.name, blob: _wavBlob(r.L, r.R, ctx.sampleRate), seconds })));
       }, seconds * 1000);
     } catch (e) { resolve(null); }
   });
+}
+
+async function _captureProgressionWav() {
+  const out = await _captureBusesWav([{ node: AudioEngine.master, name: 'mix' }]);
+  return out && out[0] ? { blob: out[0].blob, seconds: out[0].seconds } : null;
+}
+
+function _downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+function _wavBase() {
+  const minor = (typeof modeIsMinor === 'function' && modeIsMinor(st.mode)) ? 'm' : '';
+  return `quinta-${(st.key || 'C')}${minor}-${st.bpm || 100}bpm`;
+}
+
+// STEMS — chords and bass as separate WAVs (one recorded pass, two bus taps).
+// Dry lanes (pre-reverb) at mix level: exactly what you want to drop in a DAW.
+async function exportStems() {
+  const h = Array.isArray(st.history) ? st.history : [];
+  if (!h.length) { _shareToast(st.lang === 'es' ? 'Añade acordes primero' : 'Add some chords first'); return; }
+  if (_wavBusy) return;
+  if (typeof AudioEngine !== 'object' || !AudioEngine.resume()) return;
+  if (typeof _progRAF !== 'undefined' && _progRAF && typeof stopProgression === 'function') stopProgression();
+  _wavBusy = true;
+  _shareToast(st.lang === 'es' ? 'Grabando stems…' : 'Recording stems…');
+  const lvl = AudioEngine.master.gain.value;
+  const res = await _captureBusesWav([
+    { node: AudioEngine.voiceBus, name: 'chords', gain: lvl },
+    { node: AudioEngine.bassBus,  name: 'bass',   gain: lvl },
+  ]);
+  _wavBusy = false;
+  if (!res || res.some(s2 => !s2.blob || s2.blob.size <= 44)) { _shareToast(st.lang === 'es' ? 'No se pudo exportar' : 'Stems export failed'); return; }
+  res.forEach((s2, i) => setTimeout(() => _downloadBlob(s2.blob, `${_wavBase()}-${s2.name}.wav`), i * 400));
+  _shareToast(st.lang === 'es' ? 'Stems exportados (2 WAV)' : 'Stems exported (2 WAVs)');
+  if (typeof tel === 'function') tel('export_stems');
+  if (typeof haptic === 'function') haptic('ok');
 }
 
 let _wavBusy = false;
@@ -268,12 +314,7 @@ async function exportAudio() {
   const res = await _captureProgressionWav();
   _wavBusy = false;
   if (!res || !res.blob || res.blob.size <= 44) { _shareToast(st.lang === 'es' ? 'No se pudo exportar' : 'Audio export failed'); return; }
-  const url = URL.createObjectURL(res.blob);
-  const a = document.createElement('a');
-  const minor = (typeof modeIsMinor === 'function' && modeIsMinor(st.mode)) ? 'm' : '';
-  a.href = url; a.download = `quinta-${(st.key || 'C')}${minor}-${st.bpm || 100}bpm.wav`;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  _downloadBlob(res.blob, `${_wavBase()}.wav`);
   _shareToast(st.lang === 'es' ? 'Audio exportado (WAV)' : 'Audio exported (WAV)');
   if (typeof tel === 'function') tel('export_audio');
   if (typeof haptic === 'function') haptic('ok');

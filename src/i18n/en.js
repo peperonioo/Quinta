@@ -29,6 +29,7 @@ const I18N_EN = {
   'library.presets':   'Presets',
   'builder.midi':      'MIDI',
   'builder.wav':       'WAV',
+  'builder.stems':     'Stems',
   'voice.steel':       'Acoustic',
   'voice.electric':    'Electric',
   'builder.clear':     'Clear',
