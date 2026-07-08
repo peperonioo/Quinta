@@ -26,6 +26,7 @@ const Settings = (() => {
     if (st.realPiano && typeof AudioEngine === 'object' && AudioEngine.ctx) {
       if (typeof SamplePiano === 'object') SamplePiano.ensure();
       if (typeof SampleGuitar === 'object') SampleGuitar.ensure();
+      if (typeof SampleBass === 'object') SampleBass.ensure();
     }
     if (typeof haptic === 'function') haptic('sel');
   }

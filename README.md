@@ -147,3 +147,5 @@ Real guitar sound: nylon guitar from the [VSCO 2 Community Edition](https://vers
 © 2026 Pedro Ipince. All rights reserved. The source is published for
 transparency; no reuse or redistribution is permitted — see [LICENSE](LICENSE).
 Third-party audio samples keep their own licences (credited above).
+
+Real bass sound: electric bass from the VSCO 2 Community Edition (CC0), via tonejs-instruments. 10 samples (E1–G3) in `samples/bass/`.

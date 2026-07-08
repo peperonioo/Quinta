@@ -36,7 +36,7 @@ const I18N_EN = {
   'settings.pianoSnd':   'Sound',
   'settings.pianoReal':  'Real',
   'settings.pianoSynth': 'Synth',
-  'settings.pianoCredit':'Piano: Salamander Grand, A. Holm (CC-BY) · Guitar: VSCO2 CE (CC0)',
+  'settings.pianoCredit':'Piano: Salamander Grand, A. Holm (CC-BY) · Guitar & Bass: VSCO2 CE (CC0)',
   'settings.haptics':  'Haptics',
   'settings.hapOn':    'On',
   'settings.hapOff':   'Off',

@@ -181,6 +181,7 @@ const AudioEngine = {
     if (typeof st !== 'object' || st.realPiano !== false) {
       if (typeof SamplePiano === 'object') SamplePiano.ensure();
       if (typeof SampleGuitar === 'object') SampleGuitar.ensure();
+      if (typeof SampleBass === 'object') SampleBass.ensure();
     }
     return true;
   },
@@ -585,11 +586,29 @@ const AudioEngine = {
   // pitches: array of relative semitones (0 = middle C). Tiny strum for life.
   // By default an octave-down copy of the root is added for a fuller voicing;
   // pass addBass=false when the caller already supplies a complete voicing.
+  // Premium playback (V6.08): chords breathe. The bass lands ON the beat (through
+  // the real electric-bass sampler when it's low enough and loaded); the upper
+  // voices strum gently after it with per-note timing jitter (±3ms) and living
+  // dynamics (±7% velocity) — the difference between a MIDI block and a take.
   playChord(pitches, dur = 0.95, when = 0, addBass = true) {
     if (!this.resume() || !Array.isArray(pitches) || !pitches.length) return;
     const t0 = this.ctx.currentTime + when;
     const voiced = addBass ? [pitches[0] - 12].concat(pitches) : pitches;
-    voiced.forEach((p, i) => this._voice(this._freq(p), t0 + i * 0.014, dur, i === 0 ? 0.7 : 0.9));
+    voiced.forEach((p, i) => {
+      const freq = this._freq(p);
+      if (i === 0) {
+        // Bass voice: exactly on the grid; the real bass takes it whenever the
+        // note fits its sampled range (the sampler itself says no otherwise).
+        if ((typeof st !== 'object' || st.realPiano !== false) &&
+            typeof SampleBass === 'object' && SampleBass.play(freq, t0, dur, 0.85)) return;
+        this._voice(freq, t0, dur, 0.7);
+        return;
+      }
+      const strum = i * (0.011 + Math.random() * 0.007);        // 11-18ms per step, varies
+      const jit   = (Math.random() - 0.5) * 0.006;              // ±3ms micro-timing
+      const vel   = 0.9 * (0.93 + Math.random() * 0.14);        // ±7% dynamics
+      this._voice(freq, t0 + Math.max(0, strum + jit), dur, vel);
+    });
   },
 
   playNote(pitch, dur = 0.7) {
@@ -819,3 +838,9 @@ const SamplePiano = _makeSampler('samples/piano/',
 const SampleGuitar = _makeSampler('samples/guitar/',
   ['E2','Fs2','A2','B2','Cs3','D3','Fs3','G3','B3','Cs4','E4','Fs4','A4','B4','Cs5','D5','E5'],
   { gain: 1.0, release: 0.6, maxShift: 4 });
+
+// Electric bass (VSCO2 CE, CC0) — the real low end under progressions. The
+// voice-led bass note routes here instead of the piano's left hand.
+const SampleBass = _makeSampler('samples/bass/',
+  ['E1','G1','As1','Cs2','E2','G2','As2','Cs3','E3','G3'],
+  { gain: 1.25, release: 0.35, maxShift: 3 });
