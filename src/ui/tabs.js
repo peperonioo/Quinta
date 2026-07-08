@@ -22,6 +22,7 @@ function switchTab(tab, btn) {
 function setGenre(id, btn) {
   if (!GENRES[id]) return;
   curGenre = id;
+  if (typeof DrumKits === 'object' && typeof AudioEngine === 'object' && AudioEngine.ctx) DrumKits.ensure(id);
   stopPlay();
   st.genre = id;
   saveState();

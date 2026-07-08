@@ -1,6 +1,6 @@
 // Service worker — makes Easy Fifth Circle installable and offline-capable.
 // Bump CACHE on each release so clients pick up the new HTML.
-const CACHE = 'efc-v6.09';
+const CACHE = 'efc-v6.10';
 // Piano samples live in their own cache that SURVIVES version bumps — they never
 // change, and re-downloading ~1.2MB on every release would be rude.
 const SAMPLES = 'efc-samples-v1';

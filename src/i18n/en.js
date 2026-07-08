@@ -38,7 +38,7 @@ const I18N_EN = {
   'settings.pianoSnd':   'Sound',
   'settings.pianoReal':  'Real',
   'settings.pianoSynth': 'Synth',
-  'settings.pianoCredit':'Piano: Salamander Grand (CC-BY) · Guitar/Bass: VSCO2 (CC0) · Pack 1: tonejs-instruments (CC)',
+  'settings.pianoCredit':'Piano: Salamander Grand (CC-BY) · Guitar/Bass: VSCO2 (CC0) · Pack 1: tonejs-instruments (CC) · Drums: Tone.js (MIT)',
   'settings.haptics':  'Haptics',
   'settings.hapOn':    'On',
   'settings.hapOff':   'Off',

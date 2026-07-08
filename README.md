@@ -151,3 +151,5 @@ Third-party audio samples keep their own licences (credited above).
 Real bass sound: electric bass from the VSCO 2 Community Edition (CC0), via tonejs-instruments. 10 samples (E1–G3) in `samples/bass/`.
 
 Instrument Pack 1 (free during beta): steel acoustic guitar (`samples/steel/`) and clean electric guitar (`samples/electric/`) from the [tonejs-instruments](https://github.com/nbrosowsky/tonejs-instruments) compilation (Creative Commons / VSCO2-sourced).
+
+Real drum kits (Production tab): kick/snare/hat/tom one-shots per genre from the [Tone.js](https://github.com/Tonejs/audio) audio examples (MIT) — `samples/drums/`.

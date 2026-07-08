@@ -53,10 +53,15 @@ const AudioEngine = {
     return true;
   },
 
-  // ── 808/909-style drum voices (synthesised, schedulable at `when`) ─────
+  // ── Drum voices — real kit samples per genre when ready, synth fallback ──
   drumHit(type, when = 0, accent = false) {
     if (!this.resume()) return;
     const t = when || this.ctx.currentTime;
+    if ((typeof st !== 'object' || st.realPiano !== false) && typeof DrumKits === 'object') {
+      const genre = (typeof curGenre !== 'undefined' && curGenre) || (typeof st === 'object' && st.genre) || 'house';
+      DrumKits.ensure(genre);                       // idempotent lazy load
+      if (DrumKits.play(genre, type, t, accent)) return;
+    }
     const fn = { kick:'_kick', clap:'_clap', snare:'_snare', hat:'_hat', open:'_openhat', shaker:'_shaker', rim:'_rim', tom:'_tom', ride:'_ride', cowbell:'_cowbell' }[type];
     if (fn && this[fn]) this[fn](t, accent);
   },
@@ -865,3 +870,42 @@ const SampleSteel = _makeSampler('samples/steel/',
 const SampleElectric = _makeSampler('samples/electric/',
   ['A2','C3','Ds3','Fs3','A3','C4','Ds4','Fs4','A4','C5'],
   { gain: 0.85, release: 0.45, maxShift: 4 });
+
+// ── REAL DRUM KITS (Tone.js drum-samples, per genre) ──────────────────────
+// kick/snare/hat/tom route through a genre-matched sampled kit when loaded;
+// the coloured voices (clap, shaker, rim, ride, cowbell) stay synthesised on
+// purpose — they're stylised accents. Fallback is always the synth kit.
+const DrumKits = {
+  MAP: { house: 'Techno', neosoul: 'LINN', jazz: 'acoustic-kit' },
+  PIECES: ['kick', 'snare', 'hihat', 'tom1'],
+  TYPE2PIECE: { kick: 'kick', snare: 'snare', hat: 'hihat', tom: 'tom1' },
+  kits: {},                                  // kit name → { state, buffers }
+  ensure(genre) {
+    const kit = this.MAP[genre];
+    if (!kit || !AudioEngine.ctx) return;
+    if (typeof location !== 'undefined' && location.protocol === 'file:') return;
+    const k = this.kits[kit] || (this.kits[kit] = { state: 'idle', buffers: {} });
+    if (k.state !== 'idle') return;
+    k.state = 'loading';
+    this.PIECES.forEach(p => {
+      fetch(`samples/drums/${kit}/${p}.mp3`)
+        .then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+        .then(ab => AudioEngine.ctx.decodeAudioData(ab))
+        .then(buf => { k.buffers[p] = buf; k.state = 'ready'; })
+        .catch(() => {});
+    });
+  },
+  play(genre, type, t, accent) {
+    const kit = this.MAP[genre], k = kit && this.kits[kit];
+    if (!k || k.state !== 'ready') return false;
+    const piece = this.TYPE2PIECE[type], buf = piece && k.buffers[piece];
+    if (!buf) return false;
+    const ctx = AudioEngine.ctx;
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const g = ctx.createGain();
+    g.gain.value = (accent ? 1 : 0.72) * (type === 'hat' ? 0.55 : 0.95);
+    src.connect(g); g.connect(AudioEngine.drumBus || AudioEngine.master);
+    src.start(t);
+    return true;
+  },
+};
