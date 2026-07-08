@@ -106,7 +106,10 @@ const PALETTES_DATA = PALETTES;
   // save some GPU — but keep full brightness so the background stays dynamic
   // and vivid (the earlier 0.6x/0.72x made it look like a flat colour).
   const mobileBg = matchMedia('(max-width: 860px)').matches;
-  const resScale = mobileBg ? 0.85 : 1;
+  // Adaptive resolution: low-memory devices start low; sustained jank steps it
+  // down further (see the loop). The background must never cost the UI its fps.
+  let resScale = mobileBg ? 0.85 : 1;
+  if ((navigator.deviceMemory || 8) <= 2) resScale = Math.min(resScale, 0.6);
   const dimFactor = 1;
 
   let intensity = parseFloat(st.intensity) || 1;
@@ -143,9 +146,37 @@ const PALETTES_DATA = PALETTES;
   if (mobileBg) {
     addEventListener('scroll', () => { scrolling = performance.now(); }, { passive: true });
   }
+
+  const drawOnce = () => { tVal += 0.014; gl.uniform1f(tLoc, tVal); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); };
+
+  // Reduced motion: one beautiful static frame, no animation loop at all.
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    drawOnce();
+    window.__plasma = { mode: 'static-reduced', scale: resScale };
+    return;
+  }
+
+  // Degrade ladder against sustained jank (EMA of frame gaps):
+  //   level 0 full → level 1 drop to 0.6 res → level 2 freeze (static frame).
+  // The plasma is ambience; a low-end phone gets its CPU/GPU back for the music.
+  let degradeLvl = 0, ema = 16.7, lastT = performance.now(), settle = 0;
+  window.__plasma = { mode: 'animated', scale: resScale, level: 0 };
+  const degrade = () => {
+    degradeLvl++;
+    if (degradeLvl === 1) { resScale = Math.min(resScale, 0.6); resize(); }
+    window.__plasma = { mode: degradeLvl >= 2 ? 'frozen' : 'animated', scale: resScale, level: degradeLvl };
+  };
+  window.__plasmaDegrade = degrade;                 // test hook (also handy in devtools)
+
   (function loop() {
+    if (degradeLvl >= 2) return;                    // frozen: last frame stays, loop ends
     frame++;
-    const midScroll = mobileBg && performance.now() - scrolling < 120;
+    const nowT = performance.now();
+    const dt = Math.min(200, nowT - lastT); lastT = nowT;
+    ema = ema * 0.95 + dt * 0.05;
+    // Give each level ~2s to settle before judging it.
+    if (++settle > 120 && ema > 26) { degrade(); settle = 0; ema = 16.7; }
+    const midScroll = mobileBg && nowT - scrolling < 120;
     const draw = !midScroll && (!mobileBg || frame % 2 === 0);
     if (draw) {
       tVal += mobileBg ? 0.028 : 0.014;
