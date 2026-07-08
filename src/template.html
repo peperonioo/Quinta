@@ -89,11 +89,11 @@
         </div>
       </div>
       <div class="metro-row">
-        <button class="metro-step" onclick="Metronome.setBpm((st.bpm||100)-1)" aria-label="Slower">−</button>
+        <button class="metro-step" onclick="Metronome.stepBpm(-1)" aria-label="Slower">−</button>
         <button class="metro-play" id="metroPlay" data-ico="play" data-ico-size="20" onclick="Metronome.toggle()" aria-label="Start/stop"></button>
-        <button class="metro-step" onclick="Metronome.setBpm((st.bpm||100)+1)" aria-label="Faster">+</button>
+        <button class="metro-step" onclick="Metronome.stepBpm(1)" aria-label="Faster">+</button>
       </div>
-      <button class="metro-tap" id="metroTap" onclick="Metronome.tap()">
+      <button class="metro-tap" id="metroTap" onpointerdown="Metronome.tap(event)" onclick="if(event.detail===0)Metronome.tap(event)">
         <span class="metro-tap-label">TAP</span>
         <span class="metro-tap-hint" id="metroTapHint" data-i18n="metro.tapHint">tap 4× to set tempo</span>
       </button>

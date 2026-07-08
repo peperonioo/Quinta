@@ -26,11 +26,14 @@ const Metronome = {
   },
 
   bpm() { return Math.max(this.MIN, Math.min(this.MAX, st.bpm || 100)); },
+  // 0.1-BPM precision (tap tempo measures real tracks — 122.4 matters when beat-matching).
+  // The dial and +/- steppers snap to integers via stepBpm/their own rounding.
   setBpm(v) {
-    st.bpm = Math.max(this.MIN, Math.min(this.MAX, Math.round(v)));
+    st.bpm = Math.max(this.MIN, Math.min(this.MAX, Math.round(v * 10) / 10));
     saveState();
     this.render();
   },
+  stepBpm(d) { this.setBpm(Math.round(this.bpm()) + d); },
 
   toggleOpen() {
     this.open = !this.open;
@@ -78,32 +81,46 @@ const Metronome = {
     if (b && typeof setIcon === 'function') setIcon(b, this.playing ? 'stop' : 'play');
   },
 
-  // ── Tap tempo ─────────────────────────────────────────
-  // Average the intervals over the last few taps for an accurate, stable BPM
-  // (using the rolling average means the number doesn't jump around on each tap).
+  // ── Tap tempo (V6.06 redesign — measurement-grade) ────
+  // Precision by construction:
+  //  · timestamps at CONTACT (pointerdown e.timeStamp, high-res) — onclick fired
+  //    on release and added 30-150ms of variable hold-time jitter per tap;
+  //  · up to 12 taps kept — more taps while a track plays = tighter estimate;
+  //  · median interval + mean of intervals within +/-25% of it — one flubbed tap
+  //    (a flam, a missed beat) is rejected instead of wrecking the average;
+  //  · <180ms bounce guard (accidental double-fires ignored, not counted);
+  //  · >2.2s gap starts a fresh measurement;
+  //  · result applied live at 0.1 BPM (122.4 is not 122 when beat-matching).
   _taps: [],
-  tap() {
-    const now = performance.now();
-    if (this._taps.length && now - this._taps[this._taps.length - 1] > 2000) this._taps = []; // new burst
+  tap(e) {
+    const now = (e && typeof e.timeStamp === 'number' && e.timeStamp > 0) ? e.timeStamp : performance.now();
+    const last = this._taps[this._taps.length - 1];
+    if (last != null && now - last < 180) return;            // bounce/double-fire: ignore
+    if (last != null && now - last > 2200) this._taps = [];  // new measurement
     this._taps.push(now);
-    if (this._taps.length > 5) this._taps.shift();   // keep last 5 taps → up to 4 intervals
+    if (this._taps.length > 12) this._taps.shift();
 
     const el = document.getElementById('metronome');
     if (el) { el.classList.remove('beat'); void el.offsetWidth; el.classList.add('beat'); }
     if (typeof AudioEngine === 'object') AudioEngine.tick(300, 0.08);
+    if (typeof haptic === 'function') haptic('tap');
 
     const es = st.lang === 'es';
     const hint = document.getElementById('metroTapHint');
-    if (this._taps.length < 4) { if (hint) hint.textContent = (es ? `sigue tocando… ${this._taps.length}/4` : `keep tapping… ${this._taps.length}/4`); }
-    if (this._taps.length < 2) return;
+    if (this._taps.length < 2) { if (hint) hint.textContent = es ? 'sigue tocando al ritmo…' : 'keep tapping to the beat…'; return; }
 
     const ivs = [];
     for (let i = 1; i < this._taps.length; i++) ivs.push(this._taps[i] - this._taps[i - 1]);
-    const avg = ivs.reduce((a, b) => a + b, 0) / ivs.length;
+    const sorted = [...ivs].sort((a, b) => a - b);
+    const med = sorted[Math.floor(sorted.length / 2)];
+    const kept = ivs.filter(iv => Math.abs(iv - med) <= med * 0.25);
+    const avg = kept.reduce((a, b) => a + b, 0) / kept.length;
     const bpm = 60000 / avg;
-    if (bpm >= this.MIN - 6 && bpm <= this.MAX + 6) {
+    if (bpm >= this.MIN && bpm <= this.MAX) {
       this.setBpm(bpm);
-      if (hint && this._taps.length >= 4) hint.textContent = (es ? 'tempo fijado · sigue tocando' : 'tempo set · keep tapping');
+      if (hint) hint.textContent = `${bpm.toFixed(1)} BPM · ${kept.length + 1} taps`;
+    } else if (hint) {
+      hint.textContent = es ? 'fuera de rango (40-240)' : 'out of range (40-240)';
     }
   },
 
@@ -125,7 +142,9 @@ const Metronome = {
   },
 
   render() {
-    document.querySelectorAll('#metronome .metro-bpm').forEach(e => e.textContent = this.bpm());
+    const bv = this.bpm();
+    const label = Number.isInteger(bv) ? bv : bv.toFixed(1);
+    document.querySelectorAll('#metronome .metro-bpm').forEach(e => e.textContent = label);
     const a0 = -this.SWEEP / 2, a1 = this.SWEEP / 2;
     const frac = (this.bpm() - this.MIN) / (this.MAX - this.MIN);
     const ang = a0 + frac * this.SWEEP;
@@ -148,7 +167,7 @@ const Metronome = {
       let deg = Math.atan2(x, -y) * 180 / Math.PI;       // 0 = top, clockwise
       deg = Math.max(-this.SWEEP / 2, Math.min(this.SWEEP / 2, deg));
       const frac = (deg + this.SWEEP / 2) / this.SWEEP;
-      this.setBpm(this.MIN + frac * (this.MAX - this.MIN));
+      this.setBpm(Math.round(this.MIN + frac * (this.MAX - this.MIN)));
     };
     dial.addEventListener('pointerdown', e => { dragging = true; dial.setPointerCapture?.(e.pointerId); fromEvt(e); });
     dial.addEventListener('pointermove', e => { if (dragging) fromEvt(e); });
