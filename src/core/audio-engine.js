@@ -182,6 +182,11 @@ const AudioEngine = {
       if (typeof SamplePiano === 'object') SamplePiano.ensure();
       if (typeof SampleGuitar === 'object') SampleGuitar.ensure();
       if (typeof SampleBass === 'object') SampleBass.ensure();
+      // Pack voices load only when the pack is owned AND selected (bandwidth-kind).
+      if (typeof packOwned === 'function' && packOwned('pack1') && typeof st === 'object') {
+        if (st.pianoSound === 'steel'    && typeof SampleSteel === 'object')    SampleSteel.ensure();
+        if (st.pianoSound === 'electric' && typeof SampleElectric === 'object') SampleElectric.ensure();
+      }
     }
     return true;
   },
@@ -472,6 +477,13 @@ const AudioEngine = {
     const snd = (typeof st === 'object' && st.pianoSound) || 'piano';
     if (snd === 'epiano') return this._voiceEP(freq, t0, dur, gainScale);
     if (snd === 'brass')  return this._voiceBrass(freq, t0, dur, gainScale);
+    // Pack 1 voices — sampled when ready, Karplus-Strong string as the fallback.
+    if (snd === 'steel' || snd === 'electric') {
+      const smp = snd === 'steel' ? SampleSteel : SampleElectric;
+      if ((typeof st !== 'object' || st.realPiano !== false) &&
+          typeof smp === 'object' && smp.play(freq, t0, dur, gainScale)) return;
+      return this._guitarVoice(freq, t0, gainScale);
+    }
     // Real sampled piano (Salamander) when enabled + loaded; synth is the fallback
     // while samples stream in, when offline/file://, or when the user turns it off.
     if ((typeof st !== 'object' || st.realPiano !== false) &&
@@ -844,3 +856,12 @@ const SampleGuitar = _makeSampler('samples/guitar/',
 const SampleBass = _makeSampler('samples/bass/',
   ['E1','G1','As1','Cs2','E2','G2','As2','Cs3','E3','G3'],
   { gain: 1.25, release: 0.35, maxShift: 3 });
+
+// ── Instrument Pack 1 (free in beta; pack-gated, see PACKS) ──
+// Steel acoustic (neo-soul strums, singer-songwriter warmth) + clean electric.
+const SampleSteel = _makeSampler('samples/steel/',
+  ['D2','F2','Gs2','B2','D3','F3','Gs3','B3','D4','F4','Gs4','B4','D5'],
+  { gain: 0.95, release: 0.5, maxShift: 4 });
+const SampleElectric = _makeSampler('samples/electric/',
+  ['A2','C3','Ds3','Fs3','A3','C4','Ds4','Fs4','A4','C5'],
+  { gain: 0.85, release: 0.45, maxShift: 4 });

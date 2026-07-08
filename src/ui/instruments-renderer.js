@@ -105,9 +105,20 @@ function pickProgChord(i) {
 function _hear(pitch)       { if (typeof AudioEngine === 'object') AudioEngine.playNote(pitch, 0.9); }
 function _hearGuitar(pitch) { if (typeof AudioEngine === 'object') AudioEngine.playGuitarNote(pitch); }
 
-// Instrument voice for chord/piano playback: piano · epiano · brass.
+// Instrument voice for chord/piano playback: piano · epiano · brass · pack voices.
 function setVoice(s, btn) {
+  const pid = (typeof voicePackId === 'function') ? voicePackId(s) : null;
+  if (pid && !packOwned(pid)) {   // future paid pack: refuse politely
+    if (typeof _shareToast === 'function') {
+      const nm = (PACKS[pid].name[st.lang] || PACKS[pid].name.en);
+      _shareToast(st.lang === 'es' ? `Incluido en ${nm}` : `Included in ${nm}`);
+    }
+    return;
+  }
   st.pianoSound = s; if (typeof saveState === 'function') saveState();
+  // Selecting a pack voice starts its lazy sample load right away.
+  if (s === 'steel'    && typeof SampleSteel === 'object'    && AudioEngine.ctx) SampleSteel.ensure();
+  if (s === 'electric' && typeof SampleElectric === 'object' && AudioEngine.ctx) SampleElectric.ensure();
   _syncVoiceUI();
   if (typeof AudioEngine === 'object') { if (AudioEngine.resume) AudioEngine.resume(); AudioEngine.playChord([0, 4, 7]); }
 }

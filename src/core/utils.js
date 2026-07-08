@@ -153,3 +153,7 @@ function polar(r, deg) {
   const a = (deg - 90) * Math.PI / 180;
   return [300 + r * Math.cos(a), 300 + r * Math.sin(a)];
 }
+
+// ── Instrument-pack ownership ─────────────────────────
+function packOwned(id) { const d = (typeof PACKS === 'object') && PACKS[id]; return !!d && (d.free || !!((st && st.packs) || {})[id]); }
+function voicePackId(v) { if (typeof PACKS !== 'object') return null; for (const id in PACKS) if (PACKS[id].voices.includes(v)) return id; return null; }

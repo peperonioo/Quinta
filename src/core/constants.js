@@ -1,7 +1,7 @@
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V6.08';
+const APP_VERSION = 'V6.09';
 // NOTE: storage key kept as-is across the "Quinta" rebrand so existing saved
 // state/progressions are not wiped. It's an internal key, never shown to users.
 const STORAGE_KEY = 'easy-fifth-circle:v1';
@@ -80,6 +80,15 @@ const PALETTES = [
     flow:['#1a0726','#5e1a7a','#b02ea0','#ff5a9e','#ffc0dd']},      // plum→purple→magenta→pink
 ];
 
+// ── Instrument packs ──────────────────────────────────
+// A pack groups extra sampled voices. `free:true` ships it unlocked (beta);
+// flip to false and ownership comes from st.packs[id] (set by a future
+// purchase flow) — no call site changes needed to go paid.
+const PACKS = {
+  pack1: { free: true, voices: ['steel', 'electric'],
+           name: { en: 'Instrument Pack 1', es: 'Pack de instrumentos 1' } },
+};
+
 const defaultState = {
   key:'C', mode:'ionian', tonality:'major', theme:'dark', genre:'house',
   palette:0, intensity:1, wheelView:'major', lang:'en',
@@ -87,7 +96,7 @@ const defaultState = {
   sevenths:false, countIn:false, voicingOpen:false, metroSound:'woodblock',
   pianoSound:'piano', loop:false,
   realPiano:true,                        // sampled Salamander piano (synth fallback / user off)
-  haptics:true, visits:0, installDismissed:false,
+  haptics:true, visits:0, installDismissed:false, packs:{},
   activeSection:'A', chain:false,        // A/B parts; `chain` plays A→B as one song
   snap:0.25,                             // grid snap in beats (0.25 = 1/16 note; 0 = free)
   onboarded:false,
