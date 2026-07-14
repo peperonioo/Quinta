@@ -320,7 +320,7 @@
             <span data-i18n="drawers.piano">Piano</span>
             <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge piano"
               onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('piano')" data-ico="expand" data-ico-size="14"></button>
-            <span class="chev">⌄</span>
+            <span class="chev" data-ico="chevron" data-ico-size="12" aria-hidden="true"></span>
           </summary>
           <div class="drawer-body">
             <div class="snd-sel" role="group" aria-label="Instrument sound">
@@ -339,7 +339,7 @@
             <button class="gss-btn" data-ico="shapes" onclick="event.stopPropagation();GuitarShapes.toggle()" title="Show chord shapes" aria-label="Show chord voicing diagrams"><span>Shapes</span></button>
             <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge fretboard"
               onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('guitar')" data-ico="expand" data-ico-size="14"></button>
-            <span class="chev">⌄</span>
+            <span class="chev" data-ico="chevron" data-ico-size="12" aria-hidden="true"></span>
           </summary>
           <div class="drawer-body">
             <div class="fretboard-wrap"><div id="guitar" class="fretboard"></div></div>
@@ -362,7 +362,6 @@
       <div><div id="prodTitle" class="prod-title">House</div><div id="prodMeta" class="prod-meta"></div></div>
       <div class="key-badge"><span id="prodKeyNote" class="kb-note">C</span><span id="prodKeyMode">Ionian</span></div>
     </div>
-    <div id="prodCards" class="prod-grid"></div>
     <div class="midi-section">
       <div class="midi-header">
         <div class="midi-title">
@@ -377,19 +376,30 @@
       </div>
       <div id="midiGrid" class="midi-grid"></div>
     </div>
-    <div id="elementsSection" class="elements-section"></div>
-    <div class="prog-section">
-      <h3 data-i18n="production.progressions">Typical Progressions</h3>
-      <div id="progList" class="prog-list"></div>
-    </div>
-    <div class="groove-section">
-      <h3 data-i18n="production.groove">Groove Construction</h3>
-      <div id="grooveRules" class="groove-rules"></div>
-    </div>
-    <div class="tips-section">
-      <h3 data-i18n="production.tips">Arrangement &amp; Fills</h3>
-      <div id="prodTips" class="tips-grid"></div>
-    </div>
+    <!-- The know-how lives folded below the action: the grid is what you DO,
+         this is what you READ when curious. -->
+    <details class="drawer learn-style">
+      <summary>
+        <span data-i18n="production.learn">Learn the style</span>
+        <span class="chev" data-ico="chevron" data-ico-size="12" aria-hidden="true"></span>
+      </summary>
+      <div class="drawer-body">
+        <div id="prodCards" class="prod-grid"></div>
+        <div id="elementsSection" class="elements-section"></div>
+        <div class="prog-section">
+          <h3 data-i18n="production.progressions">Typical Progressions</h3>
+          <div id="progList" class="prog-list"></div>
+        </div>
+        <div class="groove-section">
+          <h3 data-i18n="production.groove">Groove Construction</h3>
+          <div id="grooveRules" class="groove-rules"></div>
+        </div>
+        <div class="tips-section">
+          <h3 data-i18n="production.tips">Arrangement &amp; Fills</h3>
+          <div id="prodTips" class="tips-grid"></div>
+        </div>
+      </div>
+    </details>
   </div>
 
 </div>

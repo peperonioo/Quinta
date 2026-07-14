@@ -72,6 +72,7 @@ const I18N_EN = {
   'production.groove': 'Groove Construction',
   'production.tips':   'Arrangement & Fills',
   'production.rhythmGrid': 'Rhythm Grid — 1 bar · 16 steps',
+  'production.learn':  'Learn the style',
   'settings.lang':     'Language',
   'settings.mode':     'Mode',
   'settings.plasma':   'Plasma',

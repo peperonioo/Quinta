@@ -106,3 +106,8 @@
 .bb:nth-child(3){ height:16px; animation:bass-p 1.6s .2s infinite }
 .bb:nth-child(4){ height:9px;  animation:bass-p 1.6s .6s infinite }
 .bb:nth-child(5){ height:12px; animation:bass-p 1.6s .1s infinite }
+
+/* "Learn the style" — the genre know-how, folded under the rhythm grid */
+.learn-style { margin-bottom:12px }
+.learn-style .drawer-body > * { margin-bottom:12px }
+.learn-style .drawer-body > *:last-child { margin-bottom:0 }

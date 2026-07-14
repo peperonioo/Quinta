@@ -72,6 +72,7 @@ const I18N_ES = {
   'production.groove': 'Construcción del groove',
   'production.tips':   'Arreglo y Fills',
   'production.rhythmGrid': 'Rejilla rítmica — 1 compás · 16 pasos',
+  'production.learn':  'Aprende el estilo',
   'settings.lang':     'Idioma',
   'settings.mode':     'Modo',
   'settings.plasma':   'Plasma',
