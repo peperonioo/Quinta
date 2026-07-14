@@ -270,6 +270,32 @@
       }
     })();
 
+    // ── Inline-handler integrity (V6.15) ─────────────────────────────────
+    // The template wires UI via inline onclick/onpointerdown. The known failure
+    // class: rename a global, and a button dies silently at runtime. This walks
+    // every inline handler and asserts each referenced identifier still exists
+    // in global scope (new Function sees top-level let/const too).
+    (function () {
+      const SKIP = new Set(['if','else','return','new','typeof','this','event','true','false','null','undefined']);
+      const bad = [];
+      document.querySelectorAll('[onclick],[onpointerdown],[onkeydown]').forEach(el => {
+        ['onclick', 'onpointerdown', 'onkeydown'].forEach(attr => {
+          const code = el.getAttribute(attr); if (!code) return;
+          // strip string literals, then take identifiers that are called or dotted
+          const stripped = code.replace(/'[^']*'|"[^"]*"|`[^`]*`/g, '');
+          // only bare identifiers (not .methodNames after a dot)
+          (stripped.match(/(?<![\w$.])[A-Za-z_$][\w$]*\s*[.(]/g) || []).forEach(tok => {
+            const name = tok.replace(/[.(\s]/g, '');
+            if (SKIP.has(name)) return;
+            let ok = false;
+            try { ok = new Function('return typeof ' + name + ' !== "undefined"')(); } catch (_) {}
+            if (!ok) bad.push(name + ' @ ' + (el.id || el.getAttribute('aria-label') || el.className));
+          });
+        });
+      });
+      assert('Inline handlers reference existing globals', bad.length === 0, [...new Set(bad)].slice(0, 6));
+    })();
+
     // ── Interaction guard (V4.0): critical controls must not be covered ──
     // Catches the bug class where a closed overlay's cards form an invisible
     // click-wall over the top bar / wheel.
