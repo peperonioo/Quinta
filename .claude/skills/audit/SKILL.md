@@ -24,12 +24,19 @@ grep -c "p: '" src/ui/icons.js                     # icon kit size
 
 Also diff reality vs the previous audit's "pendiente" list — what got done, what didn't.
 
-## 2 · Structure (7 A4 pages, Spanish)
+## 2 · Structure (8-9 A4 pages, Spanish) — ALL sections required
+
+The user's definition of "audit" (fixed): code analysis + pros/cons + potential +
+path-to-product + DESIGN REVIEW with concrete improvements — in one PDF.
 
 1. **Portada** — qué cambió desde el audit anterior (releases con una línea cada una),
    veredicto /10 con evolución, métricas duras en tarjetas.
-2. **Estado técnico** — calidad por dimensión (barras: código, identidad, sonido,
+2. **Análisis del código** — mapa de arquitectura, patrones, cobertura de tests,
+   ventajas/desventajas técnicas, deuda. Leer el código de verdad.
+3. **Estado técnico** — calidad por dimensión (barras: código, identidad, sonido,
    primer minuto, feel, datos, legal, validación, negocio) con las deltas.
+4. **Diseño** — revisión de cohesión visual/UX: qué está fuerte, qué desalineado,
+   y cómo mejorarlo (concreto y priorizado).
 3. **Ventajas / desventajas** + tabla "¿qué tan producto es?" (artefacto/producto/negocio).
 4. **Profesionalizar: hecho vs pendiente** — checklist honesto, con la lectura de
    rendimientos decrecientes.
