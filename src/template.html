@@ -250,15 +250,32 @@
             <button class="builder-btn opt" id="loopBtn" data-ico="loop" onclick="toggleLoop(this)" title="Loop the progression" aria-label="Loop" aria-pressed="false"></button>
             <button class="builder-btn opt sect-chain" id="chainBtn" onclick="toggleChain(this)" title="Play section A then B as one song" aria-label="Chain A to B" aria-pressed="false">A→B</button>
             <button class="builder-btn opt" id="moreBtn" data-ico="more" onclick="toggleBuilderMore(this)" title="More actions" aria-label="More actions" aria-expanded="false"></button>
-            <div class="builder-more" id="builderMore" hidden>
-              <button class="builder-btn opt" id="countInBtn" data-ico="countin" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false"></button>
-              <button class="builder-btn opt" id="voicingBtn" data-ico="voicing" onclick="togglePlayOpt('voicingOpen',this)" title="Open (spread) voicing" aria-label="Open voicing" aria-pressed="false"></button>
-              <button class="builder-btn" data-lib-trigger data-ico="library" onclick="Library.toggle()" title="Saved progressions & presets"><span data-i18n="builder.library">Library</span></button>
-              <button class="builder-btn" data-ico="share" onclick="shareProgression()" title="Copy a shareable link"><span data-i18n="builder.share">Share</span></button>
-              <button class="builder-btn" data-ico="download" onclick="exportMIDI()" title="Download as a MIDI file"><span data-i18n="builder.midi">MIDI</span></button>
+          </div>
+        </div>
+        <!-- "More" panel — grouped by intent (Export / Session / Playback) so seven
+             actions read as three decisions, not a button soup. -->
+        <div class="builder-more" id="builderMore" hidden>
+          <div class="bm-group" role="group" aria-label="Export">
+            <span class="bm-label" data-i18n="builder.grpExport">Export</span>
+            <div class="bm-btns">
               <button class="builder-btn" data-ico="download" onclick="exportAudio()" title="Record one pass as a WAV audio file"><span data-i18n="builder.wav">WAV</span></button>
               <button class="builder-btn" data-ico="download" onclick="exportStems()" title="Chords and bass as separate WAV files"><span data-i18n="builder.stems">Stems</span></button>
+              <button class="builder-btn" data-ico="download" onclick="exportMIDI()" title="Download as a MIDI file"><span data-i18n="builder.midi">MIDI</span></button>
+            </div>
+          </div>
+          <div class="bm-group" role="group" aria-label="Session">
+            <span class="bm-label" data-i18n="builder.grpSession">Session</span>
+            <div class="bm-btns">
+              <button class="builder-btn" data-lib-trigger data-ico="library" onclick="Library.toggle()" title="Saved progressions & presets"><span data-i18n="builder.library">Library</span></button>
+              <button class="builder-btn" data-ico="share" onclick="shareProgression()" title="Copy a shareable link"><span data-i18n="builder.share">Share</span></button>
               <button class="builder-btn danger" data-ico="trash" onclick="HistoryEngine.clear()" title="Clear progression"><span data-i18n="builder.clear">Clear</span></button>
+            </div>
+          </div>
+          <div class="bm-group" role="group" aria-label="Playback">
+            <span class="bm-label" data-i18n="builder.grpPlayback">Playback</span>
+            <div class="bm-btns">
+              <button class="builder-btn opt" id="countInBtn" data-ico="countin" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false"></button>
+              <button class="builder-btn opt" id="voicingBtn" data-ico="voicing" onclick="togglePlayOpt('voicingOpen',this)" title="Open (spread) voicing" aria-label="Open voicing" aria-pressed="false"></button>
             </div>
           </div>
         </div>

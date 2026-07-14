@@ -131,7 +131,13 @@
 .tab-enter { animation: tabEnter .34s var(--ease) both; }
 @media (prefers-reduced-motion: reduce) { .tab-enter { animation: none } }
 
-/* Builder: secondary actions collapse behind the "⋯" button to keep the bar clean. */
-.builder-more { display:flex; gap:6px; align-items:center }
+/* Builder: secondary actions collapse behind the "⋯" button, grouped by intent. */
+.builder-more {
+  display:flex; flex-wrap:wrap; gap:10px 22px; width:100%;
+  padding:10px 2px 2px; margin-top:9px; border-top:1px dashed var(--glass-border);
+}
 .builder-more[hidden] { display:none }
+.bm-group { display:flex; flex-direction:column; gap:5px }
+.bm-label { font-family:'DM Mono',monospace; font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted) }
+.bm-btns  { display:flex; gap:6px; flex-wrap:wrap }
 #loopBtn.active, #moreBtn.active { background:var(--glass-2); border-color:rgba(232,68,26,.42); color:var(--accent2); }

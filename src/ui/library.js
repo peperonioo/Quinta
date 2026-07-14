@@ -136,7 +136,11 @@ const Library = {
           </button>
           <button class="lib-del" data-ico="close" data-ico-size="11" onclick="Library.remove('${p.id}')" aria-label="Delete"></button>
         </div>`).join('')
-        : `<div class="lib-empty">No saved progressions yet.</div>`;
+        : `<div class="lib-empty">
+            <span class="mini-q" aria-hidden="true"><i></i></span>
+            <div class="le-title">${st.lang === 'es' ? 'Aún no hay progresiones guardadas' : 'No saved progressions yet'}</div>
+            <div class="le-sub">${st.lang === 'es' ? 'Crea algo y pulsa Guardar — o empieza con un preset de abajo.' : 'Build something and hit Save — or start from a preset below.'}</div>
+          </div>`;
     }
     const presetsEl = document.getElementById('libPresets');
     if (presetsEl) {
