@@ -130,11 +130,11 @@ const Library = {
       const saved = this._read();
       listEl.innerHTML = saved.length ? saved.map(p => `
         <div class="lib-item">
-          <button class="lib-load" onclick="Library.loadSaved('${p.id}')" title="Load">
+          <button class="lib-load" data-act="lib.load" data-id="${p.id}" title="Load">
             <span class="lib-name">${p.name}</span>
             <span class="lib-chords">${this._savedChords(p).join(' · ')}</span>
           </button>
-          <button class="lib-del" data-ico="close" data-ico-size="11" onclick="Library.remove('${p.id}')" aria-label="Delete"></button>
+          <button class="lib-del" data-ico="close" data-ico-size="11" data-act="lib.remove" data-id="${p.id}" aria-label="Delete"></button>
         </div>`).join('')
         : `<div class="lib-empty">
             <span class="mini-q" aria-hidden="true"><i></i></span>
@@ -145,7 +145,7 @@ const Library = {
     const presetsEl = document.getElementById('libPresets');
     if (presetsEl) {
       presetsEl.innerHTML = PROG_PRESETS.map((pr, i) => `
-        <button class="lib-item lib-preset" onclick="Library.loadPreset(${i})" title="Load in the current key">
+        <button class="lib-item lib-preset" data-act="lib.preset" data-idx="${i}" title="Load in the current key">
           <span class="lib-name">${pr.name}<span class="lib-tag">${pr.tag}</span></span>
           <span class="lib-chords">${this._presetChords(pr).join(' · ')}</span>
         </button>`).join('');

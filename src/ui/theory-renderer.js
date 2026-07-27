@@ -59,8 +59,7 @@ function renderTheory() {
     <div class="degree q-${(c.quality || '').toLowerCase()} ${i === 0 ? 'tonic' : ''} ${i === curDeg ? 'active-deg' : ''}"
       role="button" tabindex="0"
       aria-label="${casedRoman(c.degree, c.quality)}, ${c.chord} ${c.quality}"
-      onclick="showDegreePopup(${i})"
-      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showDegreePopup(${i})}"
+      data-act="degree.show" data-act-key="degree.show" data-idx="${i}"
       data-degree-index="${i}">
       <div class="roman">${casedRoman(c.degree, c.quality)}</div>
       <div class="dn">${c.chord}</div>

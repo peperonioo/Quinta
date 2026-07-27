@@ -109,7 +109,7 @@ function renderProduction() {
     `<div class="midi-row" style="grid-template-columns:60px repeat(16,1fr);gap:3px">
       <div class="midi-label">${PL(r.label)}</div>
       ${r.p.map((v, i) =>
-        `<div class="step${v ? ' on '+r.cl : ''} ${i % 4 === 0 ? 'beat-1' : ''}" id="s-${ri}-${i}" role="button" aria-label="${PL(r.label)} step ${i+1}" onclick="toggleStep(${ri},${i})"></div>`
+        `<div class="step${v ? ' on '+r.cl : ''} ${i % 4 === 0 ? 'beat-1' : ''}" id="s-${ri}-${i}" role="button" aria-label="${PL(r.label)} step ${i+1}" data-act="grid.toggle" data-ri="${ri}" data-i="${i}"></div>`
       ).join('')}
     </div>`
   ).join('');

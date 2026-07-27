@@ -150,14 +150,17 @@ function _updatePlayheadPos() {
 
 // Drag the playhead needle to choose a start position.
 const PlayheadDrag = {
-  start(e) {
+  // `el` is passed by the action registry: under event delegation `e.currentTarget`
+  // is the document, not the needle. Defaults preserve direct-binding behaviour.
+  start(e, el) {
     e.stopPropagation();
     if (_progRAF) return;                          // no drag during playback
     const root = document.getElementById('flowRow');
     if (!root) return;
     const h = Array.isArray(st.history) ? st.history : [];
     if (!h.length) return;
-    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+    const needle = el || e.currentTarget;
+    try { needle.setPointerCapture(e.pointerId); } catch (_) {}
     const { total: totalBeats } = _layout(h);
     const pxBeat = _pxBeat();
     const move = ev => {
@@ -356,7 +359,7 @@ const HistoryEngine = {
     if (!h.length) {
       root.classList.remove('is-timeline');
       root.innerHTML = `<div class="builder-empty">
-        <button class="surprise-btn" data-ico="spark" onclick="surpriseMe()">${t('builder.surprise')}</button>
+        <button class="surprise-btn" data-ico="spark" data-act="builder.surprise">${t('builder.surprise')}</button>
         <div class="builder-empty-hint">${t('builder.emptyHint')}</div>
       </div>`;
       if (typeof applyIcons === 'function') applyIcons(root);
@@ -379,12 +382,12 @@ const HistoryEngine = {
       <div data-uid="${it.uid || i}" data-i="${i}" class="builder-step${(it.start || 0) % 1 ? ' off' : ''}" style="--beats:${it.beats};--start:${it.start || 0}"
         role="button" tabindex="0"
         aria-label="${chordLabel(it)}, ${casedRoman(it.degree, it.quality)}, ${it.beats} beats${(it.start || 0) % 1 ? ', off-beat' : ''}. Enter for chord settings, Delete to remove."
-        onpointerdown="BarDrag.start(event,${i})" onkeydown="BarDrag.key(event,${i})">
+        data-act-down="clip.drag" data-act-key="clip.open" data-idx="${i}">
         <span class="step-num" aria-hidden="true">${i + 1}</span>
         <span class="step-chord">${chordLabel(it)}</span>
         <span class="step-sub"><span class="step-degree">${casedRoman(it.degree, it.quality)}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
-        <span class="step-resize" title="Drag to set duration" onpointerdown="DurationDrag.start(event,${i})"></span>
-      </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead" onpointerdown="PlayheadDrag.start(event)"></div><div class="builder-spacer" aria-hidden="true"></div>`;
+        <span class="step-resize" title="Drag to set duration" data-act-down="clip.resize" data-idx="${i}"></span>
+      </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead" data-act-down="playhead.drag"></div><div class="builder-spacer" aria-hidden="true"></div>`;
 
     // Re-rendering closes any open per-chord chooser.
     if (typeof ChordVariants === 'object') ChordVariants.close();
@@ -423,9 +426,9 @@ function fmtBeats(b) { return (Number.isInteger(b) ? b : b.toFixed(1)) + '♩'; 
 
 // Drag the right edge of a bar to lengthen/shorten its duration (snaps to ½ beat).
 const DurationDrag = {
-  start(e, i) {
+  start(e, i, el) {
     e.preventDefault(); e.stopPropagation();
-    const bar = e.currentTarget.closest('.builder-step');
+    const bar = (el || e.currentTarget).closest('.builder-step');
     const item = (st.history || [])[i];
     if (!bar || !item) return;
     const pxBeat = parseFloat(getComputedStyle(bar).getPropertyValue('--px-beat')) || 48;
@@ -509,9 +512,9 @@ const BuilderEngine = {
 //                    carry it anywhere and drop it, others shoving out of the way.
 //  · tap         → play the chord + open its chooser.
 const BarDrag = {
-  start(e, i) {
+  start(e, i, el) {
     if (e.target.closest('.step-resize')) return;   // resize is its own gesture
-    const bar = e.currentTarget;
+    const bar = el || e.currentTarget;
     const h = st.history;
     const item = h && h[i];
     if (!item) return;

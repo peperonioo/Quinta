@@ -64,6 +64,8 @@ const JS_FILES = [
   'src/core/state.js',
   // Telemetry (opt-in event layer; no-op until an endpoint is set)
   'src/core/telemetry.js',
+  // Event delegation + the action registry (V6.18) — replaces inline handlers
+  'src/core/actions-registry.js',
   // Pure helpers — uses state (at runtime only), constants
   'src/core/utils.js',
   // Audio engine (Web Audio synth) — uses utils at runtime
@@ -91,6 +93,8 @@ const JS_FILES = [
   'src/ui/library.js',
   // Comeback panel — uses Library, PROG_PRESETS, GENRES at runtime
   'src/ui/comeback.js',
+  // The data-act → function map. Lambdas, so targets resolve at call time.
+  'src/ui/actions-map.js',
   'src/ui/guitar-shapes.js',
   'src/ui/instruments-renderer.js',
   'src/ui/metronome.js',

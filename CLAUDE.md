@@ -41,6 +41,15 @@ takes `'tap'|'sel'|'ok'` or raw ms.
 
 - **No emojis in UI.** Functional glyphs come from the icon kit ([src/ui/icons.js](src/ui/icons.js));
   call `applyIcons(root)` after any dynamic render that includes `data-ico`.
+- **Wire UI with `data-act`, not inline handlers** (V6.18). Markup declares
+  `data-act="thing.verb"` (+ `data-act-down` for pointerdown, `data-act-key` for
+  Enter/Space) and passes arguments as `data-*`; the name maps to a function in
+  [src/ui/actions-map.js](src/ui/actions-map.js) — the one place a rename can break.
+  Delegated listeners live in [src/core/actions-registry.js](src/core/actions-registry.js),
+  so dynamically rendered markup never needs re-binding. Under delegation
+  `e.currentTarget` is the *document*: handlers that need their own element take it
+  as an explicit argument. Tests assert both directions (declared→registered and
+  registered→resolvable).
 - Every user-facing string ships in **EN + ES** ([src/i18n/](src/i18n/)). ES uses tú, opening ¿¡.
 - Sounds are **warm and low, never shrill** ("anti-casino"): soft attacks, lowpass, quiet.
   UI sounds live in AudioEngine (`dialTick`, `dialSettle`).

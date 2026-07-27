@@ -21,7 +21,7 @@ function renderMeter(label, value) {
 function moodButtons() {
   const root = document.getElementById('moodLens'); if (!root) return;
   root.innerHTML = Object.keys(MOOD_PROFILES).map(id =>
-    `<button class="mood-btn${(st.mood || 'balanced') === id ? ' active' : ''}" onclick="AppActions.setMood('${id}')">${moodLabel(id)}</button>`
+    `<button class="mood-btn${(st.mood || 'balanced') === id ? ' active' : ''}" data-act="mood.set" data-id="${id}">${moodLabel(id)}</button>`
   ).join('');
 }
 
@@ -106,7 +106,7 @@ function _buildBubblesHTML() {
   // modulate). It lives in the build flow — the moment you think "I want a chord
   // that isn't here" — and shows at every width (the side-card button hides on
   // narrow screens). Same ✦ glyph as the Color button so they read as one thing.
-  const beyond = `<button class="beyond-key" onclick="ColorChords.toggle()"
+  const beyond = `<button class="beyond-key" data-act="color.toggle"
       title="${es ? 'Acordes fuera de tu tonalidad — préstamos y modulación' : 'Chords outside your key — borrow & modulate'}"
       aria-label="${es ? 'Acordes fuera de la escala' : 'Chords outside the key'}">
       <span class="bk-ico" data-ico="spark" data-ico-size="13" aria-hidden="true"></span>

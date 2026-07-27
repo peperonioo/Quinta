@@ -271,6 +271,35 @@
       }
     })();
 
+    // ── Action registry integrity (V6.18) ────────────────────────────────
+    // Delegation only removes the silent-death failure class if BOTH directions
+    // hold, so both are asserted:
+    //   → every data-act declared in markup resolves to a registered action
+    //     (a typo or a rename can no longer produce a dead button);
+    //   → every registered action's target still exists (the lambda bodies are
+    //     what a rename would break, and they are all in one file).
+    (function () {
+      if (typeof ActionRegistry !== 'object') { assert('Action registry present', false); return; }
+      const declared = new Set();
+      document.querySelectorAll('[data-act],[data-act-down],[data-act-key]').forEach(el => {
+        ['act', 'actDown', 'actKey'].forEach(k => { if (el.dataset[k]) declared.add(el.dataset[k]); });
+      });
+      const missing = [...declared].filter(n => !ActionRegistry.has(n));
+      assert('Every declared data-act is registered', missing.length === 0, missing);
+
+      // Dynamically rendered actions aren't in the DOM right now, so also assert
+      // the whole registry is callable: resolve each lambda's first identifier.
+      const unresolved = ActionRegistry.names().filter(n => {
+        const src = String(ActionRegistry._peek ? ActionRegistry._peek(n) : '');
+        const m = src.match(/=>\s*([A-Za-z_$][\w$]*)/);
+        if (!m) return false;
+        try { return typeof new Function('return typeof ' + m[1])() === 'undefined'; }
+        catch (_) { return true; }
+      });
+      assert('Every registered action resolves', unresolved.length === 0, unresolved);
+      assert('Action registry is non-trivial', ActionRegistry.names().length >= 15);
+    })();
+
     // ── Inline-handler integrity (V6.15) ─────────────────────────────────
     // The template wires UI via inline onclick/onpointerdown. The known failure
     // class: rename a global, and a button dies silently at runtime. This walks

@@ -128,7 +128,7 @@ const Comeback = (() => {
 
     e.innerHTML = `
       <div class="cb-card" role="dialog" aria-label="${L('Welcome back', 'Bienvenido de vuelta')}">
-        <button class="cb-x" data-ico="close" data-ico-size="12" onclick="Comeback.close()"
+        <button class="cb-x" data-ico="close" data-ico-size="12" data-act="comeback.close"
           aria-label="${L('Close', 'Cerrar')}"></button>
         <div class="cb-head">${L('Welcome back', 'Bienvenido de vuelta')}</div>
 
@@ -136,7 +136,7 @@ const Comeback = (() => {
           <div class="cb-sec">
             <div class="cb-lbl">${L('Pick up where you left off', 'Sigue donde lo dejaste')}</div>
             ${list.map(p => `
-              <button class="cb-proj" onclick="Comeback.resume('${p.id}')">
+              <button class="cb-proj" data-act="comeback.resume" data-id="${p.id}">
                 <span class="cb-pname">${p.name}</span>
                 <span class="cb-pmeta">${_chords((p.history || []).length)} · ${_ago(p.ts)}</span>
               </button>`).join('')}
@@ -150,7 +150,7 @@ const Comeback = (() => {
               ${g ? `<span class="cb-dgenre">${g.title}</span>` : ''}
             </div>
             ${pr ? `<div class="cb-dprog">${pr.name} <em>${pr.tag}</em></div>` : ''}
-            <button class="cb-go" onclick="Comeback.startChallenge()">
+            <button class="cb-go" data-act="comeback.start">
               ${doneToday ? L('Play it again', 'Vuelve a tocarlo') : L('Start', 'Empezar')}
             </button>
           </div>

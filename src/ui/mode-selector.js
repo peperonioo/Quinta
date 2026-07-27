@@ -16,7 +16,7 @@ function renderModeMenu() {
   menu.innerHTML = MODE_ORDER.map(id => {
     const [name, desc] = modeFriendly(id);
     const m = MODES.find(x => x.id === id);
-    return `<button class="mode-option ${id === st.mode ? 'active' : ''}" onclick="ModeMenu.choose('${id}')">
+    return `<button class="mode-option ${id === st.mode ? 'active' : ''}" data-act="mode.choose" data-id="${id}">
       <span><b>${name}</b><small>${desc}</small></span>
       <em>${m?.degrees?.[0] || ''}</em>
     </button>`;

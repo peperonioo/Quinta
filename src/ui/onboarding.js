@@ -195,7 +195,7 @@ const Onboarding = (() => {
     const tip = $('obTip');
     if (tip) { tip.classList.remove('ob-fade'); void tip.offsetWidth; tip.classList.add('ob-fade'); }
     if ($('obDots')) $('obDots').innerHTML = steps.map((_, i) =>
-      `<button class="ob-dot${i === idx ? ' on' : ''}" aria-label="Step ${i + 1}" onclick="Onboarding.go(${i})"></button>`).join('');
+      `<button class="ob-dot${i === idx ? ' on' : ''}" aria-label="Step ${i + 1}" data-act="tour.go" data-idx="${i}"></button>`).join('');
     const back = $('obBack'), nextB = $('obNext'), skipB = $('obSkip');
     if (back)  { back.style.visibility = idx === 0 ? 'hidden' : 'visible'; back.textContent = es() ? 'Atrás' : 'Back'; }
     if (skipB) skipB.textContent = es() ? 'Saltar' : 'Skip';
