@@ -5,12 +5,13 @@
   "private": true,
   "scripts": {
     "build": "node build.js",
-    "test": "node test/ci-tests.mjs",
+    "test": "node test/ci-tests.mjs && node test/smoke-controls.mjs",
     "serve": "npx serve -p 4242 dist",
     "dev": "node build.js && npx serve -p 4242 dist",
     "cap:sync": "node build.js && npx cap sync",
     "cap:ios": "node build.js && npx cap sync ios && npx cap open ios",
-    "cap:android": "node build.js && npx cap sync android && npx cap open android"
+    "cap:android": "node build.js && npx cap sync android && npx cap open android",
+    "test:controls": "node test/smoke-controls.mjs"
   },
   "engines": {
     "node": ">=16"

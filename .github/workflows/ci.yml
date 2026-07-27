@@ -30,3 +30,11 @@ jobs:
         run: node test/ci-tests.mjs
         env:
           PW_EXECUTABLE_PATH: ${{ steps.chrome.outputs.chrome-path }}
+
+      # Drives real clicks through the main controls. EFC_DEV cannot catch a
+      # control that stops working while the logic underneath stays correct —
+      # which is exactly what the V6.18 delegation refactor did to clip dragging.
+      - name: Smoke-test controls (headless)
+        run: node test/smoke-controls.mjs
+        env:
+          PW_EXECUTABLE_PATH: ${{ steps.chrome.outputs.chrome-path }}
