@@ -9,3 +9,9 @@ npm-debug.log*
 # Editor
 .vscode/
 *.swp
+
+# The DJ press kit is a separate project that only ever shared this folder.
+# It lives in ../Press Kit Pedro Ipince/ — keep it out of the app repo.
+pedro_ipince_press_kit.pdf
+build_press_kit.py
+fonts/
