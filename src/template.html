@@ -46,7 +46,7 @@
        .app sets z-index:1, so a body-level backdrop (z:54) would paint over the whole
        app — the sheet included — and its blur would fog everything. Kept inside .app,
        the sheet (z:58) wins over the backdrop (z:54) while the page behind dims. -->
-  <div id="instrSheetBackdrop" class="instr-sheet-backdrop" onclick="TransportSheet.collapse()" aria-hidden="true"></div>
+  <div id="instrSheetBackdrop" class="instr-sheet-backdrop" data-act="ts.collapse" aria-hidden="true"></div>
   <!-- TOP BAR -->
   <header class="topbar">
     <div class="brand">
@@ -55,10 +55,10 @@
       <span class="version">V4.1</span>
     </div>
     <div class="topbar-right">
-      <button class="theme-btn" id="settingsBtn" data-ico="settings" data-ico-size="18" onclick="Settings.toggle()" title="Settings" aria-label="Settings"></button>
+      <button class="theme-btn" id="settingsBtn" data-ico="settings" data-ico-size="18" data-act="settings.toggle" title="Settings" aria-label="Settings"></button>
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('theory',this)" data-i18n="tabs.theory">Theory</button>
-        <button class="tab-btn" onclick="switchTab('production',this)" data-i18n="tabs.production">Production</button>
+        <button class="tab-btn active" data-act="tab.go" data-tab="theory" data-i18n="tabs.theory">Theory</button>
+        <button class="tab-btn" data-act="tab.go" data-tab="production" data-i18n="tabs.production">Production</button>
       </div>
     </div>
   </header>
@@ -66,7 +66,7 @@
   <!-- METRONOME — Dynamic-Island-style bubble -->
   <div id="metronome">
     <div class="metro-row-top">
-      <button class="metro-pill" onclick="Metronome.toggleOpen()" aria-label="Metronome, open tempo controls" aria-expanded="false">
+      <button class="metro-pill" data-act="metro.panel" aria-label="Metronome, open tempo controls" aria-expanded="false">
         <span class="metro-led" aria-hidden="true"></span>
         <span class="metro-bpm">100</span>
         <span class="metro-unit">BPM</span>
@@ -75,7 +75,7 @@
     <div class="metro-panel" role="dialog" aria-label="Metronome">
       <div class="metro-head">
         <span class="metro-title" data-i18n="metro.title">Metronome</span>
-        <button class="metro-x" data-ico="close" data-ico-size="13" onclick="Metronome.toggleOpen()" aria-label="Close"></button>
+        <button class="metro-x" data-ico="close" data-ico-size="13" data-act="metro.panel" aria-label="Close"></button>
       </div>
       <div class="metro-dialwrap">
         <svg id="metroDial" viewBox="0 0 180 180">
@@ -89,18 +89,18 @@
         </div>
       </div>
       <div class="metro-row">
-        <button class="metro-step" onclick="Metronome.stepBpm(-1)" aria-label="Slower">−</button>
-        <button class="metro-play" id="metroPlay" data-ico="play" data-ico-size="20" onclick="Metronome.toggle()" aria-label="Start/stop"></button>
-        <button class="metro-step" onclick="Metronome.stepBpm(1)" aria-label="Faster">+</button>
+        <button class="metro-step" data-act="metro.slower" aria-label="Slower">−</button>
+        <button class="metro-play" id="metroPlay" data-ico="play" data-ico-size="20" data-act="metro.play" aria-label="Start/stop"></button>
+        <button class="metro-step" data-act="metro.faster" aria-label="Faster">+</button>
       </div>
-      <button class="metro-tap" id="metroTap" onpointerdown="Metronome.tap(event)" onclick="if(event.detail===0)Metronome.tap(event)">
+      <button class="metro-tap" id="metroTap" data-act-down="metro.tap" data-act="metro.tapKey">
         <span class="metro-tap-label">TAP</span>
         <span class="metro-tap-hint" id="metroTapHint" data-i18n="metro.tapHint">tap 4× to set tempo</span>
       </button>
       <div class="metro-sounds">
-        <button class="ms-btn active" data-s="woodblock"  onclick="Metronome.setSound('woodblock')">Wood</button>
-        <button class="ms-btn" data-s="rimshot"   onclick="Metronome.setSound('rimshot')">Rim</button>
-        <button class="ms-btn" data-s="electronic" onclick="Metronome.setSound('electronic')">Elec</button>
+        <button class="ms-btn active" data-s="woodblock"  data-act="metro.sound" data-id="woodblock">Wood</button>
+        <button class="ms-btn" data-s="rimshot"   data-act="metro.sound" data-id="rimshot">Rim</button>
+        <button class="ms-btn" data-s="electronic" data-act="metro.sound" data-id="electronic">Elec</button>
       </div>
     </div>
   </div>
@@ -116,14 +116,14 @@
           <div id="sideKey" class="big">C</div>
           <div id="sideMode" class="sub">Major</div>
           <div class="wheel-toggle" role="group" aria-label="Key tonality: major or minor">
-            <button id="viewMajorBtn" class="active" data-view="major" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
-            <button id="viewMinorBtn" data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
+            <button id="viewMajorBtn" class="active" data-view="major" data-act="view.set" data-id="major" data-i18n="toggle.major">Major</button>
+            <button id="viewMinorBtn" data-view="minor" data-act="view.set" data-id="minor" data-i18n="toggle.minor">Minor</button>
           </div>
           <div class="card-actions">
-            <button class="card-action-btn" onclick="EmotionSuggester.toggle()" aria-haspopup="dialog">
+            <button class="card-action-btn" data-act="emotion.toggle" aria-haspopup="dialog">
               <span data-ico="heart" data-ico-size="13" aria-hidden="true"></span><span data-i18n="emotion.btn">Emotion</span>
             </button>
-            <button class="card-action-btn" onclick="ColorChords.toggle()" aria-haspopup="dialog">
+            <button class="card-action-btn" data-act="color.toggle" aria-haspopup="dialog">
               <span data-ico="spark" data-ico-size="13" aria-hidden="true"></span><span data-i18n="color.btn">Color</span>
             </button>
           </div>
@@ -131,7 +131,7 @@
         <div class="card">
           <div class="lbl" data-i18n="labels.mode">Mode</div>
           <div class="mode-control" id="modeControl">
-            <button class="mode-display" id="modeDisplay" type="button" onclick="ModeMenu.toggle(event)">
+            <button class="mode-display" id="modeDisplay" type="button" data-act="mode.menu">
               <span id="modeMain">Major</span>
               <small id="modeSub">bright centre</small>
               <i>⌄</i>
@@ -209,10 +209,10 @@
          the settings gear made them unreachable on the product's main device. -->
     <div class="wheel-toggle-row">
       <div class="wheel-toggle wheel-toggle-mobile" role="group" aria-label="Key tonality: major or minor">
-        <button data-view="major" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
-        <button data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
+        <button data-view="major" class="active" data-act="view.set" data-id="major" data-i18n="toggle.major">Major</button>
+        <button data-view="minor" data-act="view.set" data-id="minor" data-i18n="toggle.minor">Minor</button>
       </div>
-      <button class="mode-chip" id="modeChipBtn" type="button" onclick="ModeMenu.toggle(event)" aria-haspopup="menu">
+      <button class="mode-chip" id="modeChipBtn" type="button" data-act="mode.menu" aria-haspopup="menu">
         <span class="mc-lbl" data-i18n="labels.mode">Mode</span>
         <span class="mc-val" id="modeChipVal">Major</span>
       </button>
@@ -245,7 +245,7 @@
         <div id="degrees" class="degrees-row"></div>
         <div class="deg-popup-wrap" id="degWrap">
           <div class="deg-popup" id="degPopup">
-            <button class="popup-close" data-ico="close" data-ico-size="11" onclick="closePopup()" aria-label="Close"></button>
+            <button class="popup-close" data-ico="close" data-ico-size="11" data-act="popup.close" aria-label="Close"></button>
             <div class="deg-nav">
               <div class="deg-dots" id="degDots"></div>
               <span class="swipe-hint" data-i18n="deg.swipe">scroll → navigate</span>
@@ -261,27 +261,27 @@
 
       <!-- Progression Builder -->
       <section class="progression-builder" id="progressionBuilder"
-        ondragover="DegreeDrag.over(event)" ondrop="DegreeDrag.drop(event)">
+        data-dropzone="degrees">
         <div class="builder-head">
           <div>
             <h2 class="builder-title" data-i18n="builder.title">Progression builder</h2>
             <div class="sect-tabs" role="group" aria-label="Song sections">
-              <button class="sect-tab active" data-sect="A" onclick="switchSection('A')" aria-label="Section A">A</button>
-              <button class="sect-tab" data-sect="B" onclick="switchSection('B')" aria-label="Section B">B</button>
+              <button class="sect-tab active" data-sect="A" data-act="section.go" data-id="A" aria-label="Section A">A</button>
+              <button class="sect-tab" data-sect="B" data-act="section.go" data-id="B" aria-label="Section B">B</button>
             </div>
           </div>
           <div class="builder-actions">
-            <button class="builder-btn play" id="playProgBtn" data-ico="play" onclick="toggleProgPlay()"><span data-i18n="builder.play">Play</span></button>
+            <button class="builder-btn play" id="playProgBtn" data-ico="play" data-act="prog.play"><span data-i18n="builder.play">Play</span></button>
             <!-- Export is the monetisable surface. It used to live only inside the
                  "···" menu, where a new user never found it — which would have read
                  in telemetry as "nobody wants export". It surfaces here as soon as
                  there is something worth exporting (2+ chords). -->
-            <button class="builder-btn export-cta" id="exportBtn" data-ico="download" onclick="openExportMenu()" hidden
+            <button class="builder-btn export-cta" id="exportBtn" data-ico="download" data-act="export.open" hidden
               title="Export this progression as WAV, stems or MIDI"><span data-i18n="builder.grpExport">Export</span></button>
-            <button class="builder-btn opt surprise-opt" id="surpriseBtn" data-ico="spark" onclick="surpriseMe()" title="Drop in a random progression and play it" aria-label="Surprise me"></button>
-            <button class="builder-btn opt" id="loopBtn" data-ico="loop" onclick="toggleLoop(this)" title="Loop the progression" aria-label="Loop" aria-pressed="false"></button>
-            <button class="builder-btn opt sect-chain" id="chainBtn" onclick="toggleChain(this)" title="Play section A then B as one song" aria-label="Chain A to B" aria-pressed="false">A→B</button>
-            <button class="builder-btn opt" id="moreBtn" data-ico="more" onclick="toggleBuilderMore(this)" title="More actions" aria-label="More actions" aria-expanded="false"></button>
+            <button class="builder-btn opt surprise-opt" id="surpriseBtn" data-ico="spark" data-act="builder.surprise" title="Drop in a random progression and play it" aria-label="Surprise me"></button>
+            <button class="builder-btn opt" id="loopBtn" data-ico="loop" data-act="prog.loop" title="Loop the progression" aria-label="Loop" aria-pressed="false"></button>
+            <button class="builder-btn opt sect-chain" id="chainBtn" data-act="prog.chain" title="Play section A then B as one song" aria-label="Chain A to B" aria-pressed="false">A→B</button>
+            <button class="builder-btn opt" id="moreBtn" data-ico="more" data-act="builder.more" title="More actions" aria-label="More actions" aria-expanded="false"></button>
           </div>
         </div>
         <!-- "More" panel — grouped by intent (Export / Session / Playback) so seven
@@ -290,30 +290,30 @@
           <div class="bm-group" role="group" aria-label="Export">
             <span class="bm-label" data-i18n="builder.grpExport">Export</span>
             <div class="bm-btns">
-              <button class="builder-btn" data-ico="download" onclick="exportAudio()" title="Record one pass as a WAV audio file"><span data-i18n="builder.wav">WAV</span></button>
-              <button class="builder-btn" data-ico="download" onclick="exportStems()" title="Chords and bass as separate WAV files"><span data-i18n="builder.stems">Stems</span></button>
-              <button class="builder-btn" data-ico="download" onclick="exportMIDI()" title="Download as a MIDI file"><span data-i18n="builder.midi">MIDI</span></button>
+              <button class="builder-btn" data-ico="download" data-act="export.wav" title="Record one pass as a WAV audio file"><span data-i18n="builder.wav">WAV</span></button>
+              <button class="builder-btn" data-ico="download" data-act="export.stems" title="Chords and bass as separate WAV files"><span data-i18n="builder.stems">Stems</span></button>
+              <button class="builder-btn" data-ico="download" data-act="export.midi" title="Download as a MIDI file"><span data-i18n="builder.midi">MIDI</span></button>
             </div>
           </div>
           <div class="bm-group" role="group" aria-label="Session">
             <span class="bm-label" data-i18n="builder.grpSession">Session</span>
             <div class="bm-btns">
-              <button class="builder-btn" data-lib-trigger data-ico="library" onclick="Library.toggle()" title="Saved progressions & presets"><span data-i18n="builder.library">Library</span></button>
-              <button class="builder-btn" data-ico="share" onclick="shareProgression()" title="Copy a shareable link"><span data-i18n="builder.share">Share</span></button>
-              <button class="builder-btn danger" data-ico="trash" onclick="HistoryEngine.clear()" title="Clear progression"><span data-i18n="builder.clear">Clear</span></button>
+              <button class="builder-btn" data-lib-trigger data-ico="library" data-act="lib.toggle" title="Saved progressions & presets"><span data-i18n="builder.library">Library</span></button>
+              <button class="builder-btn" data-ico="share" data-act="prog.share" title="Copy a shareable link"><span data-i18n="builder.share">Share</span></button>
+              <button class="builder-btn danger" data-ico="trash" data-act="builder.clear" title="Clear progression"><span data-i18n="builder.clear">Clear</span></button>
             </div>
           </div>
           <div class="bm-group" role="group" aria-label="Playback">
             <span class="bm-label" data-i18n="builder.grpPlayback">Playback</span>
             <div class="bm-btns">
-              <button class="builder-btn opt" id="countInBtn" data-ico="countin" onclick="togglePlayOpt('countIn',this)" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false"></button>
-              <button class="builder-btn opt" id="voicingBtn" data-ico="voicing" onclick="togglePlayOpt('voicingOpen',this)" title="Open (spread) voicing" aria-label="Open voicing" aria-pressed="false"></button>
+              <button class="builder-btn opt" id="countInBtn" data-ico="countin" data-act="play.opt" data-id="countIn" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false"></button>
+              <button class="builder-btn opt" id="voicingBtn" data-ico="voicing" data-act="play.opt" data-id="voicingOpen" title="Open (spread) voicing" aria-label="Open voicing" aria-pressed="false"></button>
             </div>
           </div>
         </div>
         <div id="builderRuler" class="builder-ruler" hidden>
           <div id="rulerMarks" class="ruler-marks"></div>
-          <button class="snap-btn" id="snapBtn" onclick="cycleSnap()" title="Drag snap resolution" aria-label="Drag snap resolution">1/16</button>
+          <button class="snap-btn" id="snapBtn" data-act="builder.snap" title="Drag snap resolution" aria-label="Drag snap resolution">1/16</button>
         </div>
         <div id="flowRow" class="builder-row"></div>
         <div id="builderMeta" class="builder-meta"></div>
@@ -337,13 +337,13 @@
       <div class="drawers">
         <div class="sheet-head">
           <div class="instr-switch" role="group" aria-label="Choose instrument">
-            <button class="instr-tab on" data-instr="piano"  onclick="gotoInstrument('piano')"  aria-label="Piano"><span data-ico="piano" data-ico-size="17"></span></button>
-            <button class="instr-tab"    data-instr="guitar" onclick="gotoInstrument('guitar')" aria-label="Guitar"><span data-ico="guitar" data-ico-size="17"></span></button>
+            <button class="instr-tab on" data-instr="piano"  data-act="instr.go" data-id="piano"  aria-label="Piano"><span data-ico="piano" data-ico-size="17"></span></button>
+            <button class="instr-tab"    data-instr="guitar" data-act="instr.go" data-id="guitar" aria-label="Guitar"><span data-ico="guitar" data-ico-size="17"></span></button>
           </div>
           <div class="sheet-head-actions">
             <!-- Shapes toggle for mobile — the drawer summary (which holds the desktop Shapes button) is hidden in the island; shown only when the guitar is active. -->
-            <button class="instr-shapes-toggle" onclick="GuitarShapes.toggle()" aria-label="Chord shapes" title="Chord shapes"><span data-ico="shapes" data-ico-size="16"></span></button>
-            <button class="instr-zoom-toggle" onclick="InstrumentZoom.show((document.querySelector('.instr-tab.on')&&document.querySelector('.instr-tab.on').dataset.instr)||'piano')" aria-label="Fullscreen"><span data-ico="expand" data-ico-size="17"></span></button>
+            <button class="instr-shapes-toggle" data-act="shapes.toggle" aria-label="Chord shapes" title="Chord shapes"><span data-ico="shapes" data-ico-size="16"></span></button>
+            <button class="instr-zoom-toggle" data-act="zoom.active" aria-label="Fullscreen"><span data-ico="expand" data-ico-size="17"></span></button>
           </div>
         </div>
         <div class="instr-pager">
@@ -351,16 +351,16 @@
           <summary>
             <span data-i18n="drawers.piano">Piano</span>
             <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge piano"
-              onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('piano')" data-ico="expand" data-ico-size="14"></button>
+              data-act="zoom.show" data-id="piano" data-stop="1" data-ico="expand" data-ico-size="14"></button>
             <span class="chev" data-ico="chevron" data-ico-size="12" aria-hidden="true"></span>
           </summary>
           <div class="drawer-body">
             <div class="snd-sel" role="group" aria-label="Instrument sound">
-              <button class="snd-btn on" data-snd="piano"  onclick="setVoice('piano',this)">Piano</button>
-              <button class="snd-btn"    data-snd="epiano" onclick="setVoice('epiano',this)">E-Piano</button>
-              <button class="snd-btn"    data-snd="brass"  onclick="setVoice('brass',this)">Brass</button>
-              <button class="snd-btn"    data-snd="steel"    onclick="setVoice('steel',this)"><span data-i18n="voice.steel">Acoustic</span><i class="pack-chip">P1</i></button>
-              <button class="snd-btn"    data-snd="electric" onclick="setVoice('electric',this)"><span data-i18n="voice.electric">Electric</span><i class="pack-chip">P1</i></button>
+              <button class="snd-btn on" data-snd="piano"  data-act="voice.set" data-id="piano">Piano</button>
+              <button class="snd-btn"    data-snd="epiano" data-act="voice.set" data-id="epiano">E-Piano</button>
+              <button class="snd-btn"    data-snd="brass"  data-act="voice.set" data-id="brass">Brass</button>
+              <button class="snd-btn"    data-snd="steel"    data-act="voice.set" data-id="steel"><span data-i18n="voice.steel">Acoustic</span><i class="pack-chip">P1</i></button>
+              <button class="snd-btn"    data-snd="electric" data-act="voice.set" data-id="electric"><span data-i18n="voice.electric">Electric</span><i class="pack-chip">P1</i></button>
             </div>
             <div id="piano" class="piano"></div>
           </div>
@@ -368,9 +368,9 @@
         <details class="drawer">
           <summary>
             <span data-i18n="drawers.guitar">Guitar / Fretboard</span>
-            <button class="gss-btn" data-ico="shapes" onclick="event.stopPropagation();GuitarShapes.toggle()" title="Show chord shapes" aria-label="Show chord voicing diagrams"><span>Shapes</span></button>
+            <button class="gss-btn" data-ico="shapes" data-act="shapes.toggle" data-stop="1" title="Show chord shapes" aria-label="Show chord voicing diagrams"><span>Shapes</span></button>
             <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge fretboard"
-              onclick="event.stopPropagation();event.preventDefault();InstrumentZoom.show('guitar')" data-ico="expand" data-ico-size="14"></button>
+              data-act="zoom.show" data-id="guitar" data-stop="1" data-ico="expand" data-ico-size="14"></button>
             <span class="chev" data-ico="chevron" data-ico-size="12" aria-hidden="true"></span>
           </summary>
           <div class="drawer-body">
@@ -386,9 +386,9 @@
   <!-- PRODUCTION PANEL -->
   <div id="panel-production">
     <div class="genre-tabs">
-      <button class="genre-btn active" onclick="setGenre('house',this)">House</button>
-      <button class="genre-btn" onclick="setGenre('neosoul',this)">Neo Soul</button>
-      <button class="genre-btn" onclick="setGenre('jazz',this)">Jazz</button>
+      <button class="genre-btn active" data-act="genre.set" data-id="house">House</button>
+      <button class="genre-btn" data-act="genre.set" data-id="neosoul">Neo Soul</button>
+      <button class="genre-btn" data-act="genre.set" data-id="jazz">Jazz</button>
     </div>
     <div class="prod-header">
       <div><div id="prodTitle" class="prod-title">House</div><div id="prodMeta" class="prod-meta"></div></div>
@@ -398,12 +398,12 @@
       <div class="midi-header">
         <div class="midi-title">
           <h3 data-i18n="production.rhythmGrid">Rhythm Grid — 1 bar · 16 steps</h3>
-          <button class="grid-reset" id="gridReset" onclick="resetPattern()" hidden title="Reset to the genre default">↺</button>
+          <button class="grid-reset" id="gridReset" data-act="grid.reset" hidden title="Reset to the genre default">↺</button>
         </div>
         <div style="display:flex;gap:7px;align-items:center">
           <span id="bpmBadge" class="bpm-badge">124 BPM</span>
           <button id="bpmSuggest" class="bpm-suggest" title="Use the suggested tempo">≈ 124</button>
-          <button class="play-btn" id="playBtn" data-ico="play" onclick="togglePlay()"><span data-i18n="play.play">Play</span></button>
+          <button class="play-btn" id="playBtn" data-ico="play" data-act="groove.play"><span data-i18n="play.play">Play</span></button>
         </div>
       </div>
       <div id="midiGrid" class="midi-grid"></div>
@@ -441,7 +441,7 @@
 <!-- Undo toast — appears after a destructive change (Surprise me / Clear / load) -->
 <div id="undoToast" class="undo-toast" role="status" aria-live="polite">
   <span class="ut-msg"></span>
-  <button class="ut-btn" onclick="undoLastChange()" data-i18n="undo.btn">Undo</button>
+  <button class="ut-btn" data-act="builder.undo" data-i18n="undo.btn">Undo</button>
 </div>
 
 <!-- Share-a-loop: shown when opened from a shared link -->
@@ -451,14 +451,14 @@
     <div class="sb-title">Someone shared a loop</div>
     <div class="sb-sub"></div>
   </div>
-  <button class="sb-play" onclick="playSharedLoop()">Play</button>
-  <button class="sb-x" data-ico="close" data-ico-size="12" onclick="dismissSharedBanner()" aria-label="Dismiss"></button>
+  <button class="sb-play" data-act="shared.play">Play</button>
+  <button class="sb-x" data-ico="close" data-ico-size="12" data-act="shared.dismiss" aria-label="Dismiss"></button>
 </div>
 
 <!-- INSTRUMENT FULLSCREEN / ENLARGE -->
-<div id="instrZoom" class="instr-zoom" onclick="if(event.target===this)InstrumentZoom.close()">
+<div id="instrZoom" class="instr-zoom" data-act="zoom.backdrop">
   <!-- Close lives OUTSIDE the (rotated) panel so it stays at a fixed screen corner -->
-  <button class="iz-close" onclick="InstrumentZoom.close()" aria-label="Close"><span data-ico="close" data-ico-size="22"></span></button>
+  <button class="iz-close" data-act="zoom.close" aria-label="Close"><span data-ico="close" data-ico-size="22"></span></button>
   <span class="iz-swipe-hint" data-i18n="zoom.close">swipe down to close</span>
   <div class="iz-panel" id="instrZoomPanel" role="dialog" aria-modal="true" aria-label="Instrument">
     <div class="iz-head">
@@ -471,16 +471,16 @@
 
 
 <!-- PROGRESSION LIBRARY -->
-<div id="libraryBackdrop" class="lib-backdrop" onclick="Library.close()"></div>
+<div id="libraryBackdrop" class="lib-backdrop" data-act="lib.close"></div>
 <div id="libraryPanel" class="lib-panel" role="dialog" aria-modal="true" aria-label="Progression library">
   <div class="lib-head">
     <span class="lib-title" data-i18n="library.title">Progression Library</span>
-    <button class="lib-close" data-ico="close" data-ico-size="13" onclick="Library.close()" aria-label="Close"></button>
+    <button class="lib-close" data-ico="close" data-ico-size="13" data-act="lib.close" aria-label="Close"></button>
   </div>
   <div class="lib-save">
     <input id="libName" type="text" maxlength="40" placeholder="Name this progression…" aria-label="Progression name"
-           onkeydown="if(event.key==='Enter')Library.saveCurrent()"/>
-    <button class="lib-save-btn" onclick="Library.saveCurrent()" data-i18n="library.save">Save current</button>
+           data-act-enter="lib.save"/>
+    <button class="lib-save-btn" data-act="lib.save" data-i18n="library.save">Save current</button>
   </div>
   <div class="lib-scroll">
     <div class="lib-section-title" data-i18n="library.saved">Saved</div>
@@ -501,25 +501,25 @@
 <div id="settingsSheet" class="modulate-panel settings-sheet" role="dialog" aria-label="Settings" hidden>
   <div class="mod-head">
     <span class="mod-title" data-i18n="settings.title">Settings</span>
-    <button class="mod-x" data-ico="close" data-ico-size="12" onclick="Settings.close()" aria-label="Close"></button>
+    <button class="mod-x" data-ico="close" data-ico-size="12" data-act="settings.close" aria-label="Close"></button>
   </div>
   <div class="set-row">
     <span class="set-label" data-i18n="settings.theme">Theme</span>
     <div class="set-seg">
-      <button data-theme="dark"  onclick="Settings.setTheme('dark')"  data-i18n="settings.dark">Dark</button>
-      <button data-theme="light" onclick="Settings.setTheme('light')" data-i18n="settings.light">Light</button>
+      <button data-theme="dark"  data-act="set.theme" data-id="dark"  data-i18n="settings.dark">Dark</button>
+      <button data-theme="light" data-act="set.theme" data-id="light" data-i18n="settings.light">Light</button>
     </div>
   </div>
   <div class="set-row">
     <span class="set-label" data-i18n="settings.lang">Language</span>
     <div class="set-seg">
-      <button data-lang="en" onclick="Settings.setLang('en')">EN</button>
-      <button data-lang="es" onclick="Settings.setLang('es')">ES</button>
+      <button data-lang="en" data-act="set.lang" data-id="en">EN</button>
+      <button data-lang="es" data-act="set.lang" data-id="es">ES</button>
     </div>
   </div>
   <div class="set-block">
     <span class="set-label" data-i18n="settings.mode">Mode</span>
-    <button class="mode-display set-mode-btn" id="setModeBtn" type="button" onclick="ModeMenu.toggle(event)">
+    <button class="mode-display set-mode-btn" id="setModeBtn" type="button" data-act="mode.menu">
       <span id="setModeMain">Major</span>
       <small id="setModeSub">bright, stable</small>
       <i>⌄</i>
@@ -528,16 +528,16 @@
   <div class="set-row">
     <span class="set-label" data-i18n="settings.pianoSnd">Piano</span>
     <div class="set-seg">
-      <button data-rp="real"  onclick="Settings.setRealPiano(true)"  data-i18n="settings.pianoReal">Real</button>
-      <button data-rp="synth" onclick="Settings.setRealPiano(false)" data-i18n="settings.pianoSynth">Synth</button>
+      <button data-rp="real"  data-act="set.piano" data-id="real"  data-i18n="settings.pianoReal">Real</button>
+      <button data-rp="synth" data-act="set.piano" data-id="synth" data-i18n="settings.pianoSynth">Synth</button>
     </div>
   </div>
   <div class="set-note" data-i18n="settings.pianoCredit">Real piano: Salamander Grand by Alexander Holm (CC-BY)</div>
   <div class="set-row">
     <span class="set-label" data-i18n="settings.haptics">Haptics</span>
     <div class="set-seg">
-      <button data-hap="on"  onclick="Settings.setHaptics(true)"  data-i18n="settings.hapOn">On</button>
-      <button data-hap="off" onclick="Settings.setHaptics(false)" data-i18n="settings.hapOff">Off</button>
+      <button data-hap="on"  data-act="set.haptics" data-id="on"  data-i18n="settings.hapOn">On</button>
+      <button data-hap="off" data-act="set.haptics" data-id="off" data-i18n="settings.hapOff">Off</button>
     </div>
   </div>
   <div class="set-block">
@@ -548,21 +548,21 @@
       <input type="range" id="plasmaIntensity" min="0.1" max="2.5" step="0.1" value="1"/>
     </div>
   </div>
-  <button class="set-help" onclick="Onboarding.open(true);Settings.close()"><span data-ico="help" data-ico-size="15"></span><span data-i18n="settings.help">How it works</span></button>
+  <button class="set-help" data-act="tour.reopen"><span data-ico="help" data-ico-size="15"></span><span data-i18n="settings.help">How it works</span></button>
 </div>
 
 <!-- TRANSPORT ISLAND (liquid-glass · mobile) — capsule ↔ panel cross-fade -->
 <div id="transportSheet" class="transport-sheet" data-state="peek" aria-label="Transport">
-  <button class="ts-cap" onclick="TransportSheet.open()" aria-label="Open transport">
-    <span class="ts-play" data-ico="play" data-ico-size="16" onclick="event.stopPropagation();toggleProgPlay()" aria-label="Play / stop"></span>
-    <span class="ts-keywrap" onclick="event.stopPropagation();TransportSheet.open()"><b class="ts-k">C</b><small class="ts-m">major</small></span>
-    <span class="ts-bwrap" role="button" tabindex="0" onclick="event.stopPropagation();Metronome.toggleOpen()" aria-label="Tempo · metronome"><b class="ts-b">100</b><small>BPM</small></span>
+  <button class="ts-cap" data-act="ts.open" aria-label="Open transport">
+    <span class="ts-play" data-ico="play" data-ico-size="16" data-act="prog.play" data-stop="1" aria-label="Play / stop"></span>
+    <span class="ts-keywrap" data-act="ts.open" data-stop="1"><b class="ts-k">C</b><small class="ts-m">major</small></span>
+    <span class="ts-bwrap" role="button" tabindex="0" data-act="metro.panel" data-stop="1" aria-label="Tempo · metronome"><b class="ts-b">100</b><small>BPM</small></span>
   </button>
   <div class="ts-panel">
-    <div class="ts-head" onclick="TransportSheet.collapse()">
-      <button class="ts-play" data-ico="play" data-ico-size="18" onclick="event.stopPropagation();toggleProgPlay()" aria-label="Play / stop progression"></button>
+    <div class="ts-head" data-act="ts.collapse">
+      <button class="ts-play" data-ico="play" data-ico-size="18" data-act="prog.play" data-stop="1" aria-label="Play / stop progression"></button>
       <span class="ts-keywrap"><b class="ts-k">C</b><small class="ts-m">major</small></span>
-      <button class="ts-bpm" onclick="event.stopPropagation();Metronome.toggleOpen()" aria-label="Tempo"><b class="ts-b">100</b><small>BPM</small></button>
+      <button class="ts-bpm" data-act="metro.panel" data-stop="1" aria-label="Tempo"><b class="ts-b">100</b><small>BPM</small></button>
       <span class="ts-chev" data-ico="chevron" aria-hidden="true"></span>
     </div>
     <div class="ts-body">
@@ -571,8 +571,8 @@
       <div id="tsInstruments"></div>
       <div class="ts-section-label" data-i18n="strip.harmony">Harmony</div>
       <div class="ts-tools">
-        <button class="ts-tool ghost" onclick="EmotionSuggester.toggle()" data-i18n="emotion.btn">Emotion</button>
-        <button class="ts-tool ghost" onclick="ColorChords.toggle()"><span data-ico="spark" data-ico-size="13" aria-hidden="true"></span><span data-i18n="color.btn">Colour chords</span></button>
+        <button class="ts-tool ghost" data-act="emotion.toggle" data-i18n="emotion.btn">Emotion</button>
+        <button class="ts-tool ghost" data-act="color.toggle"><span data-ico="spark" data-ico-size="13" aria-hidden="true"></span><span data-i18n="color.btn">Colour chords</span></button>
       </div>
     </div>
   </div>
@@ -583,7 +583,7 @@
   <div class="ob-catch"></div>
   <div class="ob-spot" id="obSpot"></div>
   <div class="ob-tip" id="obTip">
-    <button class="ob-skip" id="obSkip" onclick="Onboarding.skip()">Skip</button>
+    <button class="ob-skip" id="obSkip" data-act="tour.skip">Skip</button>
     <div class="ob-step" id="obStep"></div>
     <h3 class="ob-title" id="obTitle"></h3>
     <p class="ob-text" id="obText"></p>
@@ -591,8 +591,8 @@
     <div class="ob-tip-foot">
       <div class="ob-dots" id="obDots"></div>
       <div class="ob-nav">
-        <button class="ob-btn ob-ghost" id="obBack" onclick="Onboarding.prev()">Back</button>
-        <button class="ob-btn ob-primary" id="obNext" onclick="Onboarding.next()">Next</button>
+        <button class="ob-btn ob-ghost" id="obBack" data-act="tour.prev">Back</button>
+        <button class="ob-btn ob-primary" id="obNext" data-act="tour.next">Next</button>
       </div>
     </div>
   </div>

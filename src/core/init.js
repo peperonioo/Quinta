@@ -334,8 +334,8 @@ function _showInstallNudge(ios) {
       <div class="in-title">${t('install.title')}</div>
       <div class="in-sub">${ios ? t('install.ios') : t('install.sub')}</div>
     </div>
-    ${ios ? '' : `<button class="in-btn" onclick="_acceptInstall()">${t('install.btn')}</button>`}
-    <button class="in-x" data-ico="close" data-ico-size="12" onclick="_dismissInstall()" aria-label="Dismiss"></button>`;
+    ${ios ? '' : `<button class="in-btn" data-act="install.accept">${t('install.btn')}</button>`}
+    <button class="in-x" data-ico="close" data-ico-size="12" data-act="install.dismiss" aria-label="Dismiss"></button>`;
   document.body.appendChild(el);
   if (typeof applyIcons === 'function') applyIcons(el);
   requestAnimationFrame(() => el.classList.add('show'));

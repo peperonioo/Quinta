@@ -82,7 +82,7 @@ const ChordVariants = {
     const root = ctx.root;
     const list = variantsFor(ctx.quality);
     const mid  = Math.ceil(list.length / 2);
-    const chip = v => `<button class="cv-chip${ctx.current === v.id ? ' active' : ''}" role="menuitemradio" aria-checked="${ctx.current === v.id}" onclick="ChordVariants.pick('${v.id}')" onmouseover="ChordVariants.preview('${v.id}')">${root}${v.suf || ''}</button>`;
+    const chip = v => `<button class="cv-chip${ctx.current === v.id ? ' active' : ''}" role="menuitemradio" aria-checked="${ctx.current === v.id}" data-act="variant.pick" data-id="${v.id}" onmouseover="ChordVariants.preview('${v.id}')">${root}${v.suf || ''}</button>`;
     // top group sits above the bar (rendered so the nearest is closest to it)
     const top = list.slice(0, mid).map(chip).join('');
     const bot = list.slice(mid).map(chip).join('');
@@ -92,8 +92,8 @@ const ChordVariants = {
       <div class="cv-below">
         ${bot}
         <div class="cv-foot">
-          <button class="cv-act" data-ico="plus" data-ico-size="13" onclick="ChordVariants._dup()" aria-label="Duplicate chord"></button>
-          <button class="cv-act danger" data-ico="trash" data-ico-size="13" onclick="ChordVariants._del()" aria-label="Delete chord"></button>
+          <button class="cv-act" data-ico="plus" data-ico-size="13" data-act="variant.dup" aria-label="Duplicate chord"></button>
+          <button class="cv-act danger" data-ico="trash" data-ico-size="13" data-act="variant.del" aria-label="Delete chord"></button>
         </div>
       </div>`;
     if (typeof applyIcons === 'function') applyIcons(el);

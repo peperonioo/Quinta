@@ -219,7 +219,7 @@ const WheelDirectionGuide = {
     wrap.className = 'dir-panels';
     wrap.innerHTML = `
       <article class="dir-panel dir-panel-intro">
-        <button class="micro-close" data-ico="close" data-ico-size="11" onclick="WheelDirectionGuide.toggle()" aria-label="Close"></button>
+        <button class="micro-close" data-ico="close" data-ico-size="11" data-act="dirguide.toggle" aria-label="Close"></button>
         <h4 data-i18n="dirguide.why.title">${t('dirguide.why.title')}</h4>
         <p data-i18n="dirguide.why.body">${t('dirguide.why.body')}</p>
       </article>

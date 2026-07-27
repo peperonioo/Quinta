@@ -90,7 +90,7 @@ function renderInstrProgStrip() {
   }
   el.innerHTML = h.map((it, i) => {
     const lbl = (typeof chordDisplay === 'function') ? chordDisplay(it) : it.chord;
-    return `<button class="tps-chip" data-i="${i}" onclick="pickProgChord(${i})">${lbl}</button>`;
+    return `<button class="tps-chip" data-i="${i}" data-act="strip.pick" data-idx="${i}">${lbl}</button>`;
   }).join('');
 }
 function pickProgChord(i) {

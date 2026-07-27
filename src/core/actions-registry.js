@@ -45,19 +45,49 @@ const ActionRegistry = (() => {
   // `data-act` fires on click; `data-act-down` on pointerdown (drag starts, which
   // must not wait for a click); `data-act-key` on Enter/Space for keyboard access.
   function _delegate() {
+    // `data-stop` replaces the inline `event.stopPropagation();` prefix: it keeps
+    // a control inside an interactive parent (the transport capsule, a drawer
+    // summary) from also triggering the parent.
+    const stop = (el, ev) => { if (el.dataset.stop) ev.stopPropagation(); };
+
     document.addEventListener('click', ev => {
       const el = ev.target.closest && ev.target.closest('[data-act]');
       if (!el) return;
+      stop(el, ev);
       run(el.dataset.act, el, ev);
     });
     document.addEventListener('pointerdown', ev => {
       const el = ev.target.closest && ev.target.closest('[data-act-down]');
       if (!el) return;
+      stop(el, ev);
       run(el.dataset.actDown, el, ev);
     });
+    // Drop zones — dragover must preventDefault or the browser refuses the drop.
+    document.addEventListener('dragover', ev => {
+      const el = ev.target.closest && ev.target.closest('[data-dropzone]');
+      if (!el || typeof DegreeDrag !== 'object') return;
+      DegreeDrag.over(ev);
+    });
+    document.addEventListener('drop', ev => {
+      const el = ev.target.closest && ev.target.closest('[data-dropzone]');
+      if (!el || typeof DegreeDrag !== 'object') return;
+      DegreeDrag.drop(ev);
+    });
     document.addEventListener('keydown', ev => {
+      const tgt = ev.target;
+      if (!tgt || !tgt.closest) return;
+      // `data-act-enter` — Enter only, no preventDefault on Space. This is what
+      // text fields need: Space must still type a space.
+      if (ev.key === 'Enter') {
+        const en = tgt.closest('[data-act-enter]');
+        if (en) { run(en.dataset.actEnter, en, ev); return; }
+      }
+      // `data-act-key` — button-like activation (Enter or Space). Never applied
+      // while typing: an input inside such an element would lose its spacebar.
       if (ev.key !== 'Enter' && ev.key !== ' ') return;
-      const el = ev.target.closest && ev.target.closest('[data-act-key]');
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(tgt.tagName) || tgt.isContentEditable;
+      if (typing) return;
+      const el = tgt.closest('[data-act-key]');
       if (!el) return;
       ev.preventDefault();
       run(el.dataset.actKey, el, ev);

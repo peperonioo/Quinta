@@ -294,16 +294,16 @@ const GuitarShapes = (() => {
     const multi = vs.length > 1;
     const ctl = multi
       ? `<div class="gsc-ctl">
-           <button class="gsc-arrow" onclick="event.stopPropagation();GuitarShapes.step(${pos},-1)" aria-label="lower position">‹</button>
-           <div class="gsc-dots">${vs.map((_, i) => `<span class="gsc-dot${i === sel ? ' on' : ''}" onclick="event.stopPropagation();GuitarShapes.setVoicing(${pos},${i})"></span>`).join('')}</div>
-           <button class="gsc-arrow" onclick="event.stopPropagation();GuitarShapes.step(${pos},1)" aria-label="higher position">›</button>
+           <button class="gsc-arrow" data-act="shapes.prev" data-pos="${pos}" data-stop="1" aria-label="lower position">‹</button>
+           <div class="gsc-dots">${vs.map((_, i) => `<span class="gsc-dot${i === sel ? ' on' : ''}" data-act="shapes.voicing" data-pos="${pos}" data-idx="${i}" data-stop="1"></span>`).join('')}</div>
+           <button class="gsc-arrow" data-act="shapes.next" data-pos="${pos}" data-stop="1" aria-label="higher position">›</button>
          </div>`
       : `<div class="gsc-ctl gsc-ctl-solo"></div>`;
     const diag = vs.length ? drawMiniFret(vs[sel].frets, c.rootPC) : '<div class="gss-empty">—</div>';
     return `<div class="gss-card${pos === _activePos ? ' gss-active' : ''}" data-pos="${pos}" role="button">
         <div class="gsc-name">${c.name}</div>
         ${ctl}
-        <div class="gsc-diag" onpointerdown="GuitarShapes.cardDown(event,${pos})">${diag}</div>
+        <div class="gsc-diag" data-act-down="shapes.cardDown" data-pos="${pos}">${diag}</div>
         <div class="gsc-pos">${vs.length ? vs[sel].label : ''}</div>
       </div>`;
   }
@@ -313,12 +313,12 @@ const GuitarShapes = (() => {
     _chords = _collectChords();
     if (!_chords.length) { el.classList.remove('gss-on'); document.body.classList.remove('shapes-open'); return; }
     if (_activePos >= _chords.length) _activePos = -1;
-    const seg = (vw, label) => `<button class="${_view === vw ? 'on' : ''}" role="tab" onclick="GuitarShapes.view('${vw}')">${label}</button>`;
+    const seg = (vw, label) => `<button class="${_view === vw ? 'on' : ''}" role="tab" data-act="shapes.view" data-id="${vw}">${label}</button>`;
     el.innerHTML = `
       <div class="gss-head">
         <span class="gss-title">${T('prog')}</span>
         <div class="gss-seg" role="tablist">${seg('chords', T('chords'))}${seg('triads', T('triads'))}</div>
-        <button class="gss-x" onclick="GuitarShapes.close()" aria-label="×">×</button>
+        <button class="gss-x" data-act="shapes.close" aria-label="×">×</button>
       </div>
       <div class="gss-scroll">${_chords.map((c, pos) => _cardHTML(c, pos)).join('')}</div>`;
     el.classList.add('gss-on');

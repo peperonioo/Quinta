@@ -39,4 +39,122 @@ ActionRegistry.addAll({
 
   // ── Onboarding ──
   'tour.go':          el => Onboarding.go(_aInt(el, 'idx')),
+  'tour.skip':        ()  => Onboarding.skip(),
+  'tour.prev':        ()  => Onboarding.prev(),
+  'tour.next':        ()  => Onboarding.next(),
+  'tour.reopen':      ()  => { Onboarding.open(true); Settings.close(); },
+
+  // ── Chrome / tabs ──
+  'settings.toggle':  ()     => Settings.toggle(),
+  'settings.close':   ()     => Settings.close(),
+  'tab.go':           el     => switchTab(_aStr(el, 'tab'), el),
+
+  // ── Metronome ──
+  'metro.slower':     ()     => Metronome.stepBpm(-1),
+  'metro.faster':     ()     => Metronome.stepBpm(1),
+  'metro.play':       ()     => Metronome.toggle(),
+  'metro.panel':      ()     => Metronome.toggleOpen(),
+  'metro.tap':        (el, e) => Metronome.tap(e),
+  // Keyboard-only activation: a real tap already fired on pointerdown, and
+  // detail===0 is how a synthetic (keyboard) click identifies itself.
+  'metro.tapKey':     (el, e) => { if (e && e.detail === 0) Metronome.tap(e); },
+  'metro.sound':      el     => Metronome.setSound(_aStr(el, 'id')),
+
+  // ── Wheel / theory ──
+  'view.set':         el => setWheelView(_aStr(el, 'id')),
+  'mode.menu':        (el, e) => ModeMenu.toggle(e),
+  'emotion.toggle':   ()  => EmotionSuggester.toggle(),
+  'popup.close':      ()  => closePopup(),
+
+  // ── Builder ──
+  'section.go':       el => switchSection(_aStr(el, 'id')),
+  'prog.play':        ()  => toggleProgPlay(),
+  'prog.loop':        el  => toggleLoop(el),
+  'prog.chain':       el  => toggleChain(el),
+  'prog.share':       ()  => shareProgression(),
+  'builder.more':     el  => toggleBuilderMore(el),
+  'builder.clear':    ()  => HistoryEngine.clear(),
+  'builder.snap':     ()  => cycleSnap(),
+  'builder.undo':     ()  => undoLastChange(),
+  'play.opt':         el  => togglePlayOpt(_aStr(el, 'id'), el),
+
+  // ── Export ──
+  'export.open':      ()  => openExportMenu(),
+  'export.wav':       ()  => exportAudio(),
+  'export.stems':     ()  => exportStems(),
+  'export.midi':      ()  => exportMIDI(),
+
+  // ── Instruments ──
+  'instr.go':         el => gotoInstrument(_aStr(el, 'id')),
+  'voice.set':        el => setVoice(_aStr(el, 'id'), el),
+  'shapes.toggle':    ()  => GuitarShapes.toggle(),
+  'zoom.show':        el => InstrumentZoom.show(_aStr(el, 'id')),
+  'zoom.close':       ()  => InstrumentZoom.close(),
+  // Was a DOM query written inline in the markup; it belongs here.
+  'zoom.active':      ()  => {
+    const tab = document.querySelector('.instr-tab.on');
+    InstrumentZoom.show((tab && tab.dataset.instr) || 'piano');
+  },
+  // Backdrop: only a click on the backdrop itself closes, never one that
+  // bubbled up from the panel inside it.
+  'zoom.backdrop':    (el, e) => { if (e && e.target === el) InstrumentZoom.close(); },
+
+  // ── Production ──
+  'genre.set':        el => setGenre(_aStr(el, 'id'), el),
+  'grid.reset':       ()  => resetPattern(),
+  'groove.play':      ()  => togglePlay(),
+
+  // ── Library ──
+  'lib.toggle':       ()  => Library.toggle(),
+  'lib.close':        ()  => Library.close(),
+  'lib.save':         ()  => Library.saveCurrent(),
+
+  // ── Shared-link banner ──
+  'shared.play':      ()  => playSharedLoop(),
+  'shared.dismiss':   ()  => dismissSharedBanner(),
+
+  // ── Settings ──
+  'set.theme':        el => Settings.setTheme(_aStr(el, 'id')),
+  'set.lang':         el => Settings.setLang(_aStr(el, 'id')),
+  'set.piano':        el => Settings.setRealPiano(_aStr(el, 'id') === 'real'),
+  'set.haptics':      el => Settings.setHaptics(_aStr(el, 'id') === 'on'),
+
+  // ── Transport island ──
+  'ts.open':          ()  => TransportSheet.open(),
+  'ts.collapse':      ()  => TransportSheet.collapse(),
+
+  // ── Guitar shapes ──
+  'shapes.cardDown':  (el, e) => GuitarShapes.cardDown(e, _aInt(el, 'pos')),
+  'shapes.next':      el => GuitarShapes.step(_aInt(el, 'pos'), 1),
+  'shapes.prev':      el => GuitarShapes.step(_aInt(el, 'pos'), -1),
+  'shapes.voicing':   el => GuitarShapes.setVoicing(_aInt(el, 'pos'), _aInt(el, 'idx')),
+  'shapes.view':      el => GuitarShapes.view(_aStr(el, 'id')),
+  'shapes.close':     ()  => GuitarShapes.close(),
+
+  // ── Colour chords (out-of-key) ──
+  'color.add':        el => ColorChords.add(_aInt(el, 'idx')),
+  'color.preview':    el => ColorChords.preview(_aInt(el, 'idx')),
+  'color.modulate':   el => ColorChords.modulateTo(_aInt(el, 'idx')),
+  'color.close':      ()  => ColorChords.close(),
+
+  // ── Emotion suggester ──
+  'emotion.select':   el => EmotionSuggester.select(_aStr(el, 'id')),
+  'emotion.apply':    ()  => EmotionSuggester.apply(),
+  'emotion.close':    ()  => EmotionSuggester.close(),
+
+  // ── Per-chord variant chooser ──
+  'variant.pick':     el => ChordVariants.pick(_aStr(el, 'id')),
+  'variant.dup':      ()  => ChordVariants._dup(),
+  'variant.del':      ()  => ChordVariants._del(),
+
+  // NOTE: src/ui/modulation-coach.js is NOT in build.js's JS_FILES — it has never
+  // shipped. Its handlers are therefore not registered here; registering them
+  // would point live markup at a module that doesn't exist in the bundle.
+  // Either add the file to the build or delete it, but don't wire it half-way.
+
+  // ── Misc ──
+  'strip.pick':       el => pickProgChord(_aInt(el, 'idx')),
+  'install.accept':   ()  => _acceptInstall(),
+  'install.dismiss':  ()  => _dismissInstall(),
+  'dirguide.toggle':  ()  => WheelDirectionGuide.toggle(),
 });

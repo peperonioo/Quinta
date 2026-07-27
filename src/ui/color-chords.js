@@ -94,7 +94,7 @@ const ColorChords = (() => {
     box.innerHTML = `
       <div class="mod-head">
         <span class="mod-title">${es ? 'Más allá de la escala' : 'Beyond the key'}</span>
-        <button class="mod-x" data-ico="close" data-ico-size="12" onclick="ColorChords.close()" aria-label="Close"></button>
+        <button class="mod-x" data-ico="close" data-ico-size="12" data-act="color.close" aria-label="Close"></button>
       </div>
       <div class="cx-body">
 
@@ -109,11 +109,11 @@ const ColorChords = (() => {
           </div>
           <div class="mod-list">
             ${cc.map((c,i) => `
-              <div class="cc-item" onclick="ColorChords.preview(${i})">
+              <div class="cc-item" data-act="color.preview" data-idx="${i}">
                 <span class="mod-role">${L(c.role)}</span>
                 <span class="cc-name">${c.name}</span>
                 <span class="mod-why">${L(c.why)}</span>
-                <button class="cc-add" onclick="event.stopPropagation();ColorChords.add(${i})" aria-label="${es?'Añadir a la progresión':'Add to progression'}" data-ico="plus" data-ico-size="14"></button>
+                <button class="cc-add" data-act="color.add" data-idx="${i}" data-stop="1" aria-label="${es?'Añadir a la progresión':'Add to progression'}" data-ico="plus" data-ico-size="14"></button>
               </div>`).join('')}
           </div>
         </div>
@@ -129,7 +129,7 @@ const ColorChords = (() => {
           </div>
           <div class="mod-list">
             ${mts.map((tg,i) => `
-              <button class="cx-mod-item${tg.pivot ? '' : ' no-pivot'}" onclick="ColorChords.modulateTo(${i})">
+              <button class="cx-mod-item${tg.pivot ? '' : ' no-pivot'}" data-act="color.modulate" data-idx="${i}">
                 <span class="mod-role">${tg.label}</span>
                 <span class="cx-mod-name">${tg.name}</span>
                 ${tg.pivot ? `<span class="cx-pivot">${es?'añade':'add'} <b>${tg.pivot.name}</b> →</span>` : '<span></span>'}

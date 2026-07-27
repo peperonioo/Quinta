@@ -58,11 +58,11 @@ const ModulationCoach = (() => {
     box.innerHTML = `
       <div class="mod-head">
         <span class="mod-title">${es ? '¿Hacia dónde modular?' : 'Where to modulate?'}</span>
-        <button class="mod-x" data-ico="close" data-ico-size="12" onclick="ModulationCoach.close()" aria-label="Close"></button>
+        <button class="mod-x" data-ico="close" data-ico-size="12" data-act="modcoach.close" aria-label="Close"></button>
       </div>
       <div class="mod-list">
         ${targets().map(tg => `
-          <button class="mod-item" onclick="ModulationCoach.jump('${tg.sector}','${tg.view}')">
+          <button class="mod-item" data-act="modcoach.jump" data-sector="${tg.sector}" data-view="${tg.view}">
             <span class="mod-role">${tg.label}</span>
             <span class="mod-key">${tg.name}</span>
             <span class="mod-why">${tg.why}</span>

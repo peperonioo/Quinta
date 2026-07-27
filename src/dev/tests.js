@@ -289,41 +289,50 @@
 
       // Dynamically rendered actions aren't in the DOM right now, so also assert
       // the whole registry is callable: resolve each lambda's first identifier.
-      const unresolved = ActionRegistry.names().filter(n => {
+      // Pull every identifier that is CALLED or DOTTED out of the lambda body —
+      // the same shape the V6.15 guard used. Taking "the first word after =>"
+      // instead trips over `() => { const x = … }` and reports `const`.
+      const KW = new Set(['if','else','return','new','typeof','this','const','let','var',
+                          'function','try','catch','document','window','true','false','null','undefined']);
+      const unresolved = [];
+      ActionRegistry.names().forEach(n => {
         const src = String(ActionRegistry._peek ? ActionRegistry._peek(n) : '');
-        const m = src.match(/=>\s*([A-Za-z_$][\w$]*)/);
-        if (!m) return false;
-        try { return typeof new Function('return typeof ' + m[1])() === 'undefined'; }
-        catch (_) { return true; }
+        const body = src.replace(/'[^']*'|"[^"]*"|`[^`]*`/g, '');
+        // The lambda's own parameters and locals are not globals — collect them
+        // first so `e.detail` or `tab.dataset` isn't reported as a missing module.
+        const local = new Set();
+        const params = body.match(/^\s*\(?([^)=]*)\)?\s*=>/);
+        if (params) params[1].split(',').forEach(x => { const v = x.trim(); if (v) local.add(v); });
+        (body.match(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)/g) || [])
+          .forEach(d => local.add(d.replace(/(?:const|let|var)\s+/, '')));
+        (body.match(/(?<![\w$.])[A-Za-z_$][\w$]*\s*[.(]/g) || []).forEach(tok => {
+          const name = tok.replace(/[.(\s]/g, '');
+          if (KW.has(name) || local.has(name)) return;
+          // NOTE: compare the RETURNED STRING, not its type. The first version
+          // read `typeof new Function(...)() === 'undefined'` — that is the type
+          // of the string 'undefined', always 'string', never true. It asserted
+          // nothing, and let an action pointing at a module that isn't even in
+          // the bundle (modulation-coach.js) sail straight through.
+          let missing = true;
+          try { missing = new Function('return typeof ' + name)() === 'undefined'; } catch (_) {}
+          if (missing) unresolved.push(n + ' → ' + name);
+        });
       });
       assert('Every registered action resolves', unresolved.length === 0, unresolved);
       assert('Action registry is non-trivial', ActionRegistry.names().length >= 15);
     })();
 
-    // ── Inline-handler integrity (V6.15) ─────────────────────────────────
-    // The template wires UI via inline onclick/onpointerdown. The known failure
-    // class: rename a global, and a button dies silently at runtime. This walks
-    // every inline handler and asserts each referenced identifier still exists
-    // in global scope (new Function sees top-level let/const too).
+    // ── No inline handlers (V6.15 guard → V6.18 barrier) ─────────────────
+    // V6.15 walked every inline handler and checked its identifiers still
+    // existed. V6.18 removed the handlers entirely (see actions-registry.js), so
+    // the guard becomes a barrier: the count must stay at zero. Re-introducing
+    // one brings back the silent-death failure class this refactor removed, and
+    // sidesteps the registry's integrity checks.
     (function () {
-      const SKIP = new Set(['if','else','return','new','typeof','this','event','true','false','null','undefined']);
-      const bad = [];
-      document.querySelectorAll('[onclick],[onpointerdown],[onkeydown]').forEach(el => {
-        ['onclick', 'onpointerdown', 'onkeydown'].forEach(attr => {
-          const code = el.getAttribute(attr); if (!code) return;
-          // strip string literals, then take identifiers that are called or dotted
-          const stripped = code.replace(/'[^']*'|"[^"]*"|`[^`]*`/g, '');
-          // only bare identifiers (not .methodNames after a dot)
-          (stripped.match(/(?<![\w$.])[A-Za-z_$][\w$]*\s*[.(]/g) || []).forEach(tok => {
-            const name = tok.replace(/[.(\s]/g, '');
-            if (SKIP.has(name)) return;
-            let ok = false;
-            try { ok = new Function('return typeof ' + name + ' !== "undefined"')(); } catch (_) {}
-            if (!ok) bad.push(name + ' @ ' + (el.id || el.getAttribute('aria-label') || el.className));
-          });
-        });
-      });
-      assert('Inline handlers reference existing globals', bad.length === 0, [...new Set(bad)].slice(0, 6));
+      const found = [];
+      document.querySelectorAll('[onclick],[onpointerdown],[onkeydown],[ondragover],[ondrop]')
+        .forEach(el => found.push(el.id || el.getAttribute('aria-label') || String(el.className).slice(0, 30)));
+      assert('No inline handlers remain', found.length === 0, found.slice(0, 6));
     })();
 
     // ── Interaction guard (V4.0): critical controls must not be covered ──

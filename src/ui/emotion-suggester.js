@@ -54,12 +54,12 @@ const EmotionSuggester = (() => {
     box.innerHTML = `
       <div class="mod-head">
         <span class="mod-title">${es ? '¿Cómo quieres sonar?' : 'How should it feel?'}</span>
-        <button class="mod-x" data-ico="close" data-ico-size="12" onclick="EmotionSuggester.close()" aria-label="Close"></button>
+        <button class="mod-x" data-ico="close" data-ico-size="12" data-act="emotion.close" aria-label="Close"></button>
       </div>
       <div class="em-grid">
         ${EMOTIONS.map(e => `
           <button class="em-chip${_sel === e.id ? ' on' : ''}"
-            onclick="EmotionSuggester.select('${e.id}')"
+            data-act="emotion.select" data-id="${e.id}"
             aria-pressed="${_sel === e.id}">
             <span class="em-icon" aria-hidden="true">${e.icon}</span>
             <span class="em-label">${L(e.label)}</span>
@@ -71,7 +71,7 @@ const EmotionSuggester = (() => {
              <div class="em-note">${L(selected.note)}</div>
            </div>`
         : `<div class="em-placeholder"><span>${es ? 'Elige una emoción' : 'Choose a feeling'}</span></div>`}
-      <button class="em-apply"${!selected ? ' disabled' : ''} onclick="EmotionSuggester.apply()">
+      <button class="em-apply"${!selected ? ' disabled' : ''} data-act="emotion.apply">
         ${es ? 'Cargar progresión' : 'Load progression'}
       </button>`;
     if (typeof applyIcons === 'function') applyIcons(box);
