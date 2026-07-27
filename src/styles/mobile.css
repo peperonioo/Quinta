@@ -45,10 +45,29 @@
      scales every frame is the other big jank source. */
   #wheelSvg       { width:min(97vw,560px) !important; height:min(97vw,560px) !important; filter:none !important }
   body.building .wheel-toggle-row { margin-top:6px }
+  /* V6.16 — the wheel shrinks with transform, which does NOT shrink its layout box:
+     it left a 122px dead band (14% of an iPhone screen) between the wheel and the
+     toggle. Pull everything below it up by the same amount, driven by the same --sp.
+     Still transform-only, still no reflow — the slack now lands at the end of the
+     document, where nobody is looking, instead of in the middle of the screen. */
+  .wheel-toggle-row, .theory-bottom {
+    transform:translate3d(0, calc((-22vw - 30px) * var(--sp,0)), 0);
+    will-change:transform; backface-visibility:hidden;
+  }
   /* Surface the Major/Minor toggle on mobile (the side cards are hidden) */
   .wheel-toggle-row { display:flex; gap:8px; align-items:stretch; justify-content:center; width:min(344px,92vw); margin:12px auto 2px }
   .wheel-toggle-mobile { display:flex; flex:1; margin:0 }
   .wheel-toggle-mobile button { font-size:12px; padding:13px 8px }   /* ~44px tap target */
+  /* Mode chip — same height as the toggle so the row reads as one control group. */
+  .mode-chip {
+    flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+    gap:1px; min-height:44px; padding:6px 13px; cursor:pointer;
+    border:1px solid var(--line); border-radius:999px; background:var(--sel-bg);
+  }
+  .mode-chip .mc-lbl { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:.12em;
+                       text-transform:uppercase; color:var(--muted) }
+  .mode-chip .mc-val { font-size:12px; font-weight:600; color:var(--ink); line-height:1 }
+  .mode-chip:active   { border-color:rgba(232,68,26,.45) }
   /* Lighter wheel on mobile so scrolling stays smooth */
   #wheelSheen     { animation:none !important; opacity:0 !important }
   .theory-bottom  { gap:14px }
@@ -63,11 +82,14 @@
   .builder-actions{ flex-wrap:nowrap; gap:6px; justify-content:flex-start;
                     width:100%; overflow-x:auto; scrollbar-width:none }
   .builder-actions::-webkit-scrollbar { display:none }
-  .builder-actions .builder-btn:not(#playProgBtn) span[data-i18n] { display:none }
-  .builder-actions .builder-btn:not(#playProgBtn) {
+  .builder-actions .builder-btn:not(#playProgBtn):not(#exportBtn) span[data-i18n] { display:none }
+  .builder-actions .builder-btn:not(#playProgBtn):not(#exportBtn) {
     width:44px; height:44px; min-width:44px; padding:0; flex:0 0 auto;   /* ≥44px tap target */
   }
-  .builder-actions #playProgBtn { flex:0 0 auto; height:44px }
+  /* Export keeps its label on phones too — an unlabelled download glyph is exactly
+     how it stayed invisible in the first place. */
+  .builder-actions #playProgBtn,
+  .builder-actions #exportBtn { flex:0 0 auto; height:44px }
   .builder-meta   { flex-direction:column; align-items:flex-start }
   .builder-next-top { align-items:flex-start; flex-direction:column; gap:6px }
   .builder-next-context { white-space:normal }
@@ -121,6 +143,48 @@
   }
   #metronome.open .metro-pill  { transform:scale(.6) }
   #metronome.open .metro-panel { transform:scale(1) }
+
+  /* ── V6.16 · Tap targets ────────────────────────────────
+     An audit found 49 controls under the 44px floor of Apple HIG / WCAG 2.5.5 —
+     including the island's Play (34×34) and every single close cross (14–22px).
+     These grow the HIT AREA with a centred pseudo-element and leave the VISUALS
+     untouched: nothing moves, everything becomes reachable with a thumb. */
+  .ts-play, .ts-bwrap, .ts-bpm, .snap-btn, .metro-x, .metro-step, .micro-close,
+  .lib-close, .popup-close, .mod-x, .in-x, .theme-btn, .instr-zoom-toggle,
+  .sect-tab, .instr-tab, .ms-btn { position:relative }
+  .ts-play::after, .ts-bwrap::after, .ts-bpm::after, .snap-btn::after, .metro-x::after,
+  .metro-step::after, .micro-close::after, .lib-close::after, .popup-close::after,
+  .mod-x::after, .in-x::after, .theme-btn::after, .instr-zoom-toggle::after {
+    content:''; position:absolute; left:50%; top:50%;
+    width:var(--tap); height:var(--tap); transform:translate(-50%,-50%);
+  }
+  /* Controls that sit shoulder-to-shoulder only grow vertically — a 44px-wide halo
+     would overlap the neighbour and steal its taps. */
+  .sect-tab, .instr-tab, .ms-btn, .tab-btn, .snd-btn, .tps-chip, .ts-tool, .ts-keywrap,
+  .beyond-key, .ut-btn, .lib-save-btn, .metro-tap, .wheel-toggle-mobile button { position:relative }
+  .sect-tab::after, .instr-tab::after, .ms-btn::after, .tab-btn::after, .snd-btn::after,
+  .tps-chip::after, .ts-tool::after, .ts-keywrap::after, .beyond-key::after, .ut-btn::after,
+  .lib-save-btn::after, .metro-tap::after, .wheel-toggle-mobile button::after {
+    content:''; position:absolute; left:0; right:0; top:50%;
+    height:var(--tap); transform:translateY(-50%);
+  }
+  /* The library name field is typed into, not tapped at — give it real height. */
+  .lib-save input { min-height:var(--tap) }
+
+  /* ── V6.16 · Overflow is invisible without an edge ──────
+     Several lanes scroll sideways past the viewport (bubbles 484px, chord strip
+     489px, fretboard 860px) with no fade, arrow or hint: cut content doesn't look
+     cut, it looks absent. A soft mask on the right edge says "there's more".
+     The action bar joined them when Export took a labelled slot — Play and Export
+     stay put, the icon buttons scroll under the fade. */
+  .builder-next-moves .next-orbit, .ts-prog-strip, .builder-actions {
+    -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent);
+            mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent);
+  }
+  /* The fretboard is 2.6x the viewport, nested inside a drawer inside a swipeable
+     pager: three layers fighting for one horizontal gesture. Pin the gesture to the
+     fretboard and stop it chaining out to the pager mid-scroll. */
+  .fretboard-wrap { touch-action:pan-x; overscroll-behavior-x:contain }
 }
 
 /* ── Section dots — mobile-only scroll position rail ── */
@@ -133,8 +197,14 @@
   }
   body.light[data-tab="theory"] .section-dots { background:rgba(255,255,255,.35) }
   .sd-dot {
+    position:relative;
     width:20px; height:20px; border:0; padding:0; background:none; cursor:pointer;
-    display:grid; place-items:center;                  /* ≥20px hit area, 5px visual dot */
+    display:grid; place-items:center;                  /* 5px visual dot… */
+  }
+  /* …and a 44×44 hit halo on ::before, because ::after already IS the dot. */
+  .sd-dot::before {
+    content:''; position:absolute; left:50%; top:50%;
+    width:var(--tap); height:var(--tap); transform:translate(-50%,-50%);
   }
   .sd-dot::after {
     content:''; width:5px; height:5px; border-radius:99px;

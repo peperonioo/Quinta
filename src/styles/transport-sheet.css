@@ -44,6 +44,9 @@
     transition:opacity .2s var(--ease), transform .3s cubic-bezier(.34,1.5,.5,1);
   }
   .ts-cap .ts-keywrap { display:flex; align-items:baseline; gap:5px }
+  /* This class had NO rule at all, so <b>100</b><small>BPM</small> rendered flush
+     as "100BPM" on every mobile screen, the onboarding tour included. */
+  .ts-bwrap { display:flex; align-items:baseline; gap:3px; cursor:pointer }
   .ts-cap .ts-k { font-family:'DM Serif Display',serif; font-size:16px; color:var(--ink); line-height:1 }
   .ts-cap .ts-m { font-size:11px; color:var(--muted) }
   .ts-cap .ts-b { font-family:'DM Mono',monospace; font-size:13px; color:var(--ink) }

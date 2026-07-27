@@ -133,6 +133,20 @@ function renderProduction() {
   if (tp) tp.innerHTML = (g.tips || []).map(sec =>
     `<div class="tips-card"><h4>${PL(sec.h)}</h4><ul>${sec.items.map(i => `<li>${PL(i)}</li>`).join('')}</ul></div>`
   ).join('');
+  _syncLearnStyle();
+}
+
+// On a wide screen the tab was a grid, a folded accordion and ~500px of empty
+// gradient — every element, progression, groove rule and tip hidden behind one
+// closed <details>. Desktop has the room, so it opens by default (until the user
+// says otherwise); phones keep the fold, where it earns its place.
+function _syncLearnStyle() {
+  const ls = document.querySelector('.learn-style'); if (!ls) return;
+  if (!ls._wired) {
+    ls._wired = true;
+    ls.addEventListener('toggle', () => { ls._userSet = true; });
+  }
+  if (!ls._userSet && matchMedia('(min-width:861px)').matches) ls.open = true;
 }
 
 // ── Connected groove player (V4.9) ────────────────────
@@ -150,6 +164,8 @@ function startPlay() {
   // run together and the chords double up. (Theory's play does the reverse.)
   if (typeof _progRAF !== 'undefined' && _progRAF && typeof stopProgression === 'function') stopProgression();
   if (typeof haptic === 'function') haptic('ok');
+  if (typeof tel === 'function')
+    tel('play_groove', { genre: curGenre, bars: (st.history || []).length });
   playing = true; _prodStep = 0; _prodBar = 0; _prodPrevUpper = null; _prodVoicing = null;
   const playBtn = document.getElementById('playBtn');
   if (playBtn) { playBtn.classList.add('playing'); const l = playBtn.querySelector('span'); if (l) l.textContent = t('play.stop'); if (typeof setIcon === 'function') setIcon(playBtn, 'stop'); }

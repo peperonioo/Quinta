@@ -1,3 +1,11 @@
+/* Micro-caption above a chord row. The degrees row is a REFERENCE (what exists in
+   your key); the suggestion bubbles are a RECOMMENDATION (what fits next). They
+   used to look like two sets of the same buttons. */
+.row-caption {
+  font-family:'DM Mono',monospace; font-size:8.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 6px 2px;
+}
+
 /* ── DEGREES ROW ─────────────────────────────────────*/
 .degrees-row {
   display:flex; gap:0; border-radius:14px; overflow:hidden;

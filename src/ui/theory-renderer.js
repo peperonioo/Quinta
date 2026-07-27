@@ -38,8 +38,11 @@ function renderTheory() {
   const accStr     = ACC[((fifthsIdx + off) % 12 + 12) % 12];
   const accEl = document.getElementById('accidentals');
   const accType = document.getElementById('accidentalType');
-  if (accEl)   accEl.textContent   = accStr === '0' ? '♮ None' : accStr;
-  if (accType) accType.textContent = accStr === '0' ? 'Natural' : accStr.includes('♯') ? 'Sharps' : 'Flats';
+  // These four were hardcoded English — visible in the Spanish app on the very
+  // first screen, because they are written from JS and never pass through data-i18n.
+  if (accEl)   accEl.textContent   = accStr === '0' ? '♮ ' + t('acc.none') : accStr;
+  if (accType) accType.textContent = accStr === '0' ? t('acc.natural')
+                                   : accStr.includes('♯') ? t('acc.sharps') : t('acc.flats');
 
   // Major/minor toggle buttons (desktop + mobile share the data-view attr)
   const view = st.wheelView === 'minor' ? 'minor' : 'major';

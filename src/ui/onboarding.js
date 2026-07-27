@@ -144,12 +144,20 @@ const Onboarding = (() => {
     window.removeEventListener('scroll', _onScroll, true);
     setTimeout(() => { ov.hidden = true; }, 300);
   }
-  function skip()   { markSeen(); close(); }
-  function finish() { markSeen(); close(); }
+  // ── Funnel telemetry ─────────────────────────────────
+  // The tour is the most likely drop-off point in the whole product (7 steps, 5 of
+  // them gated). Without these two events a low D7 is unreadable: you cannot tell
+  // "the product doesn't stick" from "nobody got past step 3".
+  function _telEnd(done) {
+    if (typeof tel === 'function') tel('onboard_end', { step: idx + 1, of: steps.length, done: !!done });
+  }
+  function skip()   { _telEnd(false); markSeen(); close(); }
+  function finish() { _telEnd(true);  markSeen(); close(); }
   function next()   { if (idx >= steps.length - 1) return finish(); go(idx + 1); }
   function prev()   { if (idx > 0) go(idx - 1); }
   function go(i) {
     idx = Math.max(0, Math.min(steps.length - 1, i));
+    if (typeof tel === 'function') tel('onboard_step', { step: idx + 1, of: steps.length });
     render();
     _startWatch(steps[idx]);
     const el = _targetEl(steps[idx]);

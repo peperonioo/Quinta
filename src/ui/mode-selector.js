@@ -12,6 +12,7 @@ function renderModeMenu() {
   sub.textContent  = current[1];
   const sm = document.getElementById('setModeMain'); if (sm) sm.textContent = current[0];
   const ss = document.getElementById('setModeSub');  if (ss) ss.textContent  = current[1];
+  const mc = document.getElementById('modeChipVal');  if (mc) mc.textContent = current[0];
   menu.innerHTML = MODE_ORDER.map(id => {
     const [name, desc] = modeFriendly(id);
     const m = MODES.find(x => x.id === id);
@@ -24,10 +25,13 @@ function renderModeMenu() {
 }
 
 function _placeModeMenu() {
-  // On mobile the sidebar is hidden; fall back to the FAB's mode button.
+  // Anchor to whichever trigger is on screen: the sidebar card (desktop), the
+  // mode chip under the wheel (mobile) or the settings button (both).
   const d1 = document.getElementById('modeDisplay');
-  const display = (d1 && d1.getBoundingClientRect().width > 0)
-    ? d1 : (document.getElementById('setModeBtn') || d1);
+  const vis = el => el && el.getBoundingClientRect().width > 0;
+  const display = vis(d1) ? d1
+    : (vis(document.getElementById('modeChipBtn')) ? document.getElementById('modeChipBtn')
+    : (document.getElementById('setModeBtn') || d1));
   const menu    = document.getElementById('modeMenu');
   if (!display || !menu) return;
   if (menu.parentElement !== document.body) document.body.appendChild(menu);

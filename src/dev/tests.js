@@ -262,8 +262,9 @@
         assert('F major key signature is 1 flat',  accFor('F', 'major') === '1♭');
         assert('C natural minor is 3 flats',       accFor('C', 'minor') === '3♭');
         // Modes do NOT change the circle's accidentals (V4.5) — C dorian on a
-        // Major base keeps the C-major signature.
-        assert('Mode keeps the Major signature',   accFor('C', 'major', 'dorian') === '♮ None');
+        // Major base keeps the C-major signature. The "no accidentals" label is
+        // translated (V6.16), so assert against the key, not the English word.
+        assert('Mode keeps the Major signature',   accFor('C', 'major', 'dorian') === '♮ ' + t('acc.none'));
       } finally {
         st.key = sv.key; st.mode = sv.mode; st.wheelView = sv.view; st.tonality = sv.tonality;
         safe(() => normalizeKeyState()); safe(() => renderTheory());

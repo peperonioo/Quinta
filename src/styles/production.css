@@ -111,3 +111,11 @@
 .learn-style { margin-bottom:12px }
 .learn-style .drawer-body > * { margin-bottom:12px }
 .learn-style .drawer-body > *:last-child { margin-bottom:0 }
+/* Open on desktop (see _syncLearnStyle) — two columns so the know-how fills the
+   width instead of running as one tall ribbon under a mostly-empty page. */
+@media (min-width:861px) {
+  .learn-style .drawer-body {
+    display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; align-items:start;
+  }
+  .learn-style .drawer-body > * { margin-bottom:0 }
+}

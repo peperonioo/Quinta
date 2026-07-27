@@ -75,7 +75,9 @@ function renderWheel() {
       'stroke-width': isActive ? '1.8' : outerLit ? '1.4' : '0.8',
     });
     if (isActive) { op.setAttribute('filter', 'url(#fGlow)'); op.setAttribute('class', 'active-sector'); }
-    if (!isActive && !outerLit) og.setAttribute('opacity', '0.22');
+    // The dim needs a higher floor in the light theme: 0.22 of near-black over a
+    // pastel plasma read as nothing, so the out-of-key ring vanished entirely.
+    if (!isActive && !outerLit) og.setAttribute('opacity', isLight ? '0.42' : '0.22');
     og.appendChild(op);
 
     // Primary label (major/minor view)
@@ -98,7 +100,7 @@ function renderWheel() {
     const at = se('text', {
       x:ax, y:ay+1, 'text-anchor':'middle', 'dominant-baseline':'middle',
       'font-family':'DM Mono,monospace', 'font-size':'10',
-      fill: isLight ? 'rgba(20,20,20,.46)' : 'rgba(255,255,255,.40)',
+      fill: isLight ? 'rgba(20,20,20,.62)' : 'rgba(255,255,255,.40)',
       class:'wheel-label', 'data-x':ax, 'data-y':ay,
       transform:`rotate(${-wRot},${ax},${ay})`,
     });
@@ -129,7 +131,7 @@ function renderWheel() {
     // Dim non-diatonic inner sectors. When locked, base it on the inner CHORD so
     // the relative minors light up; unlocked keeps the legacy (outer-root) dim.
     const innerDimmed = locked ? (!isActive && !innerLit) : (!isActive && !isDiatonic);
-    if (innerDimmed) ig.setAttribute('opacity', '0.22');
+    if (innerDimmed) ig.setAttribute('opacity', isLight ? '0.42' : '0.22');
     const innerFill =
         isActive            ? (isLight ? 'rgba(232,68,26,.30)' : 'rgba(160,40,10,.46)')
       : (locked && innerLit) ? (innerDim ? `rgba(${baRgb},.07)` : `rgba(${baRgb},.17)`)
@@ -149,7 +151,10 @@ function renderWheel() {
       x:rx, y:ry+2, 'text-anchor':'middle', 'dominant-baseline':'middle',
       'font-family':'DM Serif Display,Georgia,serif', 'font-weight':'700', 'font-style':'normal',
       'font-size': isActive ? '20' : '17',
-      fill: isActive ? 'rgba(255,160,120,.96)' : (isLight ? 'rgba(20,20,20,.42)' : 'rgba(240,237,232,.45)'),
+      // On the active sector the light theme used a pale orange over a pale orange
+      // fill — "Am" was orange-on-orange. Light gets a deep accent instead.
+      fill: isActive ? (isLight ? 'rgba(150,34,8,.96)' : 'rgba(255,160,120,.96)')
+                     : (isLight ? 'rgba(20,20,20,.62)' : 'rgba(240,237,232,.45)'),
       class:'wheel-label', 'data-x':rx, 'data-y':ry,
       transform:`rotate(${-wRot},${rx},${ry})`,
     });

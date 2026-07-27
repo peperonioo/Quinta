@@ -77,6 +77,22 @@ function _pxBeat() {
   return v || 48;
 }
 
+// A 4-chord progression used to occupy 385px of a 1200px lane — the grid looked
+// empty at exactly the moment the user had just committed to it. Stretch the beat
+// so the bars fill the width they were given. Never goes below the base 48px, so
+// phones keep their honest, scrollable timeline.
+const PX_BEAT_MIN = 48, PX_BEAT_MAX = 120;
+function _fitPxBeat(root, gridBeats) {
+  root.style.removeProperty('--px-beat');                 // fall back to the CSS value
+  // Phones keep their designed 38px: there the lane is honestly scrollable and the
+  // empty-lane problem doesn't exist — stretching would only cost bars on screen.
+  if (matchMedia('(max-width:860px)').matches) return;
+  const avail = root.clientWidth;
+  if (!avail || !gridBeats) return;
+  const px = Math.max(PX_BEAT_MIN, Math.min(PX_BEAT_MAX, Math.floor(avail / gridBeats)));
+  root.style.setProperty('--px-beat', px + 'px');
+}
+
 // Absolute timeline: each chord has `start` (beats from the section start) and a
 // duration `beats`. Clips can sit anywhere on the grid — including off the beat and
 // overlapping — which is what free-drag placement needs. Legacy items (ordered, or
@@ -328,6 +344,9 @@ const HistoryEngine = {
     // Once you're building, the giant wheel steps back (it shrinks on mobile so the
     // builder gets the screen). Empty progression → the wheel is the protagonist.
     document.body.classList.toggle('building', h.length > 0);
+    // Surface Export once there is something worth exporting.
+    const expBtn = document.getElementById('exportBtn');
+    if (expBtn) expBtn.hidden = h.length < 2;
     if (typeof renderInstrProgStrip === 'function') renderInstrProgStrip();
     if (typeof initBuilderFocus === 'function') initBuilderFocus();   // wire scroll-focus once (idempotent)
 
@@ -354,6 +373,7 @@ const HistoryEngine = {
     const { total } = _layout(h);
     const gridBeats = Math.max(GRID_MIN, Math.ceil(total / 4) * 4);   // round up to whole bars, ≥2 bars
     root.style.setProperty('--grid-beats', gridBeats);
+    _fitPxBeat(root, gridBeats);                                      // fill the lane before measuring it
     _renderRuler(gridBeats);
     root.innerHTML = h.map((it, i) => `
       <div data-uid="${it.uid || i}" data-i="${i}" class="builder-step${(it.start || 0) % 1 ? ' off' : ''}" style="--beats:${it.beats};--start:${it.start || 0}"
@@ -378,6 +398,20 @@ const HistoryEngine = {
     requestAnimationFrame(_updatePlayheadPos);
   },
 };
+
+// The beat width depends on the lane width, so a resize (or an orientation flip)
+// has to re-lay the grid. Debounced, and skipped mid-playback so the playhead
+// never jumps under the user.
+let _fitT = 0;
+if (typeof addEventListener === 'function') {
+  addEventListener('resize', () => {
+    clearTimeout(_fitT);
+    _fitT = setTimeout(() => {
+      if (_progRAF) return;
+      if ((st.history || []).length) HistoryEngine.render();
+    }, 180);
+  }, { passive: true });
+}
 
 // The chord name shown on a bar, including its variant suffix (Cmaj7, G7, Dsus4…).
 function chordLabel(it) {
@@ -641,6 +675,26 @@ function toggleBuilderMore(el) {
   const open = m.hasAttribute('hidden');
   if (open) m.removeAttribute('hidden'); else m.setAttribute('hidden', '');
   if (el) { el.classList.toggle('active', open); el.setAttribute('aria-expanded', open); }
+  if (open && typeof tel === 'function') tel('export_menu_open', { src: 'more' });
+}
+
+// The Export call-to-action: opens the "···" panel and flashes the Export group so
+// the eye lands on it. Tracked separately from the plain "···" open, so the Sheet
+// can tell "they didn't want it" from "they never saw it".
+function openExportMenu() {
+  const m = document.getElementById('builderMore'); if (!m) return;
+  if (m.hasAttribute('hidden')) {
+    m.removeAttribute('hidden');
+    const b = document.getElementById('moreBtn');
+    if (b) { b.classList.add('active'); b.setAttribute('aria-expanded', 'true'); }
+  }
+  const grp = m.querySelector('.bm-group');
+  if (grp) {
+    grp.classList.remove('bm-flash'); void grp.offsetWidth; grp.classList.add('bm-flash');
+    try { grp.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (_) {}
+  }
+  haptic('sel');
+  if (typeof tel === 'function') tel('export_menu_open', { src: 'cta', bars: (st.history || []).length });
 }
 
 // Playback option toggles (7th chords, count-in). Persisted in state.
@@ -661,9 +715,14 @@ function initPlayOpts() {
   if (typeof _syncSectionTabs === 'function') _syncSectionTabs();
 }
 
-function playProgression() {
+// `opts.continuation` marks the internal re-entries (loop restart, A→B hand-off)
+// so the telemetry counts ONE play per user gesture, not one per cycle — a looping
+// progression would otherwise drown every other event in the Sheet.
+function playProgression(opts) {
   if (typeof AudioEngine !== 'object') return;
   const h = Array.isArray(st.history) ? st.history : [];
+  if (!(opts && opts.continuation) && typeof tel === 'function')
+    tel('play_prog', { bars: h.length, loop: !!st.loop, chain: !!st.chain });
   cancelAnimationFrame(_progRAF); _progRAF = 0;
   document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));
 
@@ -726,12 +785,12 @@ function playProgression() {
       const chaining = !!st.chain && _sectionHas('A') && _sectionHas('B');
       if (chaining && st.activeSection === 'A') {
         switchSection('B', { keepPlaying: true });    // A → B (keeps metronome running)
-        playProgression();
+        playProgression({ continuation: true });
       } else if (st.loop) {
         // Loop on: restart without stopping (the running metronome/count-in state
         // carries over, so there's no extra count-in each cycle).
         if (chaining) switchSection('A', { keepPlaying: true });   // song loop → back to A
-        playProgression();
+        playProgression({ continuation: true });
       } else {
         if (chaining && st.activeSection === 'B') switchSection('A', { keepPlaying: true }); // reset view to A
         if (ph) ph.classList.remove('on');

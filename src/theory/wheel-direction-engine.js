@@ -176,6 +176,11 @@ const WheelDirectionGuide = {
     btn.setAttribute('role', 'button');
     btn.setAttribute('aria-label', 'Wheel direction guide');
 
+    // Invisible hit ring: the visible badge is ~18px on a phone, well under the
+    // 44px floor. CSS pseudo-elements don't apply inside SVG, so the hit area is
+    // a transparent circle sized to clear it (r=35 viewBox units ≈ 44px at the
+    // mobile wheel scale). Painted first so it sits under the visible badge.
+    btn.appendChild(se('circle', { cx:'548', cy:'40', r:'35', fill:'transparent' }));
     const circle = se('circle', { cx:'548', cy:'40', r:'14',
       fill: 'rgba(255,255,255,.06)', stroke: 'rgba(255,255,255,.14)', 'stroke-width':'1' });
     const text = se('text', { x:'548', y:'45', 'text-anchor':'middle',

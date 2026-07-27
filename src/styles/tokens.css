@@ -85,8 +85,11 @@
 body.light {
   --bg:       #f0ede8;
   --ink:      #141414;
-  --muted:    rgba(20,20,20,.5);
-  --line:     rgba(0,0,0,.1);
+  /* V6.16 — .5 alpha over the pastel plasma measured ~2.6:1, well under the 4.5:1
+     of WCAG AA. The wheel's minor ring and out-of-key sectors were near-invisible
+     in the light theme; .68 clears AA without turning muted text into body text. */
+  --muted:    rgba(20,20,20,.68);
+  --line:     rgba(0,0,0,.12);
   --card:     rgba(255,255,255,.8);
   --card-bd:  rgba(0,0,0,.1);
   --accent:       #c83010;

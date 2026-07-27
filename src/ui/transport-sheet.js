@@ -45,7 +45,8 @@ const TransportSheet = (() => {
     const k = (typeof gr === 'function' && gr()[0]) ? gr()[0] : (st.key || 'C');
     const minor = (typeof modeIsMinor === 'function') ? modeIsMinor(st.mode) : (st.wheelView === 'minor');
     const set = (cls, v) => el().querySelectorAll(cls).forEach(n => n.textContent = v);
-    set('.ts-k', k); set('.ts-m', minor ? 'minor' : 'major'); set('.ts-b', st.bpm || 120);
+    // Was hardcoded English, so the capsule read "C major" on every Spanish screen.
+    set('.ts-k', k); set('.ts-m', t(minor ? 'common.minor' : 'common.major')); set('.ts-b', st.bpm || 120);
   }
 
   function init() {

@@ -113,7 +113,8 @@ function _buildBubblesHTML() {
       <span class="bk-text">${es ? 'Fuera de la escala' : 'Outside the key'}</span>
       <span class="bk-sub">${es ? 'préstamo · modulación' : 'borrow · modulate'}</span>
     </button>`;
-  return `<div class="next-orbit">${bubbles}</div>${beyond}`;
+  const caption = `<div class="row-caption">${es ? 'Qué va bien después' : 'What goes well next'}</div>`;
+  return `${caption}<div class="next-orbit">${bubbles}</div>${beyond}`;
 }
 
 // ── Tap a suggestion → quick add; drag → place (V4.6) ─

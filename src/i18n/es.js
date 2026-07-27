@@ -103,4 +103,13 @@ const I18N_ES = {
   'dirguide.fifthsCard.body':  'Un paso horario = una quinta arriba (+1 sostenido): más brillante y abierto. La vecina derecha de tu tonalidad es su V — la dominante que tira a casa (V→I).',
   'dirguide.fourthsCard.title':'Izquierda → Cuartas',
   'dirguide.fourthsCard.body': 'Un paso antihorario = una cuarta arriba (+1 bemol): más cálida y asentada. La vecina izquierda es su IV — y cadencias como ii–V–I resuelven en esta dirección.',
+  'acc.none':          'Ninguna',
+  'acc.natural':       'Natural',
+  'acc.sharps':        'Sostenidos',
+  'acc.flats':         'Bemoles',
+  'strip.harmony':     'Armonía',
+  'deg.swipe':         'desliza → navega',
+  'builder.exportHint':'Exporta esta progresión como WAV, stems o MIDI',
+  'degrees.title':     'Los acordes de tu tonalidad',
+  'next.title':        'Qué va bien después',
 };

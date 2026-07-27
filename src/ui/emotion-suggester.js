@@ -107,7 +107,9 @@ const EmotionSuggester = (() => {
     e.seq.forEach(idx => HistoryEngine.addDegree(idx));
     saveState();
     RenderEngine.full();
-    if (typeof tel === 'function') tel('emotion_' + e.id);
+    // One event with a property — NOT one event name per emotion, which would
+    // grow the Sheet a column at a time and make the funnel unqueryable.
+    if (typeof tel === 'function') tel('emotion', { id: e.id });
     close();
     if (typeof _shareToast === 'function') _shareToast(L(e.label));
   }

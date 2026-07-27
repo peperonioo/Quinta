@@ -204,25 +204,32 @@
       </aside>
     </div>
 
-    <!-- Mobile-only Major/Minor toggle (the side cards are hidden on phones) -->
+    <!-- Mobile-only Major/Minor toggle (the side cards are hidden on phones), plus
+         the mode chip: the 7 modes change every chord on screen, so burying them in
+         the settings gear made them unreachable on the product's main device. -->
     <div class="wheel-toggle-row">
       <div class="wheel-toggle wheel-toggle-mobile" role="group" aria-label="Key tonality: major or minor">
         <button data-view="major" class="active" onclick="setWheelView('major')" data-i18n="toggle.major">Major</button>
         <button data-view="minor" onclick="setWheelView('minor')" data-i18n="toggle.minor">Minor</button>
       </div>
+      <button class="mode-chip" id="modeChipBtn" type="button" onclick="ModeMenu.toggle(event)" aria-haspopup="menu">
+        <span class="mc-lbl" data-i18n="labels.mode">Mode</span>
+        <span class="mc-val" id="modeChipVal">Major</span>
+      </button>
     </div>
 
     <!-- BOTTOM THEORY -->
     <div class="theory-bottom">
       <!-- Degrees -->
       <div style="position:relative">
+        <div class="row-caption" data-i18n="degrees.title">The chords in your key</div>
         <div id="degrees" class="degrees-row"></div>
         <div class="deg-popup-wrap" id="degWrap">
           <div class="deg-popup" id="degPopup">
             <button class="popup-close" data-ico="close" data-ico-size="11" onclick="closePopup()" aria-label="Close"></button>
             <div class="deg-nav">
               <div class="deg-dots" id="degDots"></div>
-              <span class="swipe-hint">scroll → navigate</span>
+              <span class="swipe-hint" data-i18n="deg.swipe">scroll → navigate</span>
             </div>
             <h3 id="pTitle"></h3>
             <div class="psub" id="pSub"></div>
@@ -246,6 +253,12 @@
           </div>
           <div class="builder-actions">
             <button class="builder-btn play" id="playProgBtn" data-ico="play" onclick="toggleProgPlay()"><span data-i18n="builder.play">Play</span></button>
+            <!-- Export is the monetisable surface. It used to live only inside the
+                 "···" menu, where a new user never found it — which would have read
+                 in telemetry as "nobody wants export". It surfaces here as soon as
+                 there is something worth exporting (2+ chords). -->
+            <button class="builder-btn export-cta" id="exportBtn" data-ico="download" onclick="openExportMenu()" hidden
+              title="Export this progression as WAV, stems or MIDI"><span data-i18n="builder.grpExport">Export</span></button>
             <button class="builder-btn opt surprise-opt" id="surpriseBtn" data-ico="spark" onclick="surpriseMe()" title="Drop in a random progression and play it" aria-label="Surprise me"></button>
             <button class="builder-btn opt" id="loopBtn" data-ico="loop" onclick="toggleLoop(this)" title="Loop the progression" aria-label="Loop" aria-pressed="false"></button>
             <button class="builder-btn opt sect-chain" id="chainBtn" onclick="toggleChain(this)" title="Play section A then B as one song" aria-label="Chain A to B" aria-pressed="false">A→B</button>
@@ -534,7 +547,7 @@
       <div class="ts-section-label" data-i18n="strip.chords">Chords</div>
       <div id="tsProgStrip" class="ts-prog-strip" aria-label="Tap a chord to show it on the instrument"></div>
       <div id="tsInstruments"></div>
-      <div class="ts-section-label">Harmony</div>
+      <div class="ts-section-label" data-i18n="strip.harmony">Harmony</div>
       <div class="ts-tools">
         <button class="ts-tool ghost" onclick="EmotionSuggester.toggle()" data-i18n="emotion.btn">Emotion</button>
         <button class="ts-tool ghost" onclick="ColorChords.toggle()"><span data-ico="spark" data-ico-size="13" aria-hidden="true"></span><span data-i18n="color.btn">Colour chords</span></button>

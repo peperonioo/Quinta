@@ -103,4 +103,13 @@ const I18N_EN = {
   'dirguide.fifthsCard.body':  'One step clockwise = up a fifth (+1 sharp): brighter, more open. Your key’s right neighbour is its V — the dominant that pulls back home (V→I).',
   'dirguide.fourthsCard.title':'Left → Fourths',
   'dirguide.fourthsCard.body': 'One step counter-clockwise = up a fourth (+1 flat): warmer, grounded. Your key’s left neighbour is its IV — and cadences like ii–V–I resolve this way.',
+  'acc.none':          'None',
+  'acc.natural':       'Natural',
+  'acc.sharps':        'Sharps',
+  'acc.flats':         'Flats',
+  'strip.harmony':     'Harmony',
+  'deg.swipe':         'scroll → navigate',
+  'builder.exportHint':'Export this progression as WAV, stems or MIDI',
+  'degrees.title':     'The chords in your key',
+  'next.title':        'What goes well next',
 };
