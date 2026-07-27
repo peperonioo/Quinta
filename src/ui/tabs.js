@@ -26,8 +26,12 @@ function setGenre(id, btn) {
   stopPlay();
   st.genre = id;
   saveState();
+  // Called programmatically (Comeback's daily challenge) there is no button to
+  // mark — resolve it from the label, the same way init.js seeds the active pill.
+  const pill = btn || [...document.querySelectorAll('.genre-btn')]
+    .find(b => b.textContent.trim().toLowerCase().replace(' ', '') === id);
   document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
+  if (pill) pill.classList.add('active');
   renderProduction();
   applyI18n();
 }

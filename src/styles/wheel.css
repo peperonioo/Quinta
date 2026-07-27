@@ -82,9 +82,11 @@ body[data-interaction="wheel"] .active-sector { animation-play-state:paused; }
    it doesn't duplicate the side-card toggle — mobile.css re-shows it as flex.
    (Wrapper-level so the late .wheel-toggle recipe in components.css can't unhide
    the inner toggle on desktop.) */
-/* The whole row (toggle + mode chip) is mobile-only — desktop has the side cards. */
+/* The row (toggle + mode chip) and the theory strip are mobile-only — on desktop
+   the .side cards already carry all of this. */
 .wheel-toggle-row { display:none }
 .mode-chip { display:none }
+.theory-strip { display:none }
 
 /* SVG text typography — single canonical rule */
 #wg text.wheel-label,

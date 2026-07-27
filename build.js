@@ -89,6 +89,8 @@ const JS_FILES = [
   'src/ui/bubble-physics.js',
   'src/ui/chord-variants.js',
   'src/ui/library.js',
+  // Comeback panel — uses Library, PROG_PRESETS, GENRES at runtime
+  'src/ui/comeback.js',
   'src/ui/guitar-shapes.js',
   'src/ui/instruments-renderer.js',
   'src/ui/metronome.js',

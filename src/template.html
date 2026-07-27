@@ -218,6 +218,25 @@
       </button>
     </div>
 
+    <!-- Mobile theory strip (V6.17) — the .side cards are display:none on phones,
+         which deleted the entire learning layer (scale notes, relative key, key
+         signature) from the product's main device. This restores it in a compact
+         row instead of three stacked cards. -->
+    <div class="theory-strip" id="theoryStrip" aria-label="Key theory">
+      <div class="tst-block">
+        <span class="tst-lbl" id="tstRelLbl" data-i18n="labels.relativeMinor">Relative minor</span>
+        <span class="tst-val accent-t" id="tstRel">Am</span>
+      </div>
+      <div class="tst-block">
+        <span class="tst-lbl" data-i18n="labels.accidentals">Accidentals</span>
+        <span class="tst-val" id="tstAcc">♮</span>
+      </div>
+      <div class="tst-block tst-scale">
+        <span class="tst-lbl" data-i18n="labels.scaleNotes">Scale notes</span>
+        <span class="scale-orbs" id="tstScale"></span>
+      </div>
+    </div>
+
     <!-- BOTTOM THEORY -->
     <div class="theory-bottom">
       <!-- Degrees -->
@@ -474,6 +493,9 @@
 <!-- EMOTION SUGGESTER — seed the builder from a feeling (filled by EmotionSuggester) -->
 <div id="emotionPanel" class="modulate-panel" role="dialog" aria-label="Emotion suggester" hidden></div>
 <div id="colorPanel" class="modulate-panel" role="dialog" aria-label="Beyond the key" hidden></div>
+
+<!-- COMEBACK — "why open this again tomorrow": your projects + a daily challenge -->
+<div id="comeback" class="comeback" hidden></div>
 
 <!-- SETTINGS — theme · language · plasma -->
 <div id="settingsSheet" class="modulate-panel settings-sheet" role="dialog" aria-label="Settings" hidden>

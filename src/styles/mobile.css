@@ -68,6 +68,30 @@
                        text-transform:uppercase; color:var(--muted) }
   .mode-chip .mc-val { font-size:12px; font-weight:600; color:var(--ink); line-height:1 }
   .mode-chip:active   { border-color:rgba(232,68,26,.45) }
+
+  /* Theory strip — restores the scale notes / relative key / key signature that
+     the hidden .side cards used to carry. One card, three facts, no scrolling. */
+  .theory-strip {
+    display:grid; grid-template-columns:auto auto 1fr; align-items:center; gap:12px;
+    width:min(344px,92vw); margin:8px auto 0; padding:9px 13px;
+    border:1px solid var(--card-bd); border-radius:14px;
+    background:var(--degree-bg); backdrop-filter:blur(7px);
+  }
+  .tst-block { display:flex; flex-direction:column; gap:3px; min-width:0 }
+  .tst-lbl {
+    font-family:'DM Mono',monospace; font-size:7.5px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--muted); white-space:nowrap;
+  }
+  .tst-val { font-family:var(--wheel-font); font-size:15px; line-height:1; color:var(--ink); white-space:nowrap }
+  .tst-val.accent-t { color:var(--accent2) }
+  .tst-scale { min-width:0 }
+  .tst-scale .scale-orbs {
+    display:flex; gap:3px; overflow-x:auto; scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent);
+            mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent);
+  }
+  .tst-scale .scale-orbs::-webkit-scrollbar { display:none }
+  .tst-scale .chip { flex:0 0 auto; font-size:10px; padding:3px 6px }
   /* Lighter wheel on mobile so scrolling stays smooth */
   #wheelSheen     { animation:none !important; opacity:0 !important }
   .theory-bottom  { gap:14px }

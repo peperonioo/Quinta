@@ -84,6 +84,11 @@ OverlayManager.register('library', {
   close:    () => { if (typeof Library === 'object' && Library.open) Library.close(); },
   contains: (t) => !!(t.closest('#libraryPanel') || t.closest('[data-lib-trigger]')),
 });
+OverlayManager.register('comeback', {
+  isOpen:   () => { const e = document.getElementById('comeback'); return !!(e && !e.hidden); },
+  close:    () => { if (typeof Comeback === 'object') Comeback.close(); },
+  contains: (t) => !!t.closest('#comeback'),
+});
 OverlayManager.register('instr-zoom', {
   isOpen:   () => !!(typeof InstrumentZoom === 'object' && InstrumentZoom.open),
   close:    () => { if (typeof InstrumentZoom === 'object' && InstrumentZoom.open) InstrumentZoom.close(); },

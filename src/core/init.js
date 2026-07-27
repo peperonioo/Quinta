@@ -295,6 +295,10 @@ function toggleTheme() {
   } else if (typeof Onboarding === 'object' && Onboarding.shouldShow()) {
     // First-run welcome tour (once; re-openable from the header "?" button).
     setTimeout(() => Onboarding.open(), 520);
+  } else if (typeof Comeback === 'object') {
+    // Returning visitor: their projects + today's challenge. Once per day, from
+    // the 2nd visit on, and never on top of the tour or a shared loop.
+    setTimeout(() => { try { Comeback.maybeShow(); } catch (_) {} }, 700);
   }
 })();
 

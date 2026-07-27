@@ -71,6 +71,20 @@ function renderTheory() {
   renderScaleChips('scaleNotes');
   renderScaleChips('scaleBox');
 
+  // Mobile theory strip — same three facts the hidden .side cards carry, so the
+  // learning layer exists on phones too (V6.17).
+  const tsRel = document.getElementById('tstRel');
+  if (tsRel) tsRel.textContent = grel();
+  const tsRelLbl = document.getElementById('tstRelLbl');
+  if (tsRelLbl) {
+    const k = st.wheelView === 'minor' ? 'labels.relativeMajor' : 'labels.relativeMinor';
+    tsRelLbl.setAttribute('data-i18n', k);
+    tsRelLbl.textContent = t(k);
+  }
+  const tsAcc = document.getElementById('tstAcc');
+  if (tsAcc) tsAcc.textContent = accStr === '0' ? '♮ ' + t('acc.none') : accStr;
+  renderScaleChips('tstScale');
+
   // Re-render mode menu label
   renderModeMenu();
 

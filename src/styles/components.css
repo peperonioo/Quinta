@@ -141,3 +141,79 @@
 .bm-label { font-family:'DM Mono',monospace; font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted) }
 .bm-btns  { display:flex; gap:6px; flex-wrap:wrap }
 #loopBtn.active, #moreBtn.active { background:var(--glass-2); border-color:rgba(232,68,26,.42); color:var(--accent2); }
+
+/* ── COMEBACK PANEL (V6.17) ───────────────────────────
+   The reason to open Quinta again tomorrow: your own projects, plus a challenge
+   that changes daily. Two independent hooks, deliberately, so telemetry can tell
+   which one works. Once a day, from the 2nd visit, never over the tour. */
+.comeback {
+  position:fixed; inset:0; z-index:var(--z-toast);
+  display:grid; place-items:center; padding:18px;
+  background:rgba(0,0,0,.5); backdrop-filter:blur(5px);
+  opacity:0; pointer-events:none; transition:opacity .26s var(--ease);
+}
+.comeback.cb-on { opacity:1; pointer-events:auto }
+body.light .comeback { background:rgba(40,34,28,.34) }
+
+.cb-card {
+  position:relative; width:min(370px,100%); max-height:84svh; overflow-y:auto;
+  padding:20px 18px 18px; border-radius:22px;
+  background:var(--ui-surface-strong); border:1px solid var(--ui-border-strong);
+  box-shadow:var(--shadow-lifted);
+  transform:translateY(14px) scale(.97); transition:transform .3s cubic-bezier(.34,1.28,.5,1);
+}
+.comeback.cb-on .cb-card { transform:none }
+@media (prefers-reduced-motion:reduce) {
+  .comeback, .cb-card { transition:none }
+}
+
+.cb-x {
+  position:absolute; top:12px; right:12px; width:var(--tap); height:var(--tap);
+  display:grid; place-items:center; border:0; border-radius:50%;
+  background:transparent; color:var(--muted); cursor:pointer;
+}
+.cb-x:hover { color:var(--ink); background:var(--sel-bg) }
+.cb-head {
+  font-family:var(--wheel-font); font-size:21px; color:var(--ink);
+  margin-bottom:14px; padding-right:34px; line-height:1.1;
+}
+.cb-sec { margin-bottom:14px }
+.cb-sec:last-child { margin-bottom:0 }
+.cb-lbl {
+  font-family:'DM Mono',monospace; font-size:8.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:7px;
+}
+
+/* Your saved progressions, as projects with a name and an age. */
+.cb-proj {
+  display:flex; flex-direction:column; align-items:flex-start; gap:2px;
+  width:100%; min-height:var(--tap); margin-bottom:6px; padding:9px 12px;
+  border:1px solid var(--line); border-radius:12px; background:var(--sel-bg);
+  cursor:pointer; text-align:left; transition:all .16s var(--ease);
+}
+.cb-proj:hover { border-color:rgba(232,68,26,.4); transform:translateY(-1px) }
+.cb-proj:last-child { margin-bottom:0 }
+.cb-pname { font-size:14px; font-weight:600; color:var(--ink) }
+.cb-pmeta { font-family:'DM Mono',monospace; font-size:9.5px; color:var(--muted) }
+
+/* Today's challenge — derived from the date, identical for everyone, no server. */
+.cb-daily {
+  padding:13px; border-radius:14px;
+  border:1px solid rgba(232,68,26,.32); background:var(--degree-tonic);
+}
+.cb-daily.cb-done { border-color:var(--line); background:var(--sel-bg) }
+.cb-dtop { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap }
+.cb-dkey { font-family:var(--wheel-font); font-size:20px; color:var(--ink); line-height:1 }
+.cb-dgenre {
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--accent2); padding:3px 8px; border-radius:999px; border:1px solid rgba(232,68,26,.3);
+}
+.cb-dprog { font-size:12px; color:var(--muted); margin-top:6px }
+.cb-dprog em { font-style:normal; color:var(--accent2); font-size:10px; margin-left:5px }
+.cb-go {
+  width:100%; min-height:var(--tap); margin-top:11px; border:0; border-radius:11px;
+  background:var(--accent); color:#fff; font-family:'DM Sans',sans-serif;
+  font-size:13px; font-weight:600; cursor:pointer; transition:box-shadow .18s var(--ease);
+}
+.cb-go:hover { box-shadow:0 5px 18px rgba(232,68,26,.36) }
+.cb-daily.cb-done .cb-go { background:var(--sel-bg); color:var(--ink); border:1px solid var(--line) }

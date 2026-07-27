@@ -1,7 +1,7 @@
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V6.16';
+const APP_VERSION = 'V6.17';
 // NOTE: storage key kept as-is across the "Quinta" rebrand so existing saved
 // state/progressions are not wiped. It's an internal key, never shown to users.
 const STORAGE_KEY = 'easy-fifth-circle:v1';
@@ -100,4 +100,5 @@ const defaultState = {
   activeSection:'A', chain:false,        // A/B parts; `chain` plays A→B as one song
   snap:0.25,                             // grid snap in beats (0.25 = 1/16 note; 0 = free)
   onboarded:false,
+  comebackSeen:0, dailyDone:0,          // V6.17 — return hooks: last day the panel showed / the challenge was taken
 };
