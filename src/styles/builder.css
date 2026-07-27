@@ -19,13 +19,13 @@ body.light .progression-builder { background:rgba(250,247,241,.92) }
    sizes to its content and only CAPS how tall it may get, so "focus" amplifies
    the work instead of the emptiness around it. */
 body.focus-builder .progression-builder {
-  min-height:auto; max-height:82svh; display:flex; flex-direction:column;
+  min-height:62svh; max-height:88svh; display:flex; flex-direction:column;
   padding:18px 15px 22px;
   box-shadow:0 12px 44px -14px rgba(0,0,0,.55);
 }
 body.focus-builder #flowRow.is-timeline { flex:0 0 auto }                 /* clips never stretch */
 body.focus-builder #progressionStory.builder-next-moves {
-  flex:0 1 auto; display:flex; flex-direction:column; justify-content:center;
+  flex:1 1 auto; display:flex; flex-direction:column; justify-content:center;
 }
 body.focus-builder #progressionStory .next-orbit { min-height:clamp(120px, 17svh, 168px) }
 body.focus-builder #wheelSvg { opacity:.5; transition:opacity .45s var(--ui-ease) }   /* fade the wheel above as you commit */

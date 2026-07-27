@@ -43,46 +43,35 @@
   }
   /* No drop-shadow filter on mobile — re-rasterising a filter while the wheel
      scales every frame is the other big jank source. */
-  #wheelSvg       { width:min(97vw,560px) !important; height:min(97vw,560px) !important; filter:none !important }
+  #wheelSvg       { width:min(84vw,460px) !important; height:min(84vw,460px) !important; filter:none !important }
   body.building .wheel-toggle-row { margin-top:6px }
-  /* V6.16 — the wheel shrinks with transform, which does NOT shrink its layout box:
-     it left a 122px dead band (14% of an iPhone screen) between the wheel and the
-     toggle. Pull everything below it up by the same amount, driven by the same --sp.
-     Still transform-only, still no reflow — the slack now lands at the end of the
-     document, where nobody is looking, instead of in the middle of the screen. */
-  .wheel-toggle-row, .theory-bottom {
-    transform:translate3d(0, calc((-22vw - 30px) * var(--sp,0)), 0);
+  /* The wheel shrinks via transform, which does not shrink its layout box — that
+     leaves dead space under it as you scroll. Pull the whole lower half up by the
+     same --sp. V6.16 did this to TWO siblings and left the theory strip between
+     them behind, so surfaces overlapped; one wrapper makes that impossible. */
+  .below-wheel {
+    transform:translate3d(0, calc(-16vw * var(--sp,0)), 0);
     will-change:transform; backface-visibility:hidden;
   }
   /* Surface the Major/Minor toggle on mobile (the side cards are hidden) */
-  .wheel-toggle-row { display:flex; gap:8px; align-items:stretch; justify-content:center; width:min(344px,92vw); margin:12px auto 2px }
-  .wheel-toggle-mobile { display:flex; flex:1; margin:0 }
-  .wheel-toggle-mobile button { font-size:12px; padding:13px 8px }   /* ~44px tap target */
-  /* Mode chip — same height as the toggle so the row reads as one control group. */
-  .mode-chip {
-    flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
-    gap:1px; min-height:44px; padding:6px 13px; cursor:pointer;
-    border:1px solid var(--line); border-radius:999px; background:var(--sel-bg);
-  }
-  .mode-chip .mc-lbl { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:.12em;
-                       text-transform:uppercase; color:var(--muted) }
-  .mode-chip .mc-val { font-size:12px; font-weight:600; color:var(--ink); line-height:1 }
-  .mode-chip:active   { border-color:rgba(232,68,26,.45) }
-
+  .wheel-toggle-row { display:flex; justify-content:center; margin:2px auto 8px }
+  .wheel-toggle-mobile { display:inline-flex; margin:0; padding:2px; border-radius:999px }
+  .wheel-toggle-mobile button { font-size:11px; padding:8px 20px; border-radius:999px; min-height:34px }
   /* Theory strip — restores the scale notes / relative key / key signature that
      the hidden .side cards used to carry. One card, three facts, no scrolling. */
   .theory-strip {
-    display:grid; grid-template-columns:auto auto 1fr; align-items:center; gap:12px;
-    width:min(344px,92vw); margin:8px auto 0; padding:9px 13px;
-    border:1px solid var(--card-bd); border-radius:14px;
-    background:var(--degree-bg); backdrop-filter:blur(7px);
+    display:flex; align-items:center; justify-content:center; flex-wrap:nowrap;
+    gap:14px; width:min(344px,92vw); margin:0 auto 8px; padding:7px 12px;
+    border:1px solid var(--line); border-radius:12px;
+    background:rgba(0,0,0,.22); overflow:hidden;
   }
+  .theory-strip .tst-scale { flex:1 1 auto; min-width:0 }
   .tst-block { display:flex; flex-direction:column; gap:3px; min-width:0 }
   .tst-lbl {
     font-family:'DM Mono',monospace; font-size:7.5px; letter-spacing:.12em;
     text-transform:uppercase; color:var(--muted); white-space:nowrap;
   }
-  .tst-val { font-family:var(--wheel-font); font-size:15px; line-height:1; color:var(--ink); white-space:nowrap }
+  .tst-val { font-family:var(--wheel-font); font-size:13px; line-height:1; color:var(--ink); white-space:nowrap }
   .tst-val.accent-t { color:var(--accent2) }
   .tst-scale { min-width:0 }
   .tst-scale .scale-orbs {
@@ -91,7 +80,8 @@
             mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent);
   }
   .tst-scale .scale-orbs::-webkit-scrollbar { display:none }
-  .tst-scale .chip { flex:0 0 auto; font-size:10px; padding:3px 6px }
+  .tst-scale .chip { flex:0 0 auto; font-size:9.5px; padding:2px 5px }
+  .tst-scale .scale-orbs { flex-wrap:nowrap }
   /* Lighter wheel on mobile so scrolling stays smooth */
   #wheelSheen     { animation:none !important; opacity:0 !important }
   .theory-bottom  { gap:14px }

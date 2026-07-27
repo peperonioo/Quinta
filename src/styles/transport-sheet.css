@@ -105,12 +105,24 @@
   #tsInstruments .drawer { background:transparent !important; border:0 !important; box-shadow:none !important }
   #tsInstruments .drawer > summary { display:none }   /* no inline collapse — fullscreen is the only enlarge */
   #tsInstruments .drawer-body { padding:0 }
-  #tsInstruments .instr-pager { flex:none; height:248px }
-  #tsInstruments .instr-pager > .drawer { height:248px; overflow:hidden }
+  /* 292px, not 248: the fretboard renders 284px tall (6 strings) and was being
+     clipped at the bottom — the low E row simply vanished. The pager keeps one
+     fixed height so horizontal scroll-snap between piano and guitar stays stable. */
+  #tsInstruments .instr-pager { flex:none; height:292px }
+  #tsInstruments .instr-pager > .drawer { height:292px; overflow:hidden }
   #tsInstruments #piano { height:168px }
-  /* Guitar "Shapes" open → let the drawer grow so the shapes strip isn't clipped */
+  /* Guitar "Shapes" open → the shape cards ARE the subject; the fretboard is
+     context. Letting the pager grow (V6.x) wasn't enough: board + cards together
+     overflow the panel and the cards got cut off at the bottom edge. So the board
+     compresses to make room, and the panel is allowed a little more height. */
   body.shapes-open #tsInstruments .instr-pager { height:auto !important }
   body.shapes-open #tsInstruments .instr-pager > .drawer { height:auto !important; overflow:visible !important }
+  body.shapes-open .ts-panel { max-height:90svh }
+  body.shapes-open #tsInstruments .fret-cell { height:29px }
+  body.shapes-open #tsInstruments .fret-note { width:23px; height:23px; font-size:9px }
+  body.shapes-open #tsInstruments .fret-note.on,
+  body.shapes-open #tsInstruments .fret-note.root,
+  body.shapes-open #tsInstruments .fret-note.chord { width:23px; height:23px; font-size:9px }
   #tsInstruments #piano .white .kl { font-size:12px }
   #tsInstruments .fret-cell { height:40px }
   #tsInstruments .fret-note.on, #tsInstruments .fret-note.root, #tsInstruments .fret-note.chord { width:28px; height:28px; font-size:10px }

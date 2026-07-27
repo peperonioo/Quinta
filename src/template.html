@@ -204,18 +204,16 @@
       </aside>
     </div>
 
-    <!-- Mobile-only Major/Minor toggle (the side cards are hidden on phones), plus
-         the mode chip: the 7 modes change every chord on screen, so burying them in
-         the settings gear made them unreachable on the product's main device. -->
+    <!-- Everything below the wheel moves as ONE block on scroll (see mobile.css).
+         Splitting this across siblings is what made surfaces overlap in V6.16. -->
+    <div class="below-wheel">
+    <!-- Mobile-only Major/Minor toggle (the side cards are hidden on phones).
+         Kept deliberately small: it is a switch, not the hero of the screen. -->
     <div class="wheel-toggle-row">
       <div class="wheel-toggle wheel-toggle-mobile" role="group" aria-label="Key tonality: major or minor">
         <button data-view="major" class="active" data-act="view.set" data-id="major" data-i18n="toggle.major">Major</button>
         <button data-view="minor" data-act="view.set" data-id="minor" data-i18n="toggle.minor">Minor</button>
       </div>
-      <button class="mode-chip" id="modeChipBtn" type="button" data-act="mode.menu" aria-haspopup="menu">
-        <span class="mc-lbl" data-i18n="labels.mode">Mode</span>
-        <span class="mc-val" id="modeChipVal">Major</span>
-      </button>
     </div>
 
     <!-- Mobile theory strip (V6.17) — the .side cards are display:none on phones,
@@ -241,7 +239,6 @@
     <div class="theory-bottom">
       <!-- Degrees -->
       <div style="position:relative">
-        <div class="row-caption" data-i18n="degrees.title">The chords in your key</div>
         <div id="degrees" class="degrees-row"></div>
         <div class="deg-popup-wrap" id="degWrap">
           <div class="deg-popup" id="degPopup">
@@ -319,8 +316,9 @@
         <div id="builderMeta" class="builder-meta"></div>
         <div id="progressionStory" class="progression-story"></div>
       </section>
+    </div>
 
-      <!-- Suggestions section (hidden by CSS; bubbles live in builder) -->
+    <!-- Suggestions section (hidden by CSS; bubbles live in builder) -->
       <section class="suggestions-section">
         <div class="suggestions-head">
           <div>
