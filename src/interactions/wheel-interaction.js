@@ -25,7 +25,7 @@ function setWheelLock(on) {
   if (wheelLocked === on) return;
   wheelLocked = on;
   haptic(on ? 14 : 8);
-  if (typeof renderWheel === 'function') renderWheel();   // re-light the diatonic chords
+  renderWheel();   // re-light the diatonic chords
   updateWheelLockUI();
 }
 function toggleWheelLock() { setWheelLock(!wheelLocked); }

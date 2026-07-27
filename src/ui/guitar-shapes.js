@@ -86,7 +86,7 @@ const GuitarShapes = (() => {
     };
     // Resolve the chord's interval set from its variant (falls back to the triad).
     let iv;
-    if (variant && variant !== 'triad' && typeof variantDef === 'function') {
+    if (variant && variant !== 'triad') {
       const Q = qual === 'min' ? 'Min' : qual === 'dim' ? 'Dim' : 'Maj';
       iv = variantDef(Q, variant).iv;
     } else {
@@ -119,7 +119,7 @@ const GuitarShapes = (() => {
   function triadVoicings(root, qual, variant) {
     const r = ENH[root] || root, rootPC = NI[r] ?? 0;
     let ivFull;
-    if (variant && variant !== 'triad' && typeof variantDef === 'function') {
+    if (variant && variant !== 'triad') {
       const Q = qual === 'min' ? 'Min' : qual === 'dim' ? 'Dim' : 'Maj';
       ivFull = variantDef(Q, variant).iv;
     } else {
@@ -271,7 +271,7 @@ const GuitarShapes = (() => {
         const rootName = (typeof chordRootOf === 'function') ? chordRootOf(it) : String(it.chord || 'C').replace(/m$|°$/, '');
         const qual = it.quality === 'Min' ? 'min' : it.quality === 'Dim' ? 'dim' : 'maj';
         const variant = it.variant || 'triad';
-        const name = (variant !== 'triad' && typeof chordDisplay === 'function') ? chordDisplay(it) : it.chord;
+        const name = (variant !== 'triad') ? chordDisplay(it) : it.chord;
         push(rootName, qual, name, variant);
       });
     } else {
@@ -354,7 +354,7 @@ const GuitarShapes = (() => {
     const c = _chords[pos]; if (!c) return;
     const vs = _voicingsFor(c), sel = clampi(_sel[pos] || 0, Math.max(0, vs.length - 1));
     _activePos = pos;
-    if (typeof highlightGuitarShape === 'function') highlightGuitarShape(vs[sel] ? vs[sel].frets : null);
+    highlightGuitarShape(vs[sel] ? vs[sel].frets : null);
     document.querySelectorAll('.gss-card').forEach(card => card.classList.toggle('gss-active', +card.dataset.pos === pos));
   }
 
@@ -417,7 +417,7 @@ const GuitarShapes = (() => {
       _activePos = -1;
       document.getElementById('guitarShapeStrip')?.classList.remove('gss-on');
       document.body.classList.remove('shapes-open');
-      if (typeof highlightGuitarShape === 'function') highlightGuitarShape(null);
+      highlightGuitarShape(null);
     },
   };
 })();

@@ -193,7 +193,7 @@ function toggleTheme() {
     st.theme = isLight ? 'light' : 'dark';
     document.body.classList.toggle('light', isLight);
     const btn = document.getElementById('themeBtn');
-    if (btn && typeof setIcon === 'function') setIcon(btn, isLight ? 'moon' : 'sun');
+    if (btn) setIcon(btn, isLight ? 'moon' : 'sun');
     if (typeof window._setPlasmaLight === 'function') window._setPlasmaLight(isLight);
     saveState();
     renderWheel();
@@ -220,7 +220,7 @@ function toggleTheme() {
   document.title = 'Quinta · ' + APP_VERSION;
   document.body.classList.toggle('light', isLight);
   const themeBtn = document.getElementById('themeBtn');
-  if (themeBtn && typeof setIcon === 'function') setIcon(themeBtn, isLight ? 'moon' : 'sun');
+  if (themeBtn) setIcon(themeBtn, isLight ? 'moon' : 'sun');
 
   if (window._setPalActive) window._setPalActive(st.palette || 0);
 
@@ -258,16 +258,16 @@ function toggleTheme() {
   );
 
   initWheelRoulette();
-  if (typeof initWheelLock === 'function') initWheelLock();
+  initWheelLock();
   WheelDirectionGuide.addInfoButton();
   if (typeof Metronome === 'object') Metronome.init();
-  if (typeof initPlayOpts === 'function') initPlayOpts();
+  initPlayOpts();
 
   normalizeKeyState();
   document.body.dataset.tab = 'theory';      // instrument dock shows on the theory tab
   RenderEngine.full();
   applyI18n();
-  if (typeof applyIcons === 'function') applyIcons();   // inject the line-SVG icon set
+  applyIcons();   // inject the line-SVG icon set
   if (typeof TransportSheet === 'object') TransportSheet.init();
   // Lift the metronome to body level: .app has position:relative + z-index, so it
   // creates a stacking context that traps #metronome (z-index 9000) BELOW the
@@ -276,9 +276,9 @@ function toggleTheme() {
   // doesn't change where it appears — only which stacking context it lives in.
   const _metro = document.getElementById('metronome');
   if (_metro && _metro.parentElement !== document.body) document.body.appendChild(_metro);
-  if (typeof _syncVoiceUI === 'function') _syncVoiceUI();   // reflect the saved instrument sound
-  if (typeof initBuilderFocus === 'function') initBuilderFocus();   // scroll → builder fills the screen
-  if (typeof tel === 'function') tel('app_open');
+  _syncVoiceUI();   // reflect the saved instrument sound
+  initBuilderFocus();   // scroll → builder fills the screen
+  tel('app_open');
   st.visits = (st.visits || 0) + 1; saveState();          // install nudge waits for visit 2+
   setTimeout(() => { try { _maybeInstallNudge(); } catch (_) {} }, 3200);
 
@@ -290,7 +290,7 @@ function toggleTheme() {
   }, 120);
 
   // Opened from a shared link → invite them to play the loop (audio needs the tap).
-  if (_sharedLoop && typeof showSharedBanner === 'function') {
+  if (_sharedLoop) {
     setTimeout(showSharedBanner, 420);
   } else if (typeof Onboarding === 'object' && Onboarding.shouldShow()) {
     // First-run welcome tour (once; re-openable from the header "?" button).
@@ -312,7 +312,7 @@ addEventListener('beforeinstallprompt', e => {
   _a2hs = e;
   _maybeInstallNudge();
 });
-addEventListener('appinstalled', () => { if (typeof tel === 'function') tel('installed'); _hideInstallNudge(); });
+addEventListener('appinstalled', () => { tel('installed'); _hideInstallNudge(); });
 
 function _standalone() {
   return (matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
@@ -337,20 +337,20 @@ function _showInstallNudge(ios) {
     ${ios ? '' : `<button class="in-btn" data-act="install.accept">${t('install.btn')}</button>`}
     <button class="in-x" data-ico="close" data-ico-size="12" data-act="install.dismiss" aria-label="Dismiss"></button>`;
   document.body.appendChild(el);
-  if (typeof applyIcons === 'function') applyIcons(el);
+  applyIcons(el);
   requestAnimationFrame(() => el.classList.add('show'));
-  if (typeof tel === 'function') tel('install_prompt_shown', { ios: !!ios });
+  tel('install_prompt_shown', { ios: !!ios });
 }
 function _acceptInstall() {
   if (!_a2hs) return _hideInstallNudge();
   _a2hs.prompt();
-  _a2hs.userChoice.then(c => { if (typeof tel === 'function') tel(c.outcome === 'accepted' ? 'install_accepted' : 'install_declined'); });
+  _a2hs.userChoice.then(c => { tel(c.outcome === 'accepted' ? 'install_accepted' : 'install_declined'); });
   _a2hs = null;
   _hideInstallNudge();
 }
 function _dismissInstall() {
   st.installDismissed = true; saveState();
-  if (typeof tel === 'function') tel('install_dismissed');
+  tel('install_dismissed');
   _hideInstallNudge();
 }
 function _hideInstallNudge() {
@@ -399,7 +399,7 @@ function _hideInstallNudge() {
     b.setAttribute('aria-label', (typeof st === 'object' && st.lang === 'es') ? s.es : s.en);
     b.addEventListener('click', () => {
       document.querySelector(s.sel)?.scrollIntoView({ behavior: 'smooth', block: i === 2 ? 'start' : 'center' });
-      if (typeof haptic === 'function') haptic('tap');
+      haptic('tap');
     });
     nav.appendChild(b);
   });

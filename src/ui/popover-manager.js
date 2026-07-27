@@ -66,7 +66,7 @@ document.addEventListener('click', e => {
 // Register the known overlays (callbacks resolve globals at call time).
 OverlayManager.register('mode-menu', {
   isOpen:   () => !!document.getElementById('modeMenu')?.classList.contains('portal-open'),
-  close:    () => { if (typeof _closeModeMenu === 'function') _closeModeMenu(); },
+  close:    () => { _closeModeMenu(); },
   contains: (t) => !!(t.closest('#modeControl') || t.closest('#modeMenu') || t.closest('#setModeBtn')),
 });
 OverlayManager.register('metronome', {
@@ -134,7 +134,7 @@ OverlayManager.register('theory-help', {
 });
 OverlayManager.register('degree-popup', {
   isOpen: () => !!document.getElementById('degWrap')?.classList.contains('open'),
-  close:  () => { if (typeof closePopup === 'function') closePopup(); },
+  close:  () => { closePopup(); },
 });
 
 function positionTheoryHelp(pop, trigger) {
@@ -188,7 +188,7 @@ function showDegreePopup(idx) {
   if (!wrap) return;
   if (curDeg === idx) { AppActions.clearDegree(); return; }
   if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForDegree(idx));
-  if (typeof haptic === 'function') haptic('sel');
+  haptic('sel');
   OverlayManager.opened('degree-popup');
   curDeg = idx;
   fillPopup(idx);
@@ -283,5 +283,5 @@ addEventListener('keydown', e => {
   const ob = document.getElementById('onboarding');
   if (ob && !ob.hidden) return;                        // don't hijack the tour
   e.preventDefault();
-  if (typeof toggleProgPlay === 'function') toggleProgPlay();
+  toggleProgPlay();
 });

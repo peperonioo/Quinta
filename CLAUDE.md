@@ -58,6 +58,15 @@ takes `'tap'|'sel'|'ok'` or raw ms.
 - Product strategy: validate with telemetry before adding features or paying for stores.
   Events go via `tel(name, props)` → user's Google Sheet. Don't pollute it.
 
+## Defensive guards — when they're real
+
+`build.js` concatenates into ONE scope, so `function foo(){}` declarations hoist
+across the whole bundle: `typeof foo === 'function'` around them can never be
+false. Those guards were removed in V6.20. `const`/`let` modules (`AudioEngine`,
+`OverlayManager`, `Metronome`…) do NOT hoist, so a guard still matters where the
+call can run before that module's line — top-level code and boot paths. Don't add
+a guard by reflex; add it when the call site can genuinely run too early.
+
 ## Traps learned the hard way
 
 - The SW serves stale HTML in previews — hard-reload or disable SW when testing.

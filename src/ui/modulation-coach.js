@@ -69,7 +69,7 @@ const ModulationCoach = (() => {
             ${tg.pivot ? `<span class="mod-pivot">${es ? 'pivote' : 'pivot'} · <b>${tg.pivot}</b></span>` : ''}
           </button>`).join('')}
       </div>`;
-    if (typeof applyIcons === 'function') applyIcons(box);
+    applyIcons(box);
   }
 
   function show() {
@@ -88,10 +88,10 @@ const ModulationCoach = (() => {
   function toggle() { _open ? close() : show(); }
 
   function jump(sector, view) {
-    if (typeof wheelLocked !== 'undefined' && wheelLocked && typeof setWheelLock === 'function') setWheelLock(false);
+    if (typeof wheelLocked !== 'undefined' && wheelLocked) setWheelLock(false);
     AppActions.setKey(sector);
     AppActions.setWheelView(view);
-    if (typeof tel === 'function') tel('modulate');
+    tel('modulate');
     close();
   }
 

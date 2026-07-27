@@ -15,10 +15,10 @@ const Settings = (() => {
 
   function setTheme(tk) {
     const light = document.body.classList.contains('light');
-    if ((tk === 'light') !== light && typeof toggleTheme === 'function') toggleTheme();
+    if ((tk === 'light') !== light) toggleTheme();
     syncActive();
   }
-  function setLang(l) { if (typeof setLanguage === 'function') setLanguage(l); syncActive(); }
+  function setLang(l) { setLanguage(l); syncActive(); }
 
   // Real (sampled) piano vs pure synth. Turning it on kicks the lazy sample load.
   function setRealPiano(v) {
@@ -28,7 +28,7 @@ const Settings = (() => {
       if (typeof SampleGuitar === 'object') SampleGuitar.ensure();
       if (typeof SampleBass === 'object') SampleBass.ensure();
     }
-    if (typeof haptic === 'function') haptic('sel');
+    haptic('sel');
   }
 
   function show()  { const b = el(); if (!b) return; b.hidden = false; requestAnimationFrame(() => b.classList.add('open')); _open = true; syncActive();
@@ -40,7 +40,7 @@ const Settings = (() => {
 
   function setHaptics(v) {
     st.haptics = !!v; saveState(); syncActive();
-    if (st.haptics && typeof haptic === 'function') haptic('sel');   // felt confirmation
+    if (st.haptics) haptic('sel');   // felt confirmation
   }
 
   return { show, close, toggle, setTheme, setLang, setRealPiano, setHaptics, syncActive, isOpen: () => _open };

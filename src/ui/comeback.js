@@ -59,12 +59,12 @@ const Comeback = (() => {
   function startChallenge() {
     const c = challenge();
     if (typeof AudioEngine === 'object') AudioEngine.resume();     // unlock in this gesture
-    if (typeof snapshotAndOfferUndo === 'function') snapshotAndOfferUndo('undo.replaced');
+    snapshotAndOfferUndo('undo.replaced');
     st.key = c.key;
     st.mode = c.mode;
     st.tonality = (typeof modeIsMinor === 'function' && modeIsMinor(c.mode)) ? 'minor' : 'major';
     st.wheelView = st.tonality;
-    if (typeof normalizeKeyState === 'function') normalizeKeyState();
+    normalizeKeyState();
     st.history = [];
     const pr = (typeof PROG_PRESETS !== 'undefined') ? PROG_PRESETS[c.preset] : null;
     if (pr && typeof HistoryEngine === 'object') pr.idx.forEach(d => HistoryEngine.addDegree(d));
@@ -73,9 +73,9 @@ const Comeback = (() => {
     saveState();
     if (typeof setGenre === 'function') { try { setGenre(c.genre); } catch (_) {} }
     if (typeof RenderEngine === 'object') RenderEngine.full();
-    if (typeof tel === 'function') tel('daily_start', { key: c.key, mode: c.mode, genre: c.genre });
+    tel('daily_start', { key: c.key, mode: c.mode, genre: c.genre });
     close();
-    if (typeof playProgression === 'function') setTimeout(playProgression, 140);
+    setTimeout(playProgression, 140);
   }
 
   // ── Projects ─────────────────────────────────────────
@@ -93,7 +93,7 @@ const Comeback = (() => {
   const _chords = n => n === 1 ? L('1 chord', '1 acorde') : L(`${n} chords`, `${n} acordes`);
 
   function resume(id) {
-    if (typeof tel === 'function') tel('resume_load');
+    tel('resume_load');
     close();
     if (typeof Library === 'object') Library.loadSaved(id);
   }
@@ -158,11 +158,10 @@ const Comeback = (() => {
       </div>`;
 
     e.hidden = false;
-    if (typeof applyIcons === 'function') applyIcons(e);
+    applyIcons(e);
     requestAnimationFrame(() => e.classList.add('cb-on'));
     if (typeof OverlayManager === 'object') OverlayManager.opened('comeback');
-    if (typeof tel === 'function')
-      tel('comeback_shown', { projects: list.length, doneToday: !!doneToday, visits: st.visits || 0 });
+    tel('comeback_shown', { projects: list.length, doneToday: !!doneToday, visits: st.visits || 0 });
   }
 
   function close() {

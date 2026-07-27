@@ -192,7 +192,7 @@ const AudioEngine = {
       if (typeof SampleGuitar === 'object') SampleGuitar.ensure();
       if (typeof SampleBass === 'object') SampleBass.ensure();
       // Pack voices load only when the pack is owned AND selected (bandwidth-kind).
-      if (typeof packOwned === 'function' && packOwned('pack1') && typeof st === 'object') {
+      if (packOwned('pack1') && typeof st === 'object') {
         if (st.pianoSound === 'steel'    && typeof SampleSteel === 'object')    SampleSteel.ensure();
         if (st.pianoSound === 'electric' && typeof SampleElectric === 'object') SampleElectric.ensure();
       }
@@ -785,7 +785,7 @@ function chordPitchesForDegree(idx) {
 function chordPitchesForItem(item) {
   if (!item) return [];
   const root = ni(item.note != null ? item.note : item.chord.replace(/m|°/g, ''));
-  const iv = (item.variant && item.variant !== 'triad' && typeof variantDef === 'function')
+  const iv = (item.variant && item.variant !== 'triad')
     ? variantDef(item.quality, item.variant).iv
     : chordIntervalsFor(item.quality, item.degree);
   return iv.map(x => root + x);

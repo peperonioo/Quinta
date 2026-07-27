@@ -139,13 +139,13 @@ const ColorChords = (() => {
         </div>
 
       </div>`;
-    if (typeof applyIcons === 'function') applyIcons(box);
+    applyIcons(box);
   }
 
   function preview(i) {
     const c = colorChords()[i]; if (!c) return;
     const pitches = c.iv.map(x => c.pc + x);
-    if (typeof setActiveChord === 'function') setActiveChord(pitches);
+    setActiveChord(pitches);
     if (typeof AudioEngine === 'object') AudioEngine.playChord(pitches);
     el()?.querySelectorAll('.cc-item').forEach((it,j) => it.classList.toggle('on', j===i));
   }
@@ -154,12 +154,12 @@ const ColorChords = (() => {
     const c = colorChords()[i]; if (!c) return;
     if (typeof HistoryEngine === 'object' && HistoryEngine.addCustom)
       HistoryEngine.addCustom({ note:nm(c.pc), chord:c.name, quality:c.quality, variant:c.variant });
-    if (typeof tel === 'function') tel('color_chord', { role:c.role.en });
+    tel('color_chord', { role:c.role.en });
     if (typeof AudioEngine === 'object') AudioEngine.playChord(c.iv.map(x => c.pc+x));
   }
 
   function jump(sector, view) {
-    if (typeof wheelLocked !== 'undefined' && wheelLocked && typeof setWheelLock === 'function') setWheelLock(false);
+    if (typeof wheelLocked !== 'undefined' && wheelLocked) setWheelLock(false);
     AppActions.setKey(sector);
     AppActions.setWheelView(view);
     close();
@@ -176,7 +176,7 @@ const ColorChords = (() => {
         HistoryEngine.addCustom({ note:nm(tg.pivot.pc), chord:tg.pivot.name, quality, variant:null });
       if (typeof AudioEngine === 'object') AudioEngine.playChord(iv.map(x => tg.pivot.pc + x));
     }
-    if (typeof tel === 'function') tel('modulate', { pivot: !!tg.pivot });
+    tel('modulate', { pivot: !!tg.pivot });
     jump(tg.sector, tg.view);
   }
 

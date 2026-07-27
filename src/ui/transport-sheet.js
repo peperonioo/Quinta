@@ -25,7 +25,7 @@ const TransportSheet = (() => {
 
   // Keep the piano/guitar tabs in sync if the pager is swiped.
   function wirePager() {
-    if (typeof _wireInstrPager === 'function') _wireInstrPager();
+    _wireInstrPager();
   }
 
   function apply(s) {

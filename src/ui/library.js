@@ -32,16 +32,16 @@ function surpriseMe(autoplay = true) {
   do { i = pool[Math.floor(Math.random() * pool.length)]; } while (i === surpriseMe._last && pool.length > 1 && guard++ < 8);
   surpriseMe._last = i;
   const pr = PROG_PRESETS[i]; if (!pr) return;
-  if (typeof snapshotAndOfferUndo === 'function') snapshotAndOfferUndo('undo.replaced');  // recover an accidental tap
+  snapshotAndOfferUndo('undo.replaced');  // recover an accidental tap
   st.history = [];
   pr.idx.forEach(d => HistoryEngine.addDegree(d));
   saveState();
   RenderEngine.full();
   haptic('ok');
-  if (typeof tel === 'function') tel('surprise', { preset: pr.name });
+  tel('surprise', { preset: pr.name });
   if (autoplay) {
-    if (typeof _progRAF !== 'undefined' && _progRAF && typeof stopProgression === 'function') stopProgression();
-    if (typeof playProgression === 'function') setTimeout(playProgression, 110);
+    if (typeof _progRAF !== 'undefined' && _progRAF) stopProgression();
+    setTimeout(playProgression, 110);
   }
 }
 
@@ -85,14 +85,14 @@ const Library = {
     this._write(list);
     if (input) input.value = '';
     this.render();
-    if (typeof _shareToast === 'function') _shareToast('Saved');
+    _shareToast('Saved');
   },
 
   remove(id) { this._write(this._read().filter(p => p.id !== id)); this.render(); },
 
   loadSaved(id) {
     const p = this._read().find(x => x.id === id); if (!p) return;
-    if (typeof snapshotAndOfferUndo === 'function') snapshotAndOfferUndo('undo.replaced');
+    snapshotAndOfferUndo('undo.replaced');
     st.key = p.key; st.mode = p.mode;
     st.tonality = p.tonality || (modeIsMinor(p.mode) ? 'minor' : 'major');
     if (p.bpm) st.bpm = p.bpm;
@@ -106,7 +106,7 @@ const Library = {
   // Apply a preset's degree sequence in the current key/mode.
   loadPreset(i) {
     const pr = PROG_PRESETS[i]; if (!pr) return;
-    if (typeof snapshotAndOfferUndo === 'function') snapshotAndOfferUndo('undo.replaced');
+    snapshotAndOfferUndo('undo.replaced');
     st.history = [];
     pr.idx.forEach(d => HistoryEngine.addDegree(d));
     saveState();
@@ -150,6 +150,6 @@ const Library = {
           <span class="lib-chords">${this._presetChords(pr).join(' · ')}</span>
         </button>`).join('');
     }
-    if (typeof applyIcons === 'function') applyIcons(document.getElementById('libraryPanel'));
+    applyIcons(document.getElementById('libraryPanel'));
   },
 };

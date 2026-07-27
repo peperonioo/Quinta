@@ -74,7 +74,7 @@ const EmotionSuggester = (() => {
       <button class="em-apply"${!selected ? ' disabled' : ''} data-act="emotion.apply">
         ${es ? 'Cargar progresión' : 'Load progression'}
       </button>`;
-    if (typeof applyIcons === 'function') applyIcons(box);
+    applyIcons(box);
   }
 
   function show() {
@@ -109,9 +109,9 @@ const EmotionSuggester = (() => {
     RenderEngine.full();
     // One event with a property — NOT one event name per emotion, which would
     // grow the Sheet a column at a time and make the funnel unqueryable.
-    if (typeof tel === 'function') tel('emotion', { id: e.id });
+    tel('emotion', { id: e.id });
     close();
-    if (typeof _shareToast === 'function') _shareToast(L(e.label));
+    _shareToast(L(e.label));
   }
 
   return { toggle, show, close, select, apply, isOpen: () => _open };

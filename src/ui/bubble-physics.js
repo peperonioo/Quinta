@@ -114,7 +114,7 @@ const BubbleField = {
     const from = b.el.getBoundingClientRect();
     const chord = b.el.querySelector('.nb-chord')?.textContent || '';
     AppActions.selectDegree(b.to, { force: true });   // renders the new pill synchronously
-    if (!this.reduced && typeof _flyGhost === 'function') {
+    if (!this.reduced) {
       const steps = document.querySelectorAll('#flowRow .builder-step');
       const pill = steps[steps.length - 1];            // last bar (the playhead div trips :last-of-type)
       const to = pill && pill.getBoundingClientRect();

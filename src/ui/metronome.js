@@ -78,7 +78,7 @@ const Metronome = {
   },
   _playBtn() {
     const b = document.getElementById('metroPlay');
-    if (b && typeof setIcon === 'function') setIcon(b, this.playing ? 'stop' : 'play');
+    if (b) setIcon(b, this.playing ? 'stop' : 'play');
   },
 
   // ── Tap tempo (V6.06 redesign — measurement-grade) ────
@@ -103,7 +103,7 @@ const Metronome = {
     const el = document.getElementById('metronome');
     if (el) { el.classList.remove('beat'); void el.offsetWidth; el.classList.add('beat'); }
     if (typeof AudioEngine === 'object') AudioEngine.tick(300, 0.08);
-    if (typeof haptic === 'function') haptic('tap');
+    haptic('tap');
 
     const es = st.lang === 'es';
     const hint = document.getElementById('metroTapHint');

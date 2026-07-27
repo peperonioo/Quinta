@@ -217,9 +217,9 @@ function captureUndo() {
 function undoLastChange() {
   if (!_undoSnap) return;
   const snap = _undoSnap; _undoSnap = null;
-  if (typeof _progRAF !== 'undefined' && _progRAF && typeof stopProgression === 'function') stopProgression();
+  if (typeof _progRAF !== 'undefined' && _progRAF) stopProgression();
   if (snap.section && st.sections && st.sections[snap.section] != null &&
-      snap.section !== st.activeSection && typeof switchSection === 'function') {
+      snap.section !== st.activeSection) {
     switchSection(snap.section, { force: true });
   }
   try { st.history = JSON.parse(JSON.stringify(snap.history)); } catch (_) { st.history = snap.history; }
@@ -287,7 +287,7 @@ const HistoryEngine = {
     renderProgressionStory();
     saveState();
     haptic('ok');
-    if (typeof tel === 'function') tel('chord_add');
+    tel('chord_add');
     if (opts.sourceEl) animateChordToBuilder(opts.sourceEl, idx);
   },
 
@@ -350,8 +350,8 @@ const HistoryEngine = {
     // Surface Export once there is something worth exporting.
     const expBtn = document.getElementById('exportBtn');
     if (expBtn) expBtn.hidden = h.length < 2;
-    if (typeof renderInstrProgStrip === 'function') renderInstrProgStrip();
-    if (typeof initBuilderFocus === 'function') initBuilderFocus();   // wire scroll-focus once (idempotent)
+    renderInstrProgStrip();
+    initBuilderFocus();   // wire scroll-focus once (idempotent)
 
     // Clear __justAdded flag + migrate older items (no duration yet).
     h.forEach(it => { delete it.__justAdded; if (it.beats == null) it.beats = 2; });
@@ -362,7 +362,7 @@ const HistoryEngine = {
         <button class="surprise-btn" data-ico="spark" data-act="builder.surprise">${t('builder.surprise')}</button>
         <div class="builder-empty-hint">${t('builder.emptyHint')}</div>
       </div>`;
-      if (typeof applyIcons === 'function') applyIcons(root);
+      applyIcons(root);
       const ruler = document.getElementById('builderRuler'); if (ruler) ruler.hidden = true;
       BuilderEngine.meta();
       if (typeof GuitarShapes === 'object') GuitarShapes.onProgressionChange();
@@ -599,12 +599,12 @@ let _progRAF = 0;
 function setProgBtn(playing) {
   // The island transport play buttons mirror the builder's Play/Stop state.
   document.querySelectorAll('#transportSheet .ts-play').forEach(b => {
-    if (typeof setIcon === 'function') setIcon(b, playing ? 'stop' : 'play');
+    setIcon(b, playing ? 'stop' : 'play');
     b.classList.toggle('is-stop', playing);
   });
   const b = document.getElementById('playProgBtn'); if (!b) return;
   const lbl = b.querySelector('span'); if (lbl) lbl.textContent = playing ? t('play.stop') : t('builder.play');
-  if (typeof setIcon === 'function') setIcon(b, playing ? 'stop' : 'play');
+  setIcon(b, playing ? 'stop' : 'play');
   b.classList.toggle('is-stop', playing);
   b.classList.toggle('playing', playing);
 }
@@ -626,7 +626,7 @@ function toggleProgPlay() {
   if (_progRAF || metroOn || prodOn) {
     if (_progRAF) stopProgression();
     if (metroOn && typeof Metronome === 'object' && Metronome.stop) Metronome.stop();
-    if (prodOn && typeof stopPlay === 'function') stopPlay();
+    if (prodOn) stopPlay();
     return;
   }
   // Chain on → play the whole song from the top (section A).
@@ -654,7 +654,7 @@ function switchSection(name, opts) {
   if (!opts.keepPlaying && typeof _progRAF !== 'undefined' && _progRAF) stopProgression();
   _playheadBeat = 0;
   HistoryEngine.render();
-  if (typeof renderProgressionStory === 'function') renderProgressionStory();
+  renderProgressionStory();
   if (typeof GuitarShapes === 'object') GuitarShapes.onProgressionChange();
   _syncSectionTabs();
   saveState();
@@ -678,7 +678,7 @@ function toggleBuilderMore(el) {
   const open = m.hasAttribute('hidden');
   if (open) m.removeAttribute('hidden'); else m.setAttribute('hidden', '');
   if (el) { el.classList.toggle('active', open); el.setAttribute('aria-expanded', open); }
-  if (open && typeof tel === 'function') tel('export_menu_open', { src: 'more' });
+  if (open) tel('export_menu_open', { src: 'more' });
 }
 
 // The Export call-to-action: opens the "···" panel and flashes the Export group so
@@ -697,7 +697,7 @@ function openExportMenu() {
     try { grp.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (_) {}
   }
   haptic('sel');
-  if (typeof tel === 'function') tel('export_menu_open', { src: 'cta', bars: (st.history || []).length });
+  tel('export_menu_open', { src: 'cta', bars: (st.history || []).length });
 }
 
 // Playback option toggles (7th chords, count-in). Persisted in state.
@@ -715,7 +715,7 @@ function initPlayOpts() {
   const v = document.getElementById('voicingBtn'); if (v) { v.classList.toggle('active', !!st.voicingOpen); v.setAttribute('aria-pressed', !!st.voicingOpen); }
   const l = document.getElementById('loopBtn');   if (l) { l.classList.toggle('active', !!st.loop); l.setAttribute('aria-pressed', !!st.loop); }
   const ch = document.getElementById('chainBtn'); if (ch) { ch.classList.toggle('active', !!st.chain); ch.setAttribute('aria-pressed', !!st.chain); }
-  if (typeof _syncSectionTabs === 'function') _syncSectionTabs();
+  _syncSectionTabs();
 }
 
 // `opts.continuation` marks the internal re-entries (loop restart, A→B hand-off)
@@ -724,7 +724,7 @@ function initPlayOpts() {
 function playProgression(opts) {
   if (typeof AudioEngine !== 'object') return;
   const h = Array.isArray(st.history) ? st.history : [];
-  if (!(opts && opts.continuation) && typeof tel === 'function')
+  if (!(opts && opts.continuation))
     tel('play_prog', { bars: h.length, loop: !!st.loop, chain: !!st.chain });
   cancelAnimationFrame(_progRAF); _progRAF = 0;
   document.querySelectorAll('.builder-step.playing').forEach(p => p.classList.remove('playing'));

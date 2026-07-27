@@ -102,7 +102,7 @@ const Onboarding = (() => {
       tryEl.innerHTML = (typeof icon === 'function' ? icon('check', 13) : '') +
         '<span>' + (es() ? '¡Eso es! Sigue cuando quieras.' : 'That’s it! Continue when ready.') + '</span>';
     }
-    if (earned && typeof haptic === 'function') haptic('ok');
+    if (earned) haptic('ok');
   }
 
   // Keep the page near the current step: allow a short scroll range, then stop.
@@ -115,7 +115,7 @@ const Onboarding = (() => {
   function _onScroll() { _clampScroll(); _reflow(); }
 
   function shouldShow() { return !st.onboarded; }
-  function markSeen() { if (!st.onboarded) { st.onboarded = true; if (typeof saveState === 'function') saveState(); } }
+  function markSeen() { if (!st.onboarded) { st.onboarded = true; saveState(); } }
   const $ = id => document.getElementById(id);
   // Resolve a step's target, falling back to selAlt when the primary isn't in the
   // DOM (e.g. the .surprise-btn hero only exists while the builder is empty).
@@ -149,7 +149,7 @@ const Onboarding = (() => {
   // them gated). Without these two events a low D7 is unreadable: you cannot tell
   // "the product doesn't stick" from "nobody got past step 3".
   function _telEnd(done) {
-    if (typeof tel === 'function') tel('onboard_end', { step: idx + 1, of: steps.length, done: !!done });
+    tel('onboard_end', { step: idx + 1, of: steps.length, done: !!done });
   }
   function skip()   { _telEnd(false); markSeen(); close(); }
   function finish() { _telEnd(true);  markSeen(); close(); }
@@ -157,7 +157,7 @@ const Onboarding = (() => {
   function prev()   { if (idx > 0) go(idx - 1); }
   function go(i) {
     idx = Math.max(0, Math.min(steps.length - 1, i));
-    if (typeof tel === 'function') tel('onboard_step', { step: idx + 1, of: steps.length });
+    tel('onboard_step', { step: idx + 1, of: steps.length });
     render();
     _startWatch(steps[idx]);
     const el = _targetEl(steps[idx]);

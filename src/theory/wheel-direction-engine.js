@@ -236,7 +236,7 @@ const WheelDirectionGuide = {
       if (e.target === wrap || e.target.classList.contains('dir-scrim')) WheelDirectionGuide.toggle();
     });
     document.body.appendChild(wrap);
-    if (typeof applyIcons === 'function') applyIcons(wrap);
+    applyIcons(wrap);
     return wrap;
   },
 

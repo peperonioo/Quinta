@@ -1,7 +1,7 @@
 // ── TABS & PRODUCTION RENDERER ────────────────────────
 
 function switchTab(tab, btn) {
-  if (typeof tel === 'function') tel('tab', { tab });
+  tel('tab', { tab });
   const tabsEl = btn?.closest?.('.tabs');
   if (tabsEl) {
     const buttons = [...tabsEl.querySelectorAll('.tab-btn')];
@@ -64,7 +64,7 @@ function toggleStep(ri, i) {
   const p = st.userPatterns[key][ri];
   p[i] = p[i] ? 0 : 1;
   saveState();
-  if (typeof haptic === 'function') haptic('sel');
+  haptic('sel');
   const cell = document.getElementById(`s-${ri}-${i}`);
   if (cell) cell.className = `step${p[i] ? ' on ' + g.pattern[ri].cl : ''} ${i % 4 === 0 ? 'beat-1' : ''}`;
   if (p[i] && typeof AudioEngine === 'object') AudioEngine.drumHit(g.pattern[ri].snd, 0, false);   // audition the hit
@@ -166,13 +166,12 @@ function startPlay() {
   // Only one chord source plays at a time. The production groove already voices
   // the progression, so cancel the dry Theory playback first — otherwise the two
   // run together and the chords double up. (Theory's play does the reverse.)
-  if (typeof _progRAF !== 'undefined' && _progRAF && typeof stopProgression === 'function') stopProgression();
-  if (typeof haptic === 'function') haptic('ok');
-  if (typeof tel === 'function')
-    tel('play_groove', { genre: curGenre, bars: (st.history || []).length });
+  if (typeof _progRAF !== 'undefined' && _progRAF) stopProgression();
+  haptic('ok');
+  tel('play_groove', { genre: curGenre, bars: (st.history || []).length });
   playing = true; _prodStep = 0; _prodBar = 0; _prodPrevUpper = null; _prodVoicing = null;
   const playBtn = document.getElementById('playBtn');
-  if (playBtn) { playBtn.classList.add('playing'); const l = playBtn.querySelector('span'); if (l) l.textContent = t('play.stop'); if (typeof setIcon === 'function') setIcon(playBtn, 'stop'); }
+  if (playBtn) { playBtn.classList.add('playing'); const l = playBtn.querySelector('span'); if (l) l.textContent = t('play.stop'); setIcon(playBtn, 'stop'); }
   _prodNext = AudioEngine.now() + 0.08;
   pInterval = setInterval(_prodSchedule, 25);
 }
@@ -182,7 +181,7 @@ function stopPlay() {
   clearInterval(pInterval); pInterval = null;
   if (typeof AudioEngine === 'object') AudioEngine.killVoices();   // cut sustained chords/sub
   const playBtn = document.getElementById('playBtn');
-  if (playBtn) { playBtn.classList.remove('playing'); const l = playBtn.querySelector('span'); if (l) l.textContent = t('play.play'); if (typeof setIcon === 'function') setIcon(playBtn, 'play'); }
+  if (playBtn) { playBtn.classList.remove('playing'); const l = playBtn.querySelector('span'); if (l) l.textContent = t('play.play'); setIcon(playBtn, 'play'); }
   document.querySelectorAll('.step.playing').forEach(el => el.classList.remove('playing'));
 }
 

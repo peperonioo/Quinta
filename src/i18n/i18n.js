@@ -12,7 +12,7 @@ function applyI18n() {
     const val = t(key);
     if (val && val !== key) el.textContent = val;
   });
-  if (typeof renderModeMenu === 'function') renderModeMenu();
+  renderModeMenu();
 }
 
 function setLanguage(lang) {
@@ -22,10 +22,10 @@ function setLanguage(lang) {
   // Re-render the panels whose text is generated in JS (not via data-i18n), so a
   // language switch also updates suggestions, the builder meta, the lock hint, etc.
   try {
-    if (typeof renderSuggestions === 'function') renderSuggestions();
-    if (typeof renderProduction === 'function') renderProduction();   // bilingual Production prose
+    renderSuggestions();
+    renderProduction();   // bilingual Production prose
     if (typeof HistoryEngine === 'object' && HistoryEngine.render) HistoryEngine.render();
-    if (typeof updateWheelLockUI === 'function') updateWheelLockUI();
+    updateWheelLockUI();
     if (typeof Metronome === 'object' && Metronome.syncTapHint) Metronome.syncTapHint();
     if (typeof GuitarShapes === 'object' && GuitarShapes.refresh) GuitarShapes.refresh();
   } catch (_) {}

@@ -81,7 +81,7 @@ function buildMIDI() {
 function exportMIDI() {
   const bytes = buildMIDI();
   if (!bytes) { _shareToast('Add some chords first'); return; }
-  if (typeof tel === 'function') tel('export_midi');
+  tel('export_midi');
   const blob = new Blob([bytes], { type: 'audio/midi' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -130,7 +130,7 @@ function buildShareURL() {
 }
 
 function shareProgression() {
-  if (typeof tel === 'function') tel('share');
+  tel('share');
   const url = buildShareURL();
   const done = () => _shareToast('Link copied');
   if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(done).catch(() => prompt('Copy this link:', url));
@@ -191,7 +191,7 @@ function showSharedBanner() {
 function playSharedLoop() {
   dismissSharedBanner();
   if (typeof AudioEngine === 'object') AudioEngine.resume();      // the tap unlocks audio
-  if (typeof toggleProgPlay === 'function') toggleProgPlay();
+  toggleProgPlay();
 }
 function dismissSharedBanner() {
   const b = document.getElementById('sharedBanner'); if (!b) return;
@@ -255,7 +255,7 @@ function _captureBusesWav(taps) {
       setTimeout(() => {
         st.loop = hadLoop; st.countIn = hadCountIn;
         recs.forEach(r => { try { r.tp.node.disconnect(r.g); r.g.disconnect(); r.proc.disconnect(); r.sink.disconnect(); } catch (_) {} });
-        if (typeof stopProgression === 'function') stopProgression();
+        stopProgression();
         resolve(recs.map(r => ({ name: r.tp.name, blob: _wavBlob(r.L, r.R, ctx.sampleRate), seconds })));
       }, seconds * 1000);
     } catch (e) { resolve(null); }
@@ -286,7 +286,7 @@ async function exportStems() {
   if (!h.length) { _shareToast(st.lang === 'es' ? 'Añade acordes primero' : 'Add some chords first'); return; }
   if (_wavBusy) return;
   if (typeof AudioEngine !== 'object' || !AudioEngine.resume()) return;
-  if (typeof _progRAF !== 'undefined' && _progRAF && typeof stopProgression === 'function') stopProgression();
+  if (typeof _progRAF !== 'undefined' && _progRAF) stopProgression();
   _wavBusy = true;
   _shareToast(st.lang === 'es' ? 'Grabando stems…' : 'Recording stems…');
   const lvl = AudioEngine.master.gain.value;
@@ -298,8 +298,8 @@ async function exportStems() {
   if (!res || res.some(s2 => !s2.blob || s2.blob.size <= 44)) { _shareToast(st.lang === 'es' ? 'No se pudo exportar' : 'Stems export failed'); return; }
   res.forEach((s2, i) => setTimeout(() => _downloadBlob(s2.blob, `${_wavBase()}-${s2.name}.wav`), i * 400));
   _shareToast(st.lang === 'es' ? 'Stems exportados (2 WAV)' : 'Stems exported (2 WAVs)');
-  if (typeof tel === 'function') tel('export_stems');
-  if (typeof haptic === 'function') haptic('ok');
+  tel('export_stems');
+  haptic('ok');
 }
 
 let _wavBusy = false;
@@ -308,7 +308,7 @@ async function exportAudio() {
   if (!h.length) { _shareToast(st.lang === 'es' ? 'Añade acordes primero' : 'Add some chords first'); return; }
   if (_wavBusy) return;
   if (typeof AudioEngine !== 'object' || !AudioEngine.resume()) return;
-  if (typeof _progRAF !== 'undefined' && _progRAF && typeof stopProgression === 'function') stopProgression();
+  if (typeof _progRAF !== 'undefined' && _progRAF) stopProgression();
   _wavBusy = true;
   _shareToast(st.lang === 'es' ? 'Grabando una pasada…' : 'Recording one pass…');
   const res = await _captureProgressionWav();
@@ -316,6 +316,6 @@ async function exportAudio() {
   if (!res || !res.blob || res.blob.size <= 44) { _shareToast(st.lang === 'es' ? 'No se pudo exportar' : 'Audio export failed'); return; }
   _downloadBlob(res.blob, `${_wavBase()}.wav`);
   _shareToast(st.lang === 'es' ? 'Audio exportado (WAV)' : 'Audio exported (WAV)');
-  if (typeof tel === 'function') tel('export_audio');
-  if (typeof haptic === 'function') haptic('ok');
+  tel('export_audio');
+  haptic('ok');
 }

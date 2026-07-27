@@ -96,7 +96,7 @@ const ChordVariants = {
           <button class="cv-act danger" data-ico="trash" data-ico-size="13" data-act="variant.del" aria-label="Delete chord"></button>
         </div>
       </div>`;
-    if (typeof applyIcons === 'function') applyIcons(el);
+    applyIcons(el);
     // size the gap to the bar so it shows through
     const gap = el.querySelector('.cv-mid');
     if (gap && this._anchorRect) gap.style.height = this._anchorRect.height + 'px';
@@ -119,7 +119,7 @@ const ChordVariants = {
   _light(id) {
     const ctx = this.ctx; if (!ctx) return;
     const rootPitch = ni(ctx.root);
-    if (typeof setActiveChord === 'function') setActiveChord(variantDef(ctx.quality, id).iv.map(x => rootPitch + x));
+    setActiveChord(variantDef(ctx.quality, id).iv.map(x => rootPitch + x));
   },
   preview(id) { this._light(id); },
 
@@ -146,7 +146,7 @@ const ChordVariants = {
     if (it) { it.variant = id; HistoryEngine.render(); renderProgressionStory(); saveState(); }
     this.close();
     // Re-light the picked chord on piano + fretboard (close() cleared setActiveChord)
-    if (typeof setActiveChord === 'function') setActiveChord(pitches);
+    setActiveChord(pitches);
     if (typeof GuitarShapes === 'object') GuitarShapes.hint(ctx.root, ctx.quality, id);
   },
 
@@ -175,6 +175,6 @@ const ChordVariants = {
       setTimeout(() => { if (el && !el.classList.contains('open')) el.style.display = 'none'; }, 220);
     }
     this.ctx = null;
-    if (typeof setActiveChord === 'function') setActiveChord(null);   // boards revert to the wheel degree
+    setActiveChord(null);   // boards revert to the wheel degree
   },
 };

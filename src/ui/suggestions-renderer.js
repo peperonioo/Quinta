@@ -231,7 +231,7 @@ function renderProgressionStory() {
   const el = document.getElementById('progressionStory'); if (!el) return;
   el.classList.add('builder-next-moves');
   el.innerHTML = _buildBubblesHTML();
-  if (typeof applyIcons === 'function') applyIcons(el);
+  applyIcons(el);
   if (typeof BubbleField === 'object') BubbleField.mount();
 }
 

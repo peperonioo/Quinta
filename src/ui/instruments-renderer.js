@@ -96,7 +96,7 @@ function renderInstrProgStrip() {
 function pickProgChord(i) {
   const h = Array.isArray(st.history) ? st.history : []; const it = h[i]; if (!it) return;
   const pcs = (typeof chordPitchesForItem === 'function') ? chordPitchesForItem(it) : null;
-  if (typeof setActiveChord === 'function') setActiveChord(pcs);
+  setActiveChord(pcs);
   if (pcs && typeof AudioEngine === 'object') AudioEngine.playChord(pcs);
   document.querySelectorAll('.tps-chip').forEach(c => c.classList.toggle('on', +c.dataset.i === i));
 }
@@ -115,7 +115,7 @@ function setVoice(s, btn) {
     }
     return;
   }
-  st.pianoSound = s; if (typeof saveState === 'function') saveState();
+  st.pianoSound = s; saveState();
   // Selecting a pack voice starts its lazy sample load right away.
   if (s === 'steel'    && typeof SampleSteel === 'object'    && AudioEngine.ctx) SampleSteel.ensure();
   if (s === 'electric' && typeof SampleElectric === 'object' && AudioEngine.ctx) SampleElectric.ensure();
@@ -211,7 +211,7 @@ const InstrumentZoom = {
       if (!TransportSheet.isOpen()) TransportSheet.open();
       requestAnimationFrame(() => {
         document.getElementById('transportSheet')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        if (typeof gotoInstrument === 'function') gotoInstrument(which || 'piano');
+        gotoInstrument(which || 'piano');
       });
     }
   },
