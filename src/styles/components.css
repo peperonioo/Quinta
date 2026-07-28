@@ -312,13 +312,45 @@ body[data-mode="produce"] .inspector { display:none }
        left:calc((var(--at) + 1) * 14.28% - 4.5%) }
 .ipb.on { background:var(--accent) }
 
-/* Fretboard: 6 frets, the position where most shapes live */
-.if-board { display:flex; flex-direction:column; gap:2px }
-.if-str { display:grid; grid-template-columns:repeat(7,1fr); gap:2px }
-.if-c { height:22px; border-radius:4px; background:rgba(255,255,255,.04);
-        display:grid; place-items:center; font-size:9px; color:transparent }
-.if-c.on   { background:rgba(255,255,255,.14); color:var(--ink) }
-.if-c.root { background:var(--accent); color:#fff; font-weight:700 }
+/* Fretboard — an actual neck: nut, fret wires, strings and dots. Notes sit ON a
+   string at a fret, which is how a guitarist reads one. The first attempt was a
+   grid of labels: right notes, unreadable as an instrument, and in the light
+   theme the empty cells disappeared entirely. */
+.if-neck {
+  position:relative; padding:5px 4px 15px 22px;
+  border-radius:8px; background:linear-gradient(180deg,#3a2a1e,#241a12);
+}
+body.light .if-neck { background:linear-gradient(180deg,#b89670,#9c7c58) }
+.if-nut { position:absolute; left:19px; top:4px; bottom:15px; width:3px; border-radius:2px; background:rgba(255,255,255,.8) }
+.if-string { position:relative; height:21px; display:flex; align-items:center }
+.if-open {
+  position:absolute; left:-19px; width:15px; text-align:center;
+  font-family:'DM Mono',monospace; font-size:8px; color:var(--muted);
+}
+.if-wire { position:absolute; left:0; right:0; height:1px; background:rgba(255,255,255,.3) }
+/* Fret wires, drawn once behind the strings */
+.if-neck::after {
+  content:''; position:absolute; left:22px; right:4px; top:4px; bottom:15px; pointer-events:none;
+  background:repeating-linear-gradient(90deg,
+    transparent 0 calc(100% / var(--frets) - 1px),
+    rgba(255,255,255,.25) calc(100% / var(--frets) - 1px) calc(100% / var(--frets)));
+}
+.if-dot {
+  position:absolute; z-index:2; width:19px; height:19px; border-radius:50%;
+  left:calc((100% / var(--frets)) * (var(--f) - .5)); transform:translateX(-50%);
+  display:grid; place-items:center; font-size:8.5px; font-weight:700; color:#fff;
+  background:rgba(18,18,22,.9); border:1px solid rgba(255,255,255,.32);
+}
+.if-dot.open { left:-19px; transform:none; background:transparent; border-color:rgba(255,255,255,.75) }
+.if-dot.root { background:var(--accent); border-color:transparent }
+.if-nums { position:relative; height:11px; margin-top:1px }
+.if-num {
+  position:absolute; left:calc((100% / var(--frets)) * (var(--f) - .5)); transform:translateX(-50%);
+  font-family:'DM Mono',monospace; font-size:7.5px; color:rgba(255,255,255,.45);
+}
+.if-num.mk { color:var(--accent2) }
+/* The neck has a natural width — don't let it stretch across a wide inspector */
+.insp-instr { max-width:420px }
 
 /* Key view: the degrees, as the way to add */
 .insp-degrees { display:grid; grid-template-columns:repeat(7,1fr); gap:4px }

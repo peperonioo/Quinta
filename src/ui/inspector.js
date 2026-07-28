@@ -176,22 +176,32 @@ const Inspector = (() => {
     </div>`;
   }
 
-  // Fretboard, first 5 frets — the position where most shapes live.
+  // A real fretboard: nut, fret wires, six strings and dots. The first version
+  // drew a bare CSS grid of labels — technically the right notes, but it did not
+  // read as a fretboard at all, and in the light theme the empty cells vanished.
+  const FRETS = 6;
+  const STRINGS = [                       // high to low, as you look at the neck
+    { pc: 4,  name: 'E' }, { pc: 11, name: 'B' }, { pc: 7, name: 'G' },
+    { pc: 2,  name: 'D' }, { pc: 9,  name: 'A' }, { pc: 4, name: 'E' },
+  ];
+  const MARKERS = [3, 5];                 // position dots, as on a real neck
+
   function _fretHTML(pcs, it) {
-    const STRINGS = [4, 11, 7, 2, 9, 4];        // E B G D A E (pitch classes)
-    const FRETS = 6;
-    const root = ((it.note != null ? it.note : ni(it.chord.replace(/m$|°$|dim$/, ''))) % 12 + 12) % 12;
-    let html = '<div class="if-board">';
-    STRINGS.forEach(open => {
-      html += '<div class="if-str">';
+    const root = ((it.note != null ? it.note : ni(String(it.chord).replace(/m$|°$|dim$/, ''))) % 12 + 12) % 12;
+    const rows = STRINGS.map(str => {
+      const dots = [];
       for (let f = 0; f <= FRETS; f++) {
-        const pc = ((open + f) % 12 + 12) % 12;
-        const hit = pcs.includes(pc);
-        html += `<span class="if-c${hit ? (pc === root ? ' root' : ' on') : ''}">${hit ? dn(na(pc)) : ''}</span>`;
+        const pc = ((str.pc + f) % 12 + 12) % 12;
+        if (!pcs.includes(pc)) continue;
+        dots.push(`<span class="if-dot${pc === root ? ' root' : ''}${f === 0 ? ' open' : ''}" style="--f:${f}">${dn(na(pc))}</span>`);
       }
-      html += '</div>';
-    });
-    return html + '</div>';
+      return `<div class="if-string"><span class="if-open">${str.name}</span>
+        <span class="if-wire"></span>${dots.join('')}</div>`;
+    }).join('');
+    const nums = Array.from({ length: FRETS + 1 }, (_, f) =>
+      `<span class="if-num${MARKERS.includes(f) ? ' mk' : ''}" style="--f:${f}">${f || ''}</span>`).join('');
+    return `<div class="if-neck" style="--frets:${FRETS}">
+      <div class="if-nut"></div>${rows}<div class="if-nums">${nums}</div></div>`;
   }
 
   // ── actions ──────────────────────────────────────────
