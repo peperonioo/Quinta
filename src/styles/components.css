@@ -217,3 +217,28 @@ body.light .comeback { background:rgba(40,34,28,.34) }
 }
 .cb-go:hover { box-shadow:0 5px 18px rgba(232,68,26,.36) }
 .cb-daily.cb-done .cb-go { background:var(--sel-bg); color:var(--ink); border:1px solid var(--line) }
+
+/* ── Closed panels must be INERT (V6.23) ──────────────
+   Every floating panel hides with opacity + pointer-events:none, which stops the
+   mouse but NOT the keyboard or a screen reader: their buttons stayed focusable
+   and announced while the panel was shut. Measured in Build on a phone, that was
+   31 of 96 "visible" controls belonging to panels nobody had opened — the
+   metronome (8), the transport panel (20) and the library (3).
+
+   `visibility:hidden` removes them from the accessibility tree and the tab order.
+   The delayed visibility transition keeps the fade-out visible on the way out. */
+.metro-panel,
+.transport-sheet[data-state="peek"] .ts-panel,
+.modulate-panel[hidden],
+.lib-panel:not(.open),
+#instrZoomPanel:not(.open) {
+  visibility: hidden;
+  transition: opacity .24s var(--ease), transform .3s var(--ease), visibility 0s .3s;
+}
+#metronome.open .metro-panel,
+.transport-sheet[data-state="open"] .ts-panel,
+.lib-panel.open,
+#instrZoomPanel.open {
+  visibility: visible;
+  transition: opacity .24s var(--ease), transform .3s var(--ease), visibility 0s;
+}
