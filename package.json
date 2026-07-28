@@ -11,7 +11,8 @@
     "cap:sync": "node build.js && npx cap sync",
     "cap:ios": "node build.js && npx cap sync ios && npx cap open ios",
     "cap:android": "node build.js && npx cap sync android && npx cap open android",
-    "test:controls": "node test/smoke-controls.mjs"
+    "test:controls": "node test/smoke-controls.mjs",
+    "build:v2": "node build.js --v2"
   },
   "engines": {
     "node": ">=16"

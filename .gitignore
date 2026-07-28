@@ -15,3 +15,6 @@ npm-debug.log*
 pedro_ipince_press_kit.pdf
 build_press_kit.py
 fonts/
+
+# /v2/ is a generated deployment target (node build.js --v2). It is committed on
+# main so GitHub Pages serves it, but never edited by hand.

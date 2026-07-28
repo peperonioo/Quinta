@@ -124,8 +124,18 @@ function readFile(rel) {
   return fs.readFileSync(full, 'utf8');
 }
 
+// `node build.js --v2` emits the SAME sources into /v2/ instead of the root.
+// The point is deployment isolation, not a code fork: /v2/ gets its own manifest
+// and service worker, so it installs as a SEPARATE PWA. Anyone who already has
+// Quinta on their home screen keeps V1 untouched while V2 is being reshaped —
+// there is no rollback with a service worker, only rolling forward, so the safe
+// move is never to touch the root until the new version has won.
+const V2 = process.argv.includes('--v2');
+const V2DIR = path.join(ROOT, 'v2');
+
 function build() {
   if (!fs.existsSync(DIST)) fs.mkdirSync(DIST, { recursive: true });
+  if (V2 && !fs.existsSync(V2DIR)) fs.mkdirSync(V2DIR, { recursive: true });
 
   // Assemble CSS
   const cssChunks = CSS_FILES.map(f => {
@@ -146,6 +156,49 @@ function build() {
   let out = template
     .replace('<!-- %%CSS%% -->', css)
     .replace('<!-- %%JS%% -->',  js);
+
+  if (V2) {
+    // Samples live at the repo root; /v2/ points one level up instead of
+    // duplicating 9.5MB. They are fetched, not precached — the v2 service worker
+    // cannot cache outside its own scope, so v2 needs a connection for real
+    // instrument sounds until it is promoted to the root.
+    const v2out = out
+      .replace(/(["'`(])samples\//g, '$1../samples/')
+      // Icons live at the root too — same reason as samples: don't duplicate.
+      .replace(/(["'`(=])icons\//g, '$1../icons/')
+      .replace(/href="\.\.\/icons\//g, 'href="../icons/')
+      .replace('<title>Quinta', '<title>Quinta V2 · ');
+    fs.writeFileSync(path.join(V2DIR, 'index.html'), v2out, 'utf8');
+    fs.writeFileSync(path.join(V2DIR, 'manifest.webmanifest'), JSON.stringify({
+      name: 'Quinta V2', short_name: 'Quinta V2',
+      start_url: './index.html', scope: './', display: 'standalone',
+      background_color: '#0a0a0b', theme_color: '#0a0a0b',
+      icons: [{ src: '../icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+              { src: '../icons/icon-512.png', sizes: '512x512', type: 'image/png' }],
+    }, null, 2), 'utf8');
+    // Minimal SW: scope /v2/, caches only its own shell. No samples (out of scope).
+    fs.writeFileSync(path.join(V2DIR, 'sw.js'),
+`// Quinta V2 — isolated shell cache. Scope is /v2/, so it can never touch the
+// V1 install at the root. Samples are fetched from ../samples/ and NOT cached:
+// they are outside this scope by design.
+const CACHE = 'quinta-v2-${new Date().toISOString().slice(0,10)}';
+self.addEventListener('install', e => { self.skipWaiting(); });
+self.addEventListener('activate', e => e.waitUntil(
+  caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('quinta-v2-') && k !== CACHE).map(k => caches.delete(k))))
+    .then(() => self.clients.claim())));
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(fetch(e.request).then(r => {
+    const c = r.clone();
+    caches.open(CACHE).then(cache => { try { cache.put(e.request, c); } catch (_) {} });
+    return r;
+  }).catch(() => caches.match(e.request)));
+});
+`, 'utf8');
+    const kb2 = Math.round(Buffer.byteLength(v2out) / 1024);
+    console.log(`\n✓  v2/index.html  (${kb2} KB) — PWA aparte, scope /v2/`);
+    return;                       // --v2 never writes the root
+  }
 
   const dest = path.join(DIST, 'Quinta.html');
   fs.writeFileSync(dest, out, 'utf8');
