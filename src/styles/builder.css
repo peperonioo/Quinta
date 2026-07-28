@@ -18,8 +18,14 @@ body.light .progression-builder { background:rgba(250,247,241,.92) }
    666px of a 900px window for a 66px clip lane and a 118px bubble row. It now
    sizes to its content and only CAPS how tall it may get, so "focus" amplifies
    the work instead of the emptiness around it. */
+/* In Build mode the builder is the whole point of the screen, so it fills it
+   from the start instead of waiting for the scroll-into-focus trigger. */
+body[data-mode="build"] .progression-builder {
+  min-height:64svh; display:flex; flex-direction:column;
+}
+body[data-mode="build"] #progressionStory.builder-next-moves { flex:1 1 auto; justify-content:center }
 body.focus-builder .progression-builder {
-  min-height:62svh; max-height:88svh; display:flex; flex-direction:column;
+  min-height:64svh; max-height:88svh; display:flex; flex-direction:column;
   padding:18px 15px 22px;
   box-shadow:0 12px 44px -14px rgba(0,0,0,.55);
 }

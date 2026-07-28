@@ -19,14 +19,17 @@ if (process.env.PW_EXECUTABLE_PATH) launchOpts.executablePath = process.env.PW_E
 else if (process.env.PW_CHANNEL)    launchOpts.channel = process.env.PW_CHANNEL;
 
 // [name, selector, predicate evaluated in the page, optional setup]
+// [name, selector, predicate, optional setup]. `setup` also switches mode:
+// after V6.22 a control only exists in its own mode.
+const M = m => `(() => switchTab('${m}'))()`;
 const CASES = [
   ['settings.toggle',  '#settingsBtn',                                    () => !document.getElementById('settingsSheet').hidden],
   ['set.theme light',  '[data-act="set.theme"][data-id="light"]',         () => document.body.classList.contains('light')],
   ['set.theme dark',   '[data-act="set.theme"][data-id="dark"]',          () => !document.body.classList.contains('light')],
   ['settings.close',   '.settings-sheet .mod-x',                          () => document.getElementById('settingsSheet').hidden],
-  ['view.set minor',   '[data-act="view.set"][data-id="minor"]',          () => st.wheelView === 'minor'],
+  ['view.set minor',   '[data-act="view.set"][data-id="minor"]',          () => st.wheelView === 'minor', () => switchTab('explore')],
   ['view.set major',   '[data-act="view.set"][data-id="major"]',          () => st.wheelView === 'major'],
-  ['builder.surprise', '[data-act="builder.surprise"]',                   () => (st.history || []).length > 0],
+  ['builder.surprise', '[data-act="builder.surprise"]',                   () => (st.history || []).length > 0, () => switchTab('build')],
   ['prog.loop',        '#loopBtn',                                        () => st.loop === true],
   ['prog.chain',       '#chainBtn',                                       () => st.chain === true],
   ['builder.more',     '#moreBtn',                                        () => !document.getElementById('builderMore').hasAttribute('hidden')],
@@ -35,28 +38,29 @@ const CASES = [
   ['section.go B',     '[data-act="section.go"][data-id="B"]',            () => st.activeSection === 'B'],
   ['section.go A',     '[data-act="section.go"][data-id="A"]',            () => st.activeSection === 'A'],
   ['export.open',      '#exportBtn',                                      () => !document.getElementById('builderMore').hasAttribute('hidden')],
-  ['lib.toggle',       '[data-act="lib.toggle"]',                         () => Library.open === true],
+  ['lib.toggle',       '[data-act="lib.toggle"]',                         () => Library.open === true, () => switchTab('build')],
   ['lib.close',        '.lib-close',                                      () => Library.open === false],
-  ['emotion.toggle',   '[data-act="emotion.toggle"]',                     () => EmotionSuggester.isOpen()],
+  ['emotion.toggle',   '[data-act="emotion.toggle"]',                     () => EmotionSuggester.isOpen(), () => switchTab('explore')],
   ['emotion.select',   '.em-chip',                                        () => !!document.querySelector('.em-chip.on')],
   ['emotion.close',    '#emotionPanel .mod-x',                            () => !EmotionSuggester.isOpen()],
-  ['color.toggle',     '.card-action-btn[data-act="color.toggle"]',       () => !document.getElementById('colorPanel').hidden],
+  ['color.toggle',     '.card-action-btn[data-act="color.toggle"]',       () => !document.getElementById('colorPanel').hidden, () => switchTab('explore')],
   ['color.close',      '#colorPanel .mod-x',                              () => document.getElementById('colorPanel').hidden],
   // The wheel breathes on an infinite animation, so its box is never "stable"
   // for Playwright — this one is clicked with force.
-  ['dirguide on',      '#wheelInfoBtn',                                   () => WheelDirectionGuide.visible === true],
+  ['dirguide on',      '#wheelInfoBtn',                                   () => WheelDirectionGuide.visible === true, () => switchTab('explore')],
   ['dirguide off',     '#wheelInfoBtn',                                   () => WheelDirectionGuide.visible === false],
   ['metro.panel',      '.metro-pill',                                     () => document.getElementById('metronome').classList.contains('open')],
   ['metro.faster',     '[data-act="metro.faster"]',                       () => st.bpm > 100],
   ['metro.sound',      '[data-act="metro.sound"][data-id="rimshot"]',     () => st.metroSound === 'rimshot'],
-  ['voice.set',        '[data-act="voice.set"][data-id="epiano"]',        () => st.pianoSound === 'epiano'],
-  ['tab.go production','[data-act="tab.go"][data-tab="production"]',      () => document.body.dataset.tab === 'production'],
+  ['voice.set',        '[data-act="voice.set"][data-id="epiano"]',        () => st.pianoSound === 'epiano', () => switchTab('build')],
+  ['tab.go produce',   '[data-act="tab.go"][data-tab="produce"]',         () => document.body.dataset.mode === 'produce'],
   ['genre.set jazz',   '[data-act="genre.set"][data-id="jazz"]',          () => st.genre === 'jazz'],
   ['groove.play',      '#playBtn',                                        () => typeof playing !== 'undefined' && playing === true],
   ['groove.stop',      '#playBtn',                                        () => playing === false],
-  ['tab.go theory',    '[data-act="tab.go"][data-tab="theory"]',          () => document.body.dataset.tab === 'theory'],
+  ['tab.go build',     '[data-act="tab.go"][data-tab="build"]',           () => document.body.dataset.mode === 'build'],
+  ['ctx.key → explore','[data-act="ctx.key"]',                            () => document.body.dataset.mode === 'explore', () => switchTab('build')],
   ['builder.clear',    '[data-act="builder.clear"]',                      () => (st.history || []).length === 0,
-    () => { const m = document.getElementById('builderMore'); if (m.hasAttribute('hidden')) document.getElementById('moreBtn').click(); }],
+    () => { switchTab('build'); const m = document.getElementById('builderMore'); if (m.hasAttribute('hidden')) document.getElementById('moreBtn').click(); }],
 ];
 
 const browser = await chromium.launch(launchOpts);

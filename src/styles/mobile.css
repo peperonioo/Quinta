@@ -24,7 +24,9 @@
   .theme-btn, #settingsBtn, #helpBtn { width:40px !important; height:40px !important }
   .settings-mini span { display:none }   /* the EN/ES value alone is clear enough */
   .tabs           { border-radius:14px; padding:3px; flex:0 0 auto }
-  .tab-btn        { padding:11px 12px; font-size:11px }   /* taller tap target */
+  .tab-btn        { padding:11px 9px; font-size:10.5px }   /* three modes, same bar */
+  .tabs-3         { flex:1 1 auto; min-width:0 }
+  .tabs-3 .tab-btn { padding:11px 6px; white-space:nowrap }
   .main-row       { grid-template-columns:1fr; gap:6px; margin-bottom:8px }
   .side           { display:none }
   /* ── Collapsing wheel (scroll-linked) ───────────────────

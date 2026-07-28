@@ -83,6 +83,7 @@ function renderTheory() {
   const tsAcc = document.getElementById('tstAcc');
   if (tsAcc) tsAcc.textContent = accStr === '0' ? '♮ ' + t('acc.none') : accStr;
   renderScaleChips('tstScale');
+  if (typeof syncCtxBar === 'function') syncCtxBar();
 
   // Re-render mode menu label
   renderModeMenu();

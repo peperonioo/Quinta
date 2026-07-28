@@ -1,22 +1,50 @@
 // ── TABS & PRODUCTION RENDERER ────────────────────────
 
+// ── MODES (V6.22) ─────────────────────────────────────
+// Three modes in the order the work happens — explore → build → produce —
+// replacing Theory/Production, which split by MODULE and left both halves fully
+// visible at once. Which surfaces belong to which mode is declared in CSS via
+// body[data-mode]; this only switches the flag and repairs what needs a live
+// measurement afterwards.
+const MODES_UI = ['explore', 'build', 'produce'];
+
 function switchTab(tab, btn) {
-  tel('tab', { tab });
-  const tabsEl = btn?.closest?.('.tabs');
+  const mode = MODES_UI.includes(tab) ? tab
+    : (tab === 'production' ? 'produce' : 'build');    // legacy names still work
+  tel('tab', { tab: mode });
+
+  const el = btn || document.querySelector(`.tab-btn[data-tab="${mode}"]`);
+  const tabsEl = el?.closest?.('.tabs');
   if (tabsEl) {
     const buttons = [...tabsEl.querySelectorAll('.tab-btn')];
-    const i = Math.max(0, buttons.indexOf(btn));
-    tabsEl.style.setProperty('--tab-x', `calc(${i} * 100%)`);
+    tabsEl.style.setProperty('--tab-x', `calc(${Math.max(0, buttons.indexOf(el))} * 100%)`);
   }
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  document.getElementById('panel-theory').style.display     = tab === 'theory'     ? 'block' : 'none';
-  document.getElementById('panel-production').style.display = tab === 'production' ? 'block' : 'none';
-  document.body.dataset.tab = tab;            // drives the instrument dock visibility
-  if (tab === 'production') { renderProduction(); applyI18n(); }
-  // Ease the freshly-shown panel in — remove + reflow + re-add to restart it.
-  const shown = document.getElementById(tab === 'production' ? 'panel-production' : 'panel-theory');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === el));
+
+  document.getElementById('panel-theory').style.display     = mode === 'produce' ? 'none'  : 'block';
+  document.getElementById('panel-production').style.display = mode === 'produce' ? 'block' : 'none';
+  document.body.dataset.mode = mode;
+  // Legacy flag: existing CSS keys off data-tab (instrument dock, section dots).
+  document.body.dataset.tab = mode === 'produce' ? 'production' : 'theory';
+
+  const ctx = document.getElementById('ctxBar');
+  if (ctx) ctx.hidden = (mode === 'explore');
+  if (mode === 'produce') { renderProduction(); applyI18n(); }
+  // The builder measures its own width to size the grid; while it was hidden that
+  // measurement was 0, so re-lay it now that it can actually be measured.
+  if (mode === 'build' && (st.history || []).length) HistoryEngine.render();
+  syncCtxBar();
+
+  const shown = document.getElementById(mode === 'produce' ? 'panel-production' : 'panel-theory');
   if (shown) { shown.classList.remove('tab-enter'); void shown.offsetWidth; shown.classList.add('tab-enter'); }
+}
+
+// The one bit of Explore you still need while working: what key you are in.
+function syncCtxBar() {
+  const k = document.getElementById('ctxKey'); if (!k) return;
+  k.textContent = displayKeyLabel();
+  const m = document.getElementById('ctxMode'); if (m) m.textContent = gm().name;
+  renderScaleChips('ctxScale');
 }
 
 function setGenre(id, btn) {

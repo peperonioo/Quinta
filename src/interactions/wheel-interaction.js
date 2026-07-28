@@ -23,6 +23,7 @@ function haptic(v) {
 // your place. Spinning the wheel is a deliberate move and releases the lock.
 function setWheelLock(on) {
   if (wheelLocked === on) return;
+  tel('wheel_lock', { on: !!on });
   wheelLocked = on;
   haptic(on ? 14 : 8);
   renderWheel();   // re-light the diatonic chords
@@ -150,6 +151,7 @@ function settleWheelFrom(rot, velocity) {
 
 function selectWheelKey(majorKey) {
   if (wheelLocked) return;          // audition mode: the chord already sounded, don't move the key
+  if (majorKey !== st.key) tel('wheel_key', { to: majorKey });
   AppActions.setKey(majorKey);
 }
 

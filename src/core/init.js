@@ -264,8 +264,12 @@ function toggleTheme() {
   initPlayOpts();
 
   normalizeKeyState();
-  document.body.dataset.tab = 'theory';      // instrument dock shows on the theory tab
+  // Build is the default mode: it is where 80% of real use happens. Explore is
+  // one tap away for anyone who wants the wheel first.
+  document.body.dataset.mode = 'build';
+  document.body.dataset.tab  = 'theory';     // legacy flag (instrument dock, section dots)
   RenderEngine.full();
+  const _ctx = document.getElementById('ctxBar'); if (_ctx) _ctx.hidden = false;
   applyI18n();
   applyIcons();   // inject the line-SVG icon set
   if (typeof TransportSheet === 'object') TransportSheet.init();

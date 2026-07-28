@@ -56,9 +56,13 @@
     </div>
     <div class="topbar-right">
       <button class="theme-btn" id="settingsBtn" data-ico="settings" data-ico-size="18" data-act="settings.toggle" title="Settings" aria-label="Settings"></button>
-      <div class="tabs">
-        <button class="tab-btn active" data-act="tab.go" data-tab="theory" data-i18n="tabs.theory">Theory</button>
-        <button class="tab-btn" data-act="tab.go" data-tab="production" data-i18n="tabs.production">Production</button>
+      <!-- Three modes, in the order the work actually happens: understand →
+           make → arrange. Replaces Theory/Production, which split the app by
+           MODULE and left everything of both visible at once. -->
+      <div class="tabs tabs-3">
+        <button class="tab-btn" data-act="tab.go" data-tab="explore" data-i18n="tabs.explore">Explore</button>
+        <button class="tab-btn active" data-act="tab.go" data-tab="build" data-i18n="tabs.build">Build</button>
+        <button class="tab-btn" data-act="tab.go" data-tab="produce" data-i18n="tabs.produce">Produce</button>
       </div>
     </div>
   </header>
@@ -103,6 +107,17 @@
         <button class="ms-btn" data-s="electronic" data-act="metro.sound" data-id="electronic">Elec</button>
       </div>
     </div>
+  </div>
+
+  <!-- Context bar — shown in Build and Produce. The key is the one piece of
+       Explore you still need while working, so it comes along as one line
+       instead of dragging the whole wheel with it. -->
+  <div class="ctx-bar" id="ctxBar" hidden>
+    <button class="ctx-key" data-act="ctx.key" title="Cambiar tonalidad">
+      <b id="ctxKey">C</b><small id="ctxMode">Major</small>
+    </button>
+    <span class="ctx-sep" aria-hidden="true"></span>
+    <span class="ctx-scale" id="ctxScale"></span>
   </div>
 
   <!-- THEORY PANEL -->
@@ -237,8 +252,10 @@
 
     <!-- BOTTOM THEORY -->
     <div class="theory-bottom">
-      <!-- Degrees -->
-      <div style="position:relative">
+      <!-- Degrees — reference material: lives in Explore, where tapping one
+           teaches its role. Building uses the suggestion bubbles instead, so the
+           two ways of adding a chord no longer coexist. -->
+      <div style="position:relative" id="degreesBlock">
         <div id="degrees" class="degrees-row"></div>
         <div class="deg-popup-wrap" id="degWrap">
           <div class="deg-popup" id="degPopup">

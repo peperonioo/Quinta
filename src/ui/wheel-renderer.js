@@ -116,6 +116,7 @@ function renderWheel() {
       e.stopPropagation();
       if (typeof AudioEngine === 'object') {
         const root = ni(k);
+        tel('wheel_chord', { ring: 'major', locked: !!wheelLocked });
         AudioEngine.playChord([root, root + 4, root + 7]);
       }
       if (typeof wheelLocked !== 'undefined' && wheelLocked) auditionFlash(op);
@@ -172,6 +173,7 @@ function renderWheel() {
         const relMin = relativeMinor(k);
         if (relMin) {
           const root = ni(stripMinorSuffix(relMin));
+          tel('wheel_chord', { ring: 'minor', locked: !!wheelLocked });
           AudioEngine.playChord([root, root + 3, root + 7]);
         }
       }

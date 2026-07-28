@@ -268,3 +268,51 @@ body.light .drawer:not([open]) { background:rgba(255,255,255,.48) }
   .app      { max-width:1340px; }
   #wheelSvg { width:min(46vw, 640px); height:min(46vw, 640px); }
 }
+
+/* ── MODES (V6.22 · fase A) ────────────────────────────
+   Which surfaces belong to which mode, declared in one place. Before this the
+   app showed everything at once: 143 controls in the DOM with no hierarchy, 52%
+   of a phone screen spent on reference surfaces and 38% on the only working one.
+   Nothing is deleted — each surface now appears in the mode where it is the
+   subject rather than decoration. */
+
+/* EXPLORE — understand the key. Wheel, its cards, and the degrees with their
+   role popup. The builder and the instruments step out. */
+body[data-mode="explore"] #progressionBuilder,
+body[data-mode="explore"] .drawers,
+body[data-mode="explore"] .suggestions-section { display:none !important }
+
+/* BUILD — make the progression. The wheel, its side cards and the degrees row
+   step out; the suggestion bubbles are the single way to add a chord, so the
+   duplicate path through the degrees row disappears with it. */
+body[data-mode="build"] .main-row,
+body[data-mode="build"] .wheel-toggle-row,
+body[data-mode="build"] .theory-strip,
+body[data-mode="build"] #degreesBlock { display:none !important }
+
+/* Three tabs need a third of the travel for the sliding indicator. */
+.tabs-3 .tab-btn { flex:1 }
+
+/* Context bar — the one piece of Explore that has to come along while working. */
+.ctx-bar {
+  display:flex; align-items:center; gap:12px; margin:0 auto 12px;
+  padding:7px 14px; width:fit-content; max-width:100%;
+  border:1px solid var(--line); border-radius:999px;
+  background:var(--degree-bg); backdrop-filter:blur(7px);
+}
+.ctx-bar[hidden] { display:none }
+.ctx-key {
+  display:flex; align-items:baseline; gap:6px; padding:2px 4px;
+  border:0; background:transparent; cursor:pointer; border-radius:8px;
+}
+.ctx-key b { font-family:var(--wheel-font); font-size:17px; color:var(--ink); line-height:1 }
+.ctx-key small { font-size:11px; color:var(--muted) }
+.ctx-key:hover b { color:var(--accent2) }
+.ctx-sep { width:1px; height:16px; background:var(--line); flex:none }
+.ctx-scale { display:flex; gap:4px; overflow:hidden }
+.ctx-scale .chip { flex:0 0 auto; font-size:10px; padding:2px 6px }
+@media (max-width:860px) {
+  .ctx-bar { gap:9px; padding:6px 12px; margin-bottom:9px }
+  .ctx-key b { font-size:15px }
+  .ctx-scale { display:none }   /* the strip already carries the scale in Explore */
+}

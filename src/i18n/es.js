@@ -112,4 +112,7 @@ const I18N_ES = {
   'builder.exportHint':'Exporta esta progresión como WAV, stems o MIDI',
   'degrees.title':     'Los acordes de tu tonalidad',
   'next.title':        'Qué va bien después',
+  'tabs.explore':      'Explorar',
+  'tabs.build':        'Construir',
+  'tabs.produce':      'Producir',
 };

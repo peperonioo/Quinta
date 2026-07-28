@@ -48,6 +48,8 @@ ActionRegistry.addAll({
   'settings.toggle':  ()     => Settings.toggle(),
   'settings.close':   ()     => Settings.close(),
   'tab.go':           el     => switchTab(_aStr(el, 'tab'), el),
+  // Tapping the key in the context bar takes you to where keys are chosen.
+  'ctx.key':          ()     => switchTab('explore'),
 
   // ── Metronome ──
   'metro.slower':     ()     => Metronome.stepBpm(-1),

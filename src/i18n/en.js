@@ -112,4 +112,7 @@ const I18N_EN = {
   'builder.exportHint':'Export this progression as WAV, stems or MIDI',
   'degrees.title':     'The chords in your key',
   'next.title':        'What goes well next',
+  'tabs.explore':      'Explore',
+  'tabs.build':        'Build',
+  'tabs.produce':      'Produce',
 };
