@@ -161,6 +161,16 @@ ActionRegistry.addAll({
   'insp.view':        el  => Inspector.setView(_aStr(el, 'id')),
   'insp.add':         el  => Inspector.addDegree(_aInt(el, 'idx')),
 
+  // ── Document (B2) ──
+  'doc.save':         ()  => Doc.save(),
+  'doc.new':          ()  => Doc.fresh(),
+  'doc.open':         ()  => Library.toggle(),
+  'doc.rename':       el  => Doc.setName(el.value),
+
+  // ── Rhythm track (B3) ──
+  'rhythm.toggle':    ()  => Rhythm.toggle(),
+  'rhythm.genre':     el  => Rhythm.setGenre(_aStr(el, 'id')),
+
   // ── Misc ──
   'strip.pick':       el => pickProgChord(_aInt(el, 'idx')),
   'install.accept':   ()  => _acceptInstall(),

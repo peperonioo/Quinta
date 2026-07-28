@@ -399,6 +399,8 @@ const HistoryEngine = {
     BuilderEngine.meta();
     if (typeof GuitarShapes === 'object') GuitarShapes.onProgressionChange();
     if (typeof Inspector === 'object') Inspector.render();
+    if (typeof Doc === 'object') Doc.render();
+    if (typeof Rhythm === 'object') Rhythm.render();
     requestAnimationFrame(_updatePlayheadPos);
   },
 };
@@ -635,7 +637,11 @@ function toggleProgPlay() {
   // Chain on → play the whole song from the top (section A).
   if (st.chain && _sectionHas('A') && st.activeSection !== 'A') switchSection('A');
   haptic('ok');
-  playProgression();
+  // B3 — ONE transport. With the rhythm track on, Play runs the whole song:
+  // drums, voice-led chords and sub-bass off the same clock. The engine always
+  // could; there were simply two buttons asking it to.
+  if (typeof Rhythm === 'object' && Rhythm.isOn()) startPlay();
+  else playProgression();
 }
 
 // Loop toggle — repeats the progression until you stop it.

@@ -12,55 +12,28 @@ const Onboarding = (() => {
   // `radius` = spotlight corner radius, `place` = preferred tooltip side.
   // Interactive tour: `interactive` steps let you actually touch the highlighted
   // element (the click-catcher goes click-through); `try` is the do-this prompt.
+  // B4 — three steps, not seven. The old tour existed to compensate for a screen
+  // that did not explain itself: 143 controls with no hierarchy. After the
+  // restructure there is far less to explain, so the tour shrinks to the three
+  // things that actually matter — and only ONE step is gated, not five. A tour
+  // that makes you wait is a tax on the exact moment you were most curious.
   const steps = [
-    { sel: '#wheelSvg', pad: 6, radius: '50%',
-      title: { en: 'Welcome to Quinta', es: 'Bienvenido a Quinta' },
-      body:  { en: 'This is the circle of fifths — music’s map. And this isn’t a video: you can touch everything as we go.',
-               es: 'Esto es el círculo de quintas — el mapa de la música. Y esto no es un vídeo: puedes tocar todo mientras avanzamos.' } },
-    { sel: '#wheelSvg', pad: 6, radius: '50%', interactive: true,
-      title: { en: 'Right = up a fifth', es: 'Derecha = una quinta arriba' },
-      body:  { en: 'Every step clockwise jumps up a fifth — C → G → D → A. Neighbours share almost every note, so they always sound good together.',
-               es: 'Cada paso a la derecha sube una quinta — C → G → D → A. Las vecinas comparten casi todas sus notas, por eso suenan siempre bien juntas.' },
-      try:   { en: 'Spin the wheel one step right: from C you land on G, its fifth.',
-               es: 'Gira la rueda un paso a la derecha: de C caes en G, su quinta.' },
-      done:  c => st.key !== c.key },
-    { sel: '#wheelSvg', pad: 6, radius: '50%', interactive: true,
-      title: { en: 'Hear it, lock it', es: 'Óyelo, fíjalo' },
-      body:  { en: 'Tap any chord on the wheel to hear it. Tap the centre to lock that key — the whole wheel lights up to show what belongs.',
-               es: 'Toca cualquier acorde de la rueda para oírlo. Toca el centro para fijar esa tonalidad — toda la rueda se ilumina con lo que pertenece.' },
-      try:   { en: 'Tap a couple of chords, then tap the centre.',
-               es: 'Toca un par de acordes y luego toca el centro.' },
-      done:  c => c.taps >= 2 || (typeof wheelLocked !== 'undefined' && wheelLocked) },
-    { sel: '#degrees', pad: 8, interactive: true,
-      title: { en: 'The chords in your key', es: 'Los acordes de tu tonalidad' },
-      body:  { en: 'Right under the wheel are your in-key chords (I to vii°). Tapping one plays it and shows its role — what each chord does in the key.',
-               es: 'Justo debajo están tus acordes en tonalidad (I a vii°). Al tocar uno suena y te muestra su papel — qué hace cada acorde en la tonalidad.' },
-      try:   { en: 'Tap a chord to hear it and see its role.',
-               es: 'Toca un acorde para oírlo y ver su papel.' },
-      done:  c => c.taps >= 1 },
-    // The instant-reward comes FIRST and spotlights the actual button — so the
-    // builder is still empty (the hero exists) and the tour never asks you to
-    // press a button it just removed. Falls back to the always-present compact
-    // button if the builder already has chords (e.g. re-opening the tour).
-    { sel: '.surprise-btn', selAlt: '#surpriseBtn', pad: 10, radius: '999px', interactive: true,
-      title: { en: 'Instant start', es: 'Empieza al instante' },
-      body:  { en: 'This is your builder — where a song takes shape. The fastest way in: tap Surprise me and a full, in-key progression starts playing.',
-               es: 'Este es tu builder — donde toma forma la canción. La forma más rápida de empezar: toca Sorpréndeme y suena una progresión entera en tu tonalidad.' },
-      try:   { en: 'Tap “Surprise me” — you’ll hear it in seconds.',
-               es: 'Toca «Sorpréndeme» — lo oirás en segundos.' },
+    { sel: '#progressionBuilder', pad: 8, interactive: true,
+      title: { en: 'Start with a sound', es: 'Empieza con un sonido' },
+      body:  { en: 'This is your document — the song lives here. Fastest way in: tap Surprise me and a full progression starts playing.',
+               es: 'Este es tu documento — aquí vive la canción. La vía rápida: toca Sorpréndeme y suena una progresión entera.' },
+      try:   { en: 'Tap “Surprise me”.', es: 'Toca «Sorpréndeme».' },
       done:  c => (st.history || []).length > c.hist },
-    { sel: '#progressionStory', pad: 8, interactive: true,
-      title: { en: 'Or build your own', es: 'O construye la tuya' },
-      body:  { en: 'Prefer to craft it by hand? These bubbles suggest the strongest next chords for your key and mood — the biggest is the best bet. Drag chords on the grid to rearrange.',
-               es: '¿Prefieres crearla a mano? Estas burbujas sugieren los acordes más fuertes para tu tonalidad y mood — la más grande es la mejor apuesta. Arrastra los acordes del grid para reordenar.' },
-      try:   { en: 'Tap a bubble to add the next chord.',
-               es: 'Toca una burbuja para añadir el siguiente acorde.' },
-      done:  c => (st.history || []).length > c.hist },
-    { sel: '.tabs', pad: 8, place: 'below',
-      title: { en: 'Produce & take it anywhere', es: 'Produce y llévatelo' },
-      body:  { en: 'Switch to Production for drums and a groove synced to your tempo. You’re ready — start sketching!',
-               es: 'Cambia a Producción para batería y un groove a tu tempo. ¡Listo — a bocetar!' } },
+    { sel: '#inspector', pad: 8,
+      title: { en: 'Tap any chord', es: 'Toca cualquier acorde' },
+      body:  { en: 'Everything about it appears here: what it does in the key, its variations, how to play it on piano or guitar — chord, triads or scale — and what goes well after it.',
+               es: 'Aquí aparece todo sobre él: qué hace en la tonalidad, sus variaciones, cómo tocarlo en piano o guitarra —acorde, tríadas o escala— y qué va bien después.' } },
+    { sel: '#rhythmTrack', pad: 8, place: 'below',
+      title: { en: 'Add drums, then take it', es: 'Añade batería y llévatelo' },
+      body:  { en: 'Rhythm is a track of the same song — one Play for all of it. When it sounds right, Export gives you WAV, stems or MIDI.',
+               es: 'El ritmo es una pista de la misma canción — un solo Play para todo. Cuando suene, Exportar te da WAV, stems o MIDI.' } },
   ];
+
 
   let idx = 0, _reflowRAF = 0, _scrollT = 0, _anchorY = 0, _settling = false;
   const SCROLL_LIMIT = 60;   // you can nudge the page a little, but not scroll away from the step

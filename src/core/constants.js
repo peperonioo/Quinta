@@ -100,5 +100,6 @@ const defaultState = {
   activeSection:'A', chain:false,        // A/B parts; `chain` plays A→B as one song
   snap:0.25,                             // grid snap in beats (0.25 = 1/16 note; 0 = free)
   onboarded:false,
+  docName:null, docId:null, rhythmOn:false,   // V2 — the progression as a document with a rhythm track
   comebackSeen:0, dailyDone:0,          // V6.17 — return hooks: last day the panel showed / the challenge was taken
 };

@@ -59,10 +59,11 @@
       <!-- Three modes, in the order the work actually happens: understand →
            make → arrange. Replaces Theory/Production, which split the app by
            MODULE and left everything of both visible at once. -->
-      <div class="tabs tabs-3">
+      <!-- B3: Produce is gone as a mode. Rhythm is a TRACK of the document now,
+           so there is one screen where the song lives and one Play for all of it. -->
+      <div class="tabs">
         <button class="tab-btn" data-act="tab.go" data-tab="explore" data-i18n="tabs.explore">Explore</button>
         <button class="tab-btn active" data-act="tab.go" data-tab="build" data-i18n="tabs.build">Build</button>
-        <button class="tab-btn" data-act="tab.go" data-tab="produce" data-i18n="tabs.produce">Produce</button>
       </div>
     </div>
   </header>
@@ -273,6 +274,10 @@
         </div>
       </div>
 
+      <!-- DOCUMENT HEADER (B2) — the progression has a name and file-level
+           actions, where everyone looks for them. -->
+      <div class="doc-bar" id="docBar"></div>
+
       <!-- Progression Builder -->
       <section class="progression-builder" id="progressionBuilder"
         data-dropzone="degrees">
@@ -339,6 +344,12 @@
            its variations, how to play it on either instrument with chord/triads/
            scale one tap apart, and what goes well after it. -->
       <aside id="inspector" class="inspector" aria-live="polite"></aside>
+
+      <!-- RHYTHM TRACK (B3) — the drum grid as a track of this document. It sits
+           AFTER the inspector: the inspector answers a selection you just made,
+           the rhythm is something you add later. Putting it first pushed the
+           inspector off-screen, which is what B1 existed to prevent. -->
+      <div class="rhythm-track" id="rhythmTrack"></div>
     </div>
 
     <!-- Suggestions section (hidden by CSS; bubbles live in builder) -->

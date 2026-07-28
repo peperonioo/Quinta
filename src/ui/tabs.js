@@ -6,11 +6,11 @@
 // visible at once. Which surfaces belong to which mode is declared in CSS via
 // body[data-mode]; this only switches the flag and repairs what needs a live
 // measurement afterwards.
-const MODES_UI = ['explore', 'build', 'produce'];
+const MODES_UI = ['explore', 'build'];   // B3 removed 'produce'
 
 function switchTab(tab, btn) {
-  const mode = MODES_UI.includes(tab) ? tab
-    : (tab === 'production' ? 'produce' : 'build');    // legacy names still work
+  // Legacy names (and the removed 'produce') all resolve to Build now.
+  const mode = MODES_UI.includes(tab) ? tab : (tab === 'explore' ? 'explore' : 'build');
   tel('tab', { tab: mode });
 
   const el = btn || document.querySelector(`.tab-btn[data-tab="${mode}"]`);
@@ -21,21 +21,22 @@ function switchTab(tab, btn) {
   }
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === el));
 
-  document.getElementById('panel-theory').style.display     = mode === 'produce' ? 'none'  : 'block';
-  document.getElementById('panel-production').style.display = mode === 'produce' ? 'block' : 'none';
+  document.getElementById('panel-theory').style.display     = 'block';
+  document.getElementById('panel-production').style.display = 'none';   // B3: absorbed as a track
   document.body.dataset.mode = mode;
   // Legacy flag: existing CSS keys off data-tab (instrument dock, section dots).
-  document.body.dataset.tab = mode === 'produce' ? 'production' : 'theory';
+  document.body.dataset.tab = 'theory';
 
   const ctx = document.getElementById('ctxBar');
   if (ctx) ctx.hidden = (mode === 'explore');
-  if (mode === 'produce') { renderProduction(); applyI18n(); }
   // The builder measures its own width to size the grid; while it was hidden that
   // measurement was 0, so re-lay it now that it can actually be measured.
   if (mode === 'build' && (st.history || []).length) HistoryEngine.render();
   syncCtxBar();
 
-  const shown = document.getElementById(mode === 'produce' ? 'panel-production' : 'panel-theory');
+  if (typeof Doc === 'object') Doc.render();
+  if (typeof Rhythm === 'object') Rhythm.render();
+  const shown = document.getElementById('panel-theory');
   if (shown) { shown.classList.remove('tab-enter'); void shown.offsetWidth; shown.classList.add('tab-enter'); }
 }
 

@@ -230,3 +230,14 @@
   .sd-dot.on::after { height:15px; background:var(--accent); opacity:1 }
   @media (prefers-reduced-motion: reduce) { .sd-dot::after { transition:none } }
 }
+
+@media (max-width:860px) {
+  /* Selection focus (V2 · B1–B3). On a phone the document header, the context
+     bar and the rhythm track together push the inspector off-screen — exactly
+     the problem B1 exists to solve. While a chord is selected they stand down:
+     you are inspecting one chord, not managing the file or the drums. They come
+     straight back when you deselect. */
+  body.has-selection .doc-bar,
+  body.has-selection .ctx-bar,
+  body.has-selection .rhythm-track { display:none }
+}

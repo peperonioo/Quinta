@@ -348,3 +348,74 @@ body[data-mode="produce"] .inspector { display:none }
   box-shadow:0 0 0 2px rgba(255,112,72,.45) !important;
 }
 @media (max-width:860px) { .inspector { margin-top:10px; padding:12px } }
+
+/* ── DOCUMENT BAR (V2 · B2) ───────────────────────────
+   The progression is the document. Its name and its file-level actions live
+   where everyone looks for them, instead of inside a "···" menu. */
+.doc-bar {
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  margin-bottom:10px; padding:8px 12px;
+  border:1px solid var(--line); border-radius:12px; background:rgba(0,0,0,.22);
+}
+body[data-mode="explore"] .doc-bar { display:none }
+.doc-name {
+  flex:1 1 160px; min-width:0; min-height:32px; padding:5px 8px;
+  border:1px solid transparent; border-radius:8px; background:transparent;
+  font-family:var(--wheel-font); font-size:17px; color:var(--ink);
+}
+.doc-name:hover  { border-color:var(--line) }
+.doc-name:focus  { outline:none; border-color:rgba(232,68,26,.5); background:var(--sel-bg) }
+.doc-acts { display:flex; gap:5px; align-items:center; flex:0 0 auto }
+.doc-btn {
+  display:inline-flex; align-items:center; gap:5px; min-height:32px; padding:6px 10px;
+  border:1px solid var(--line); border-radius:9px; background:var(--sel-bg);
+  color:var(--muted); font-size:11px; font-weight:600; cursor:pointer;
+  transition:all .15s var(--ease);
+}
+.doc-btn:hover:not([disabled]) { color:var(--ink); border-color:rgba(232,68,26,.35) }
+.doc-btn[disabled] { opacity:.4; cursor:default }
+.doc-btn.cta { background:var(--degree-tonic); border-color:rgba(232,68,26,.42); color:var(--accent2) }
+
+/* ── RHYTHM TRACK (V2 · B3) ───────────────────────────
+   Production was a separate tab with its own Play and its own tempo. It is a
+   TRACK now: same song, same clock, one transport. */
+.rhythm-track {
+  margin-top:10px; padding:10px 12px;
+  border:1px solid var(--line); border-radius:12px; background:rgba(0,0,0,.22);
+}
+body[data-mode="explore"] .rhythm-track { display:none }
+.rhythm-track.is-on { border-color:rgba(232,68,26,.3) }
+.rt-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+.rt-toggle {
+  width:30px; height:30px; flex:none; border-radius:9px; cursor:pointer;
+  border:1px solid var(--line); background:var(--sel-bg); color:var(--muted); font-size:11px;
+}
+.rt-toggle.on { background:var(--accent); border-color:transparent; color:#fff }
+.rt-name { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em;
+           text-transform:uppercase; color:var(--muted) }
+.rt-hint { font-size:11px; color:var(--muted); opacity:.75 }
+.rt-genres { display:flex; gap:4px; margin-left:auto; flex-wrap:wrap }
+.rt-g {
+  min-height:28px; padding:5px 10px; border-radius:999px; cursor:pointer;
+  border:1px solid var(--line); background:var(--sel-bg); color:var(--muted); font-size:10.5px;
+}
+.rt-g.on { background:var(--accent); border-color:transparent; color:#fff }
+.rt-grid { margin-top:9px; display:flex; flex-direction:column; gap:3px }
+.rt-row { display:grid; grid-template-columns:42px repeat(16,1fr); gap:2px; align-items:center }
+.rt-lbl { font-family:'DM Mono',monospace; font-size:7.5px; color:var(--muted);
+          text-transform:uppercase; letter-spacing:.06em; overflow:hidden }
+.rt-c { height:17px; border-radius:3px; background:rgba(255,255,255,.05); cursor:pointer }
+.rt-c.b1 { background:rgba(255,255,255,.09) }
+.rt-c.on { background:var(--accent) }
+.rt-c.on.clap, .rt-c.on.hat-c, .rt-c.on.hat-o, .rt-c.on.shaker, .rt-c.on.rim { background:rgba(240,237,232,.55) }
+.rt-c.on.cowb, .rt-c.on.ride, .rt-c.on.tom { background:var(--warn) }
+.rt-c.playing { box-shadow:0 0 0 2px rgba(255,255,255,.5) }
+@media (max-width:860px) {
+  .doc-bar { padding:7px 10px; gap:7px }
+  .doc-name { font-size:15px; flex-basis:100% }
+  .doc-btn span:not([data-ico]) { display:none }
+  .doc-btn.cta span:not([data-ico]) { display:inline }
+  .rt-lbl { font-size:6.5px }
+  .rt-row { grid-template-columns:32px repeat(16,1fr) }
+  .rt-c { height:15px }
+}

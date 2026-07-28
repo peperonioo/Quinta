@@ -95,6 +95,9 @@ const JS_FILES = [
   'src/ui/comeback.js',
   // Inspector (V2 · B1) — one panel that follows the selection
   'src/ui/inspector.js',
+  // Document (B2) + rhythm track (B3)
+  'src/ui/document.js',
+  'src/ui/rhythm.js',
   // The data-act → function map. Lambdas, so targets resolve at call time.
   'src/ui/actions-map.js',
   'src/ui/guitar-shapes.js',
