@@ -154,6 +154,13 @@ ActionRegistry.addAll({
   // would point live markup at a module that doesn't exist in the bundle.
   // Either add the file to the build or delete it, but don't wire it half-way.
 
+  // ── Inspector (V2 · B1) ──
+  'insp.clear':       ()  => Inspector.clear(),
+  'insp.variant':     el  => Inspector.pickVariant(_aStr(el, 'id')),
+  'insp.instr':       el  => Inspector.setInstrument(_aStr(el, 'id')),
+  'insp.view':        el  => Inspector.setView(_aStr(el, 'id')),
+  'insp.add':         el  => Inspector.addDegree(_aInt(el, 'idx')),
+
   // ── Misc ──
   'strip.pick':       el => pickProgChord(_aInt(el, 'idx')),
   'install.accept':   ()  => _acceptInstall(),

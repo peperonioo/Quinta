@@ -18,12 +18,15 @@ body.light .progression-builder { background:rgba(250,247,241,.92) }
    666px of a 900px window for a 66px clip lane and a 118px bubble row. It now
    sizes to its content and only CAPS how tall it may get, so "focus" amplifies
    the work instead of the emptiness around it. */
-/* In Build mode the builder is the whole point of the screen, so it fills it
-   from the start instead of waiting for the scroll-into-focus trigger. */
-body[data-mode="build"] .progression-builder {
-  min-height:64svh; display:flex; flex-direction:column;
-}
-body[data-mode="build"] #progressionStory.builder-next-moves { flex:1 1 auto; justify-content:center }
+/* In Build mode the builder SHARES the screen with the inspector — the whole
+   point of B1 is that selecting a chord shows everything about it without
+   scrolling. So the builder sizes to its content instead of claiming 64svh, and
+   the suggestion bubbles stand down while a chord is selected: the inspector's
+   "goes well after" is the same information, in context. */
+body[data-mode="build"] .progression-builder { display:flex; flex-direction:column }
+body[data-mode="build"] #progressionStory .next-orbit { min-height:0 }
+body.has-selection #progressionStory { display:none }
+body.has-selection .progression-builder { padding-bottom:12px }
 body.focus-builder .progression-builder {
   min-height:64svh; max-height:88svh; display:flex; flex-direction:column;
   padding:18px 15px 22px;

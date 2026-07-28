@@ -242,3 +242,109 @@ body.light .comeback { background:rgba(40,34,28,.34) }
   visibility: visible;
   transition: opacity .24s var(--ease), transform .3s var(--ease), visibility 0s;
 }
+
+/* ── INSPECTOR (V2 · fase B1) ─────────────────────────
+   One panel that follows the selection. Replaces four separate journeys:
+   the floating variant chooser, the instrument dock, the Shapes panel and the
+   degree popup. Everything about the selected chord in one place, with the
+   three helps (chord · triads · scale) as visible tabs rather than something
+   you had to discover behind a button. */
+.inspector {
+  margin-top:12px; padding:14px 15px 16px;
+  border:1px solid var(--card-bd); border-radius:var(--r-lg);
+  background:rgba(10,10,14,.88); backdrop-filter:blur(8px);
+}
+body.light .inspector { background:rgba(250,247,241,.92) }
+body[data-mode="explore"] .inspector,
+body[data-mode="produce"] .inspector { display:none }
+
+.insp-head { position:relative; margin-bottom:12px }
+.insp-back {
+  position:absolute; left:-4px; top:-2px; width:30px; height:30px;
+  border:0; background:transparent; color:var(--muted); cursor:pointer;
+  font-size:22px; line-height:1; border-radius:50%;
+}
+.insp-back:hover { color:var(--ink); background:var(--sel-bg) }
+.insp-head:has(.insp-back) .insp-title { padding-left:28px }
+.insp-head:has(.insp-back) .insp-sub   { padding-left:28px }
+.insp-title { display:flex; align-items:baseline; gap:9px }
+.insp-title b { font-family:var(--wheel-font); font-size:26px; color:var(--ink); line-height:1 }
+.insp-title small { font-family:'DM Mono',monospace; font-size:12px; color:var(--accent2) }
+.insp-sub { font-size:11.5px; color:var(--muted); margin-top:3px }
+
+.insp-sec { margin-top:13px }
+.insp-lbl {
+  font-family:'DM Mono',monospace; font-size:8px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:6px;
+}
+
+/* Variations — inline, not a popup */
+.insp-vars { display:flex; gap:5px; flex-wrap:wrap }
+.insp-var {
+  min-height:32px; padding:6px 11px; border-radius:9px; cursor:pointer;
+  border:1px solid var(--line); background:var(--sel-bg);
+  font-family:var(--wheel-font); font-size:14px; color:var(--muted);
+  transition:all .15s var(--ease);
+}
+.insp-var:hover { color:var(--ink); border-color:rgba(232,68,26,.35) }
+.insp-var.on { background:var(--accent); border-color:transparent; color:#fff }
+
+/* Instrument + the three helps */
+.insp-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:9px }
+.insp-seg { display:inline-flex; gap:2px; padding:2px; border-radius:9px; background:var(--sel-bg); border:1px solid var(--line) }
+.insp-seg button {
+  min-height:30px; padding:5px 11px; border:0; border-radius:7px; cursor:pointer;
+  background:transparent; color:var(--muted); font-size:11px; font-weight:600;
+  transition:all .15s var(--ease);
+}
+.insp-seg button.on { background:var(--accent); color:#fff }
+.insp-seg.views button.on { background:var(--accent2) }
+.insp-instr { border:1px solid var(--line); border-radius:11px; padding:9px; background:rgba(0,0,0,.2); overflow:hidden }
+
+/* Compact keyboard: one octave, no scroll of its own */
+.ip-keys { position:relative; display:flex; gap:2px; height:74px }
+.ipw { flex:1; border-radius:0 0 5px 5px; background:linear-gradient(180deg,#f4f1ec,#ddd8d0);
+       display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px }
+.ipw i { font-style:normal; font-size:8px; color:rgba(0,0,0,.35) }
+.ipw.on { background:linear-gradient(180deg,var(--accent2),var(--accent)) }
+.ipw.on i { color:rgba(255,255,255,.9) }
+.ipb { position:absolute; top:0; width:9%; height:60%; border-radius:0 0 4px 4px; background:#15151a;
+       left:calc((var(--at) + 1) * 14.28% - 4.5%) }
+.ipb.on { background:var(--accent) }
+
+/* Fretboard: 6 frets, the position where most shapes live */
+.if-board { display:flex; flex-direction:column; gap:2px }
+.if-str { display:grid; grid-template-columns:repeat(7,1fr); gap:2px }
+.if-c { height:22px; border-radius:4px; background:rgba(255,255,255,.04);
+        display:grid; place-items:center; font-size:9px; color:transparent }
+.if-c.on   { background:rgba(255,255,255,.14); color:var(--ink) }
+.if-c.root { background:var(--accent); color:#fff; font-weight:700 }
+
+/* Key view: the degrees, as the way to add */
+.insp-degrees { display:grid; grid-template-columns:repeat(7,1fr); gap:4px }
+.insp-deg {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  min-height:44px; padding:6px 2px; border-radius:9px; cursor:pointer;
+  border:1px solid var(--line); background:var(--sel-bg); transition:all .15s var(--ease);
+}
+.insp-deg:hover { border-color:rgba(232,68,26,.4); transform:translateY(-1px) }
+.insp-deg .idg { font-family:'DM Mono',monospace; font-size:8.5px; color:var(--accent2) }
+.insp-deg .idn { font-family:var(--wheel-font); font-size:15px; color:var(--ink); line-height:1 }
+
+/* What goes next */
+.insp-next { display:flex; gap:6px; flex-wrap:wrap }
+.insp-nextb {
+  display:flex; align-items:baseline; gap:6px; min-height:36px; padding:7px 12px;
+  border-radius:10px; cursor:pointer; border:1px solid rgba(232,68,26,.3);
+  background:var(--degree-tonic); transition:all .15s var(--ease);
+}
+.insp-nextb:hover { background:rgba(232,68,26,.22) }
+.insp-nextb .idn { font-family:var(--wheel-font); font-size:15px; color:var(--ink) }
+.insp-nextb .ipct { font-family:'DM Mono',monospace; font-size:9px; color:var(--accent2) }
+
+/* The selected clip is unmistakable */
+.builder-step.is-selected {
+  border-color:var(--accent2) !important;
+  box-shadow:0 0 0 2px rgba(255,112,72,.45) !important;
+}
+@media (max-width:860px) { .inspector { margin-top:10px; padding:12px } }

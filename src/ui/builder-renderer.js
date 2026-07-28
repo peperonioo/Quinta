@@ -398,6 +398,7 @@ const HistoryEngine = {
 
     BuilderEngine.meta();
     if (typeof GuitarShapes === 'object') GuitarShapes.onProgressionChange();
+    if (typeof Inspector === 'object') Inspector.render();
     requestAnimationFrame(_updatePlayheadPos);
   },
 };
@@ -569,9 +570,13 @@ const BarDrag = {
       } else if (lifted) {
         HistoryEngine.render();                          // lifted but not moved → just set it back down
       } else {
-        // Tap → sound the chord + open its chooser.
-        if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(item));
-        if (typeof ChordVariants === 'object') ChordVariants.openForBar(i);
+        // Tap → select it. The inspector shows everything about that chord, so
+        // the floating variant chooser is no longer summoned here (V2 · B1).
+        if (typeof Inspector === 'object') Inspector.select(i);
+        else {
+          if (typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(item));
+          if (typeof ChordVariants === 'object') ChordVariants.openForBar(i);
+        }
       }
     };
     window.addEventListener('pointermove', move);
@@ -582,9 +587,7 @@ const BarDrag = {
   key(e, i) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      const it = (st.history || [])[i];
-      if (it && typeof AudioEngine === 'object') AudioEngine.playChord(chordPitchesForItem(it));
-      if (typeof ChordVariants === 'object') ChordVariants.openForBar(i);
+      if (typeof Inspector === 'object') Inspector.select(i);
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       HistoryEngine.remove(i);

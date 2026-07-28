@@ -93,6 +93,8 @@ const JS_FILES = [
   'src/ui/library.js',
   // Comeback panel — uses Library, PROG_PRESETS, GENRES at runtime
   'src/ui/comeback.js',
+  // Inspector (V2 · B1) — one panel that follows the selection
+  'src/ui/inspector.js',
   // The data-act → function map. Lambdas, so targets resolve at call time.
   'src/ui/actions-map.js',
   'src/ui/guitar-shapes.js',
