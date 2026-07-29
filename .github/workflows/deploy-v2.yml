@@ -54,7 +54,11 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           cp -r v2 /tmp/v2-build
-          git checkout main
+          # v2/ is tracked on this branch too, so the fresh build leaves the tree
+          # dirty and a plain checkout refuses to switch. The build is already
+          # safe in /tmp — discard the working copy.
+          git checkout -f main
+          git clean -fd v2
           git pull --rebase origin main
           rm -rf v2 && cp -r /tmp/v2-build v2
           if git diff --quiet -- v2; then
