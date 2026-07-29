@@ -274,83 +274,87 @@
         </div>
       </div>
 
-      <!-- DOCUMENT HEADER (B2) — the progression has a name and file-level
-           actions, where everyone looks for them. -->
-      <div class="doc-bar" id="docBar"></div>
+      <!-- Document + inspector + rhythm: one column on phones, two side by side
+           on a wide screen (canvas left, properties right). -->
+      <div class="build-cols">
+        <!-- DOCUMENT HEADER (B2) — the progression has a name and file-level
+             actions, where everyone looks for them. -->
+        <div class="doc-bar" id="docBar"></div>
 
-      <!-- Progression Builder -->
-      <section class="progression-builder" id="progressionBuilder"
-        data-dropzone="degrees">
-        <div class="builder-head">
-          <div>
-            <h2 class="builder-title" data-i18n="builder.title">Progression builder</h2>
-            <div class="sect-tabs" role="group" aria-label="Song sections">
-              <button class="sect-tab active" data-sect="A" data-act="section.go" data-id="A" aria-label="Section A">A</button>
-              <button class="sect-tab" data-sect="B" data-act="section.go" data-id="B" aria-label="Section B">B</button>
+        <!-- Progression Builder -->
+        <section class="progression-builder" id="progressionBuilder"
+          data-dropzone="degrees">
+          <div class="builder-head">
+            <div>
+              <h2 class="builder-title" data-i18n="builder.title">Progression builder</h2>
+              <div class="sect-tabs" role="group" aria-label="Song sections">
+                <button class="sect-tab active" data-sect="A" data-act="section.go" data-id="A" aria-label="Section A">A</button>
+                <button class="sect-tab" data-sect="B" data-act="section.go" data-id="B" aria-label="Section B">B</button>
+              </div>
+            </div>
+            <div class="builder-actions">
+              <button class="builder-btn play" id="playProgBtn" data-ico="play" data-act="prog.play"><span data-i18n="builder.play">Play</span></button>
+              <!-- Export is the monetisable surface. It used to live only inside the
+                   "···" menu, where a new user never found it — which would have read
+                   in telemetry as "nobody wants export". It surfaces here as soon as
+                   there is something worth exporting (2+ chords). -->
+              <button class="builder-btn export-cta" id="exportBtn" data-ico="download" data-act="export.open" hidden
+                title="Export this progression as WAV, stems or MIDI"><span data-i18n="builder.grpExport">Export</span></button>
+              <button class="builder-btn opt surprise-opt" id="surpriseBtn" data-ico="spark" data-act="builder.surprise" title="Drop in a random progression and play it" aria-label="Surprise me"></button>
+              <button class="builder-btn opt" id="loopBtn" data-ico="loop" data-act="prog.loop" title="Loop the progression" aria-label="Loop" aria-pressed="false"></button>
+              <button class="builder-btn opt sect-chain" id="chainBtn" data-act="prog.chain" title="Play section A then B as one song" aria-label="Chain A to B" aria-pressed="false">A→B</button>
+              <button class="builder-btn opt" id="moreBtn" data-ico="more" data-act="builder.more" title="More actions" aria-label="More actions" aria-expanded="false"></button>
             </div>
           </div>
-          <div class="builder-actions">
-            <button class="builder-btn play" id="playProgBtn" data-ico="play" data-act="prog.play"><span data-i18n="builder.play">Play</span></button>
-            <!-- Export is the monetisable surface. It used to live only inside the
-                 "···" menu, where a new user never found it — which would have read
-                 in telemetry as "nobody wants export". It surfaces here as soon as
-                 there is something worth exporting (2+ chords). -->
-            <button class="builder-btn export-cta" id="exportBtn" data-ico="download" data-act="export.open" hidden
-              title="Export this progression as WAV, stems or MIDI"><span data-i18n="builder.grpExport">Export</span></button>
-            <button class="builder-btn opt surprise-opt" id="surpriseBtn" data-ico="spark" data-act="builder.surprise" title="Drop in a random progression and play it" aria-label="Surprise me"></button>
-            <button class="builder-btn opt" id="loopBtn" data-ico="loop" data-act="prog.loop" title="Loop the progression" aria-label="Loop" aria-pressed="false"></button>
-            <button class="builder-btn opt sect-chain" id="chainBtn" data-act="prog.chain" title="Play section A then B as one song" aria-label="Chain A to B" aria-pressed="false">A→B</button>
-            <button class="builder-btn opt" id="moreBtn" data-ico="more" data-act="builder.more" title="More actions" aria-label="More actions" aria-expanded="false"></button>
-          </div>
-        </div>
-        <!-- "More" panel — grouped by intent (Export / Session / Playback) so seven
-             actions read as three decisions, not a button soup. -->
-        <div class="builder-more" id="builderMore" hidden>
-          <div class="bm-group" role="group" aria-label="Export">
-            <span class="bm-label" data-i18n="builder.grpExport">Export</span>
-            <div class="bm-btns">
-              <button class="builder-btn" data-ico="download" data-act="export.wav" title="Record one pass as a WAV audio file"><span data-i18n="builder.wav">WAV</span></button>
-              <button class="builder-btn" data-ico="download" data-act="export.stems" title="Chords and bass as separate WAV files"><span data-i18n="builder.stems">Stems</span></button>
-              <button class="builder-btn" data-ico="download" data-act="export.midi" title="Download as a MIDI file"><span data-i18n="builder.midi">MIDI</span></button>
+          <!-- "More" panel — grouped by intent (Export / Session / Playback) so seven
+               actions read as three decisions, not a button soup. -->
+          <div class="builder-more" id="builderMore" hidden>
+            <div class="bm-group" role="group" aria-label="Export">
+              <span class="bm-label" data-i18n="builder.grpExport">Export</span>
+              <div class="bm-btns">
+                <button class="builder-btn" data-ico="download" data-act="export.wav" title="Record one pass as a WAV audio file"><span data-i18n="builder.wav">WAV</span></button>
+                <button class="builder-btn" data-ico="download" data-act="export.stems" title="Chords and bass as separate WAV files"><span data-i18n="builder.stems">Stems</span></button>
+                <button class="builder-btn" data-ico="download" data-act="export.midi" title="Download as a MIDI file"><span data-i18n="builder.midi">MIDI</span></button>
+              </div>
+            </div>
+            <div class="bm-group" role="group" aria-label="Session">
+              <span class="bm-label" data-i18n="builder.grpSession">Session</span>
+              <div class="bm-btns">
+                <button class="builder-btn" data-lib-trigger data-ico="library" data-act="lib.toggle" title="Saved progressions & presets"><span data-i18n="builder.library">Library</span></button>
+                <button class="builder-btn" data-ico="share" data-act="prog.share" title="Copy a shareable link"><span data-i18n="builder.share">Share</span></button>
+                <button class="builder-btn danger" data-ico="trash" data-act="builder.clear" title="Clear progression"><span data-i18n="builder.clear">Clear</span></button>
+              </div>
+            </div>
+            <div class="bm-group" role="group" aria-label="Playback">
+              <span class="bm-label" data-i18n="builder.grpPlayback">Playback</span>
+              <div class="bm-btns">
+                <button class="builder-btn opt" id="countInBtn" data-ico="countin" data-act="play.opt" data-id="countIn" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false"></button>
+                <button class="builder-btn opt" id="voicingBtn" data-ico="voicing" data-act="play.opt" data-id="voicingOpen" title="Open (spread) voicing" aria-label="Open voicing" aria-pressed="false"></button>
+              </div>
             </div>
           </div>
-          <div class="bm-group" role="group" aria-label="Session">
-            <span class="bm-label" data-i18n="builder.grpSession">Session</span>
-            <div class="bm-btns">
-              <button class="builder-btn" data-lib-trigger data-ico="library" data-act="lib.toggle" title="Saved progressions & presets"><span data-i18n="builder.library">Library</span></button>
-              <button class="builder-btn" data-ico="share" data-act="prog.share" title="Copy a shareable link"><span data-i18n="builder.share">Share</span></button>
-              <button class="builder-btn danger" data-ico="trash" data-act="builder.clear" title="Clear progression"><span data-i18n="builder.clear">Clear</span></button>
-            </div>
+          <div id="builderRuler" class="builder-ruler" hidden>
+            <div id="rulerMarks" class="ruler-marks"></div>
+            <button class="snap-btn" id="snapBtn" data-act="builder.snap" title="Drag snap resolution" aria-label="Drag snap resolution">1/16</button>
           </div>
-          <div class="bm-group" role="group" aria-label="Playback">
-            <span class="bm-label" data-i18n="builder.grpPlayback">Playback</span>
-            <div class="bm-btns">
-              <button class="builder-btn opt" id="countInBtn" data-ico="countin" data-act="play.opt" data-id="countIn" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false"></button>
-              <button class="builder-btn opt" id="voicingBtn" data-ico="voicing" data-act="play.opt" data-id="voicingOpen" title="Open (spread) voicing" aria-label="Open voicing" aria-pressed="false"></button>
-            </div>
-          </div>
-        </div>
-        <div id="builderRuler" class="builder-ruler" hidden>
-          <div id="rulerMarks" class="ruler-marks"></div>
-          <button class="snap-btn" id="snapBtn" data-act="builder.snap" title="Drag snap resolution" aria-label="Drag snap resolution">1/16</button>
-        </div>
-        <div id="flowRow" class="builder-row"></div>
-        <div id="builderMeta" class="builder-meta"></div>
-        <div id="progressionStory" class="progression-story"></div>
-      </section>
+          <div id="flowRow" class="builder-row"></div>
+          <div id="builderMeta" class="builder-meta"></div>
+          <div id="progressionStory" class="progression-story"></div>
+        </section>
 
-      <!-- INSPECTOR (V2 · B1) — one panel, content follows the selection.
-           Nothing selected → the key. A chord selected → that chord: its role,
-           its variations, how to play it on either instrument with chord/triads/
-           scale one tap apart, and what goes well after it. -->
-      <aside id="inspector" class="inspector" aria-live="polite"></aside>
+        <!-- INSPECTOR (V2 · B1) — one panel, content follows the selection.
+             Nothing selected → the key. A chord selected → that chord: its role,
+             its variations, how to play it on either instrument with chord/triads/
+             scale one tap apart, and what goes well after it. -->
+        <aside id="inspector" class="inspector" aria-live="polite"></aside>
 
-      <!-- RHYTHM TRACK (B3) — the drum grid as a track of this document. It sits
-           AFTER the inspector: the inspector answers a selection you just made,
-           the rhythm is something you add later. Putting it first pushed the
-           inspector off-screen, which is what B1 existed to prevent. -->
-      <div class="rhythm-track" id="rhythmTrack"></div>
-    </div>
+        <!-- RHYTHM TRACK (B3) — the drum grid as a track of this document. It sits
+             AFTER the inspector: the inspector answers a selection you just made,
+             the rhythm is something you add later. Putting it first pushed the
+             inspector off-screen, which is what B1 existed to prevent. -->
+        <div class="rhythm-track" id="rhythmTrack"></div>
+      </div>
+      </div>
 
     <!-- Suggestions section (hidden by CSS; bubbles live in builder) -->
       <section class="suggestions-section">

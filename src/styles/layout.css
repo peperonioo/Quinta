@@ -316,3 +316,32 @@ body[data-mode="build"] #degreesBlock { display:none !important }
   .ctx-key b { font-size:15px }
   .ctx-scale { display:none }   /* the strip already carries the scale in Explore */
 }
+
+/* ── Inspector as a column (V2 · refinamiento B) ───────
+   On a wide screen the document and the inspector sit side by side, the way
+   every editor does it: canvas left, properties right. Stacked vertically the
+   inspector was below the fold on a 900px window even in Build. */
+@media (min-width:1100px) {
+  body[data-mode="build"] .build-cols {
+    display:grid; grid-template-columns:minmax(0,1fr) 360px;
+    grid-template-areas:'doc insp' 'build insp' 'rhythm insp';
+    gap:0 16px; align-items:start;
+  }
+  body[data-mode="build"] .build-cols > .doc-bar       { grid-area:doc }
+  body[data-mode="build"] .build-cols > #progressionBuilder { grid-area:build }
+  body[data-mode="build"] .build-cols > .rhythm-track  { grid-area:rhythm }
+  body[data-mode="build"] .build-cols > .inspector {
+    grid-area:insp; position:sticky; top:12px; margin-top:0;
+    max-height:calc(100svh - 40px); overflow-y:auto;
+  }
+}
+
+/* The dock DOES duplicate the inspector — same chord, permanently on screen —
+   but it is not dead weight yet: the voice selector (Piano · E-Piano · Brass ·
+   Acústica · Eléctrica) lives inside it and nowhere else. Hiding the dock made
+   those voices unreachable, which the control smoke caught immediately.
+   So it only stands down while a chord is SELECTED: the inspector is answering
+   that question, and the dock would be showing the same thing twice. Retiring it
+   for good needs the voices moved into the inspector first — a separate change,
+   not a side effect of a layout tweak. */
+body.has-selection .drawers { display:none }
