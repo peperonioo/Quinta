@@ -241,3 +241,40 @@
   body.has-selection .ctx-bar,
   body.has-selection .rhythm-track { display:none }
 }
+
+@media (max-width:860px) {
+  /* Inspector as a bottom sheet (V2 · fix).
+     Reported as "se quitó lo de las séptimas y novenas". It had not been removed
+     — the variations were in the inspector, 628px down a 844px screen, so only
+     its header ever showed. In V1 tapping a clip popped a chooser right next to
+     it: immediate. Putting the same content further down the page was a
+     regression even though nothing was deleted.
+     On a phone the inspector now rises as a sheet: tap a chord, everything about
+     it is there. This is what the restructure plan said from the start. */
+  body.has-selection .inspector {
+    position:fixed; left:0; right:0; bottom:0; z-index:58;
+    max-height:76svh; overflow-y:auto; overscroll-behavior:contain;
+    margin:0; border-radius:20px 20px 0 0;
+    border:1px solid var(--ui-border-strong); border-bottom:0;
+    background:var(--ui-surface-strong);
+    box-shadow:0 -14px 40px rgba(0,0,0,.5);
+    padding:14px 15px calc(16px + var(--mobile-safe-bottom,0px));
+    animation:inspUp .26s var(--ease);
+  }
+  @keyframes inspUp { from { transform:translateY(16px); opacity:0 } to { transform:none; opacity:1 } }
+  @media (prefers-reduced-motion:reduce) { body.has-selection .inspector { animation:none } }
+  /* A grab bar, so it reads as a sheet you can dismiss (‹ closes it). */
+  body.has-selection .inspector::before {
+    content:''; position:sticky; top:0; display:block;
+    width:34px; height:4px; margin:-4px auto 8px;
+    border-radius:2px; background:var(--line);
+  }
+  /* The transport capsule would sit on top of the sheet. */
+  body.has-selection .transport-sheet[data-state="peek"] .ts-cap { opacity:0; pointer-events:none }
+  /* With the sheet up, the page behind does not need to hide anything else. */
+  body.has-selection .doc-bar,
+  body.has-selection .ctx-bar,
+  body.has-selection .rhythm-track { display:flex }
+  body.has-selection .rhythm-track { display:block }
+  body.has-selection #progressionStory { display:block }
+}

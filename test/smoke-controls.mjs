@@ -62,6 +62,14 @@ const CASES = [
   ['doc.save',         '[data-act="doc.save"]',                           () => !!st.docId,
     () => { switchTab('build'); if (!(st.history||[]).length) surpriseMe(); }],
   ['ctx.key → explore','[data-act="ctx.key"]',                            () => document.body.dataset.mode === 'explore', () => switchTab('build')],
+  // Tapping a chord must show its variations WITHOUT scrolling. This regressed
+  // once (the inspector sat 628px down an 844px screen, so only its header
+  // showed) and was reported as "se quitó lo de las séptimas y novenas".
+  ['chord tap → variations', '.builder-step',                             () => {
+      const v = [...document.querySelectorAll('.insp-var')];
+      return v.length >= 6 && v.every(x => { const r = x.getBoundingClientRect();
+        return r.top >= 0 && r.bottom <= innerHeight; });
+    }, () => { switchTab('build'); if (!(st.history||[]).length) surpriseMe(); }],
   ['builder.clear',    '[data-act="builder.clear"]',                      () => (st.history || []).length === 0,
     () => { switchTab('build'); const m = document.getElementById('builderMore'); if (m.hasAttribute('hidden')) document.getElementById('moreBtn').click(); }],
 ];
