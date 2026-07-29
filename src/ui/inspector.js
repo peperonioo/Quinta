@@ -12,8 +12,11 @@
 //     discover. Here they are three visible tabs, always.
 const Inspector = (() => {
   let sel = -1;                       // index into st.history, or -1 for "the key"
-  let instr = 'guitar';               // which instrument the inspector is showing
-  let view  = 'chord';                // chord · triads · scale
+  // Instrument and view PERSIST. Picking "guitar · scale" and finding piano ·
+  // chord again on the next chord — or the next session — is a tax on the same
+  // decision, every time. They are preferences, so they live in state.
+  const instr = () => st.inspInstr || 'guitar';
+  const view  = () => st.inspView  || 'chord';
 
   const el = () => document.getElementById('inspector');
   const es = () => st.lang === 'es';
@@ -27,7 +30,7 @@ const Inspector = (() => {
     sel = (i != null && h[i]) ? i : -1;
     if (sel >= 0) {
       AudioEngine.playChord(chordPitchesForItem(h[sel]));
-      tel('inspect_chord', { view, instr });
+      tel('inspect_chord', { view: view(), instr: instr() });
     }
     render();
     _markSelection();
@@ -43,8 +46,8 @@ const Inspector = (() => {
     document.body.classList.toggle('has-selection', sel >= 0);
   }
 
-  function setInstrument(x) { instr = x; tel('inspect_instr', { instr: x }); render(); }
-  function setView(v)       { view  = v; tel('inspect_view',  { view: v });  render(); }
+  function setInstrument(x) { st.inspInstr = x; saveState(); tel('inspect_instr', { instr: x }); render(); }
+  function setView(v)       { st.inspView  = v; saveState(); tel('inspect_view',  { view: v });  render(); }
 
   // ── the chord's role in the key, in one line ─────────
   function _role(it) {
@@ -103,8 +106,8 @@ const Inspector = (() => {
     const vars = variantsFor(it.quality) || [];
     const cur  = it.variant || 'triad';
     const nx   = _next(it);
-    const T = (v, lbl) => `<button class="${view === v ? 'on' : ''}" data-act="insp.view" data-id="${v}">${lbl}</button>`;
-    const I = (x, lbl) => `<button class="${instr === x ? 'on' : ''}" data-act="insp.instr" data-id="${x}">${lbl}</button>`;
+    const T = (v, lbl) => `<button class="${view() === v ? 'on' : ''}" data-act="insp.view" data-id="${v}">${lbl}</button>`;
+    const I = (x, lbl) => `<button class="${instr() === x ? 'on' : ''}" data-act="insp.instr" data-id="${x}">${lbl}</button>`;
     return `
       <div class="insp-head">
         <button class="insp-back" data-act="insp.clear" aria-label="${L('Back to key', 'Volver a la tonalidad')}">‹</button>
@@ -155,13 +158,14 @@ const Inspector = (() => {
     //   chord  → the chord as voiced, extensions included
     const pc = p => ((p % 12) + 12) % 12;
     let pitches;
-    if (view === 'scale') pitches = gs().map(n => ni(n));
+    const v = view();
+    if (v === 'scale') pitches = gs().map(n => ni(n));
     else {
       const full = chordPitchesForItem(it).map(pc);
       const uniq = [...new Set(full)];
-      pitches = (view === 'triads') ? uniq.slice(0, 3) : uniq;
+      pitches = (v === 'triads') ? uniq.slice(0, 3) : uniq;
     }
-    host.innerHTML = instr === 'piano' ? _pianoHTML(pitches) : _fretHTML(pitches, it);
+    host.innerHTML = instr() === 'piano' ? _pianoHTML(pitches) : _fretHTML(pitches, it);
   }
 
   // Compact one-octave keyboard — enough to read a voicing, small enough to sit
