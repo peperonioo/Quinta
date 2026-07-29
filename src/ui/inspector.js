@@ -35,7 +35,8 @@ const Inspector = (() => {
     render();
     _markSelection();
   }
-  function clear() { sel = -1; render(); _markSelection(); }
+  function clear() { sel = -1; render(); _markSelection();
+                     document.body.style.removeProperty('--insp-h'); }
   function selected() { return sel; }
 
   function _markSelection() {
@@ -44,6 +45,27 @@ const Inspector = (() => {
     // With a chord selected the inspector already answers "what goes next", so
     // the bubble row stands down and the inspector fits without scrolling.
     document.body.classList.toggle('has-selection', sel >= 0);
+    if (sel >= 0) _keepClipVisible();
+  }
+
+  // On a phone the inspector is a fixed bottom sheet that can cover up to 76svh
+  // — enough to sit on top of the clip you just tapped. Editing a chord you
+  // cannot see is the same mistake the sheet was introduced to fix, and it also
+  // put the clip's × out of reach. Scroll the lane clear of the sheet.
+  function _keepClipVisible() {
+    if (!matchMedia('(max-width:860px)').matches) return;
+    requestAnimationFrame(() => {
+      const clip  = document.querySelector('.builder-step.is-selected');
+      const sheet = document.getElementById('inspector');
+      if (!clip || !sheet) return;
+      // The sheet is out of flow, so the page is often too short to scroll at
+      // all — reserve its height at the bottom first.
+      document.body.style.setProperty('--insp-h', sheet.getBoundingClientRect().height + 'px');
+      // Then park the clip near the top of the screen. Aiming for a fixed
+      // position beats measuring the gap to the sheet: the sheet is still
+      // animating in when this runs, so its height is not final yet.
+      requestAnimationFrame(() => clip.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+    });
   }
 
   function setInstrument(x) { st.inspInstr = x; saveState(); tel('inspect_instr', { instr: x }); render(); }

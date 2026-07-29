@@ -73,6 +73,17 @@ const CASES = [
       return v.length >= 6 && v.every(x => { const r = x.getBoundingClientRect();
         return r.top >= 0 && r.bottom <= innerHeight; });
     }, () => { switchTab('build'); if (!(st.history||[]).length) surpriseMe(); }],
+  // The × on the selected clip. Two things can break it: the action, and the
+  // lane's horizontal overflow clipping a control that hangs off the corner —
+  // so this asserts the click LANDS on the button, not just that it exists.
+  ['clip.remove',      '.builder-step.is-selected .step-x',                () => (st.history || []).length === window.__nBefore - 1,
+    () => { switchTab('build'); if (!(st.history||[]).length) surpriseMe();
+            Inspector.select(0); window.__nBefore = st.history.length;
+            const x = document.querySelector('.builder-step.is-selected .step-x');
+            const r = x && x.getBoundingClientRect();
+            if (!r || r.width < 14) throw new Error('× not rendered');
+            const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+            if (!x.contains(hit) && hit !== x) throw new Error('× is covered/clipped'); }],
   // The wheel WRITES (V2). Tapping an in-key sector appends that chord instead of
   // only sounding it — the product is named after this thing and for six versions
   // it could not put a single chord into a progression.
@@ -129,6 +140,42 @@ try {
       console.error(`FAIL  ${name} — ${String(err.message).split('\n')[0].slice(0, 80)}`);
       failed++;
     }
+  }
+
+  // ── Mobile pass ──────────────────────────────────────
+  // Everything above runs at 1440x1000. The inspector's phone layout is a fixed
+  // bottom sheet, and it was silently NOT fixed: two ancestors carry a transform
+  // (the wheel-collapse, and #panel-theory's tab-enter leaving an identity
+  // matrix), and a transformed ancestor becomes the containing block for
+  // position:fixed. The sheet drifted up as you scrolled and covered the very
+  // clip you were editing. Asserted here because it only reproduces on a phone.
+  {
+    const mp = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    await mp.goto(FILE, { waitUntil: 'load' });
+    await mp.waitForFunction(() => typeof ActionRegistry === 'object', null, { timeout: 20000 });
+    await mp.waitForTimeout(1400);
+    await mp.evaluate(() => {
+      try { document.getElementById('splash')?.remove(); } catch (_) {}
+      try { Onboarding.close(); } catch (_) {}
+      try { Comeback.close(); } catch (_) {}
+      switchTab('build'); if (!(st.history || []).length) surpriseMe(); Inspector.select(0);
+    });
+    await mp.waitForTimeout(1100);
+    const m = await mp.evaluate(() => {
+      const sheet = document.getElementById('inspector').getBoundingClientRect();
+      const x = document.querySelector('.builder-step.is-selected .step-x');
+      const r = x && x.getBoundingClientRect();
+      const hit = r && document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return {
+        anchored: Math.abs(sheet.bottom - innerHeight) < 2,     // really fixed to the viewport
+        clipClear: !!r && r.bottom < sheet.top,                 // the clip is not under the sheet
+        xReachable: !!r && (x.contains(hit) || hit === x),
+      };
+    });
+    for (const k of ['anchored', 'clipClear', 'xReachable']) {
+      if (!m[k]) { console.error(`FAIL  mobile: ${k}`); failed++; }
+    }
+    await mp.close();
   }
 
   if (unknownActions.length) { console.error('UNKNOWN action at runtime:', [...new Set(unknownActions)].join(' | ')); failed++; }

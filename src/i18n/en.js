@@ -115,4 +115,5 @@ const I18N_EN = {
   'tabs.explore':      'Explore',
   'tabs.build':        'Build',
   'tabs.produce':      'Produce',
+  'builder.removeChord': 'Remove chord',
 };

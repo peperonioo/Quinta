@@ -253,10 +253,6 @@ function toggleTheme() {
     }
   }
 
-  document.querySelectorAll('.genre-btn').forEach(b =>
-    b.classList.toggle('active', (b.textContent.trim().toLowerCase().replace(' ','')) === curGenre)
-  );
-
   initWheelRoulette();
   initWheelLock();
   WheelDirectionGuide.addInfoButton();

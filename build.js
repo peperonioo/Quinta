@@ -39,7 +39,6 @@ const CSS_FILES = [
   'src/styles/popovers.css',
   'src/styles/instruments.css',
   'src/styles/onboarding.css',
-  'src/styles/production.css',
   'src/styles/components.css',
   'src/styles/typography.css',
   'src/styles/mobile.css',

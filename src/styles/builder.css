@@ -228,6 +228,25 @@ body.light .builder-step .step-len { color:var(--accent); opacity:1 }
   font-family:'DM Mono',monospace; font-size:9px; color:var(--accent2);
   opacity:.85; flex:0 0 auto;
 }
+/* Delete affordance — only on the SELECTED clip, so the lane stays clean but
+   removing a chord never needs the keyboard or a trip to the "···" menu. */
+.builder-step .step-x {
+  position:absolute; top:-8px; right:-8px; z-index:7;   /* over the playhead (6) */
+  width:22px; height:22px; border-radius:50%; display:none; place-items:center;
+  border:1px solid var(--card-bd); background:var(--ui-surface-strong);
+  color:var(--muted); font-size:15px; line-height:1; cursor:pointer; padding:0;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.builder-step.is-selected .step-x { display:grid }
+.builder-step .step-x:hover { color:#fff; background:var(--accent); border-color:transparent }
+@media (max-width:860px) {
+  /* Bigger hit area on a phone without a bigger circle. */
+  .builder-step .step-x::after {
+    content:''; position:absolute; left:50%; top:50%; width:40px; height:40px;
+    transform:translate(-50%,-50%);
+  }
+}
+
 /* Right-edge grip to drag the duration */
 .builder-step .step-resize {
   position:absolute; top:0; right:0; bottom:0; width:14px;

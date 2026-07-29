@@ -419,56 +419,6 @@
     </div>
   </div>
 
-  <!-- PRODUCTION PANEL -->
-  <div id="panel-production">
-    <div class="genre-tabs">
-      <button class="genre-btn active" data-act="genre.set" data-id="house">House</button>
-      <button class="genre-btn" data-act="genre.set" data-id="neosoul">Neo Soul</button>
-      <button class="genre-btn" data-act="genre.set" data-id="jazz">Jazz</button>
-    </div>
-    <div class="prod-header">
-      <div><div id="prodTitle" class="prod-title">House</div><div id="prodMeta" class="prod-meta"></div></div>
-      <div class="key-badge"><span id="prodKeyNote" class="kb-note">C</span><span id="prodKeyMode">Ionian</span></div>
-    </div>
-    <div class="midi-section">
-      <div class="midi-header">
-        <div class="midi-title">
-          <h3 data-i18n="production.rhythmGrid">Rhythm Grid — 1 bar · 16 steps</h3>
-          <button class="grid-reset" id="gridReset" data-act="grid.reset" hidden title="Reset to the genre default">↺</button>
-        </div>
-        <div style="display:flex;gap:7px;align-items:center">
-          <span id="bpmBadge" class="bpm-badge">124 BPM</span>
-          <button id="bpmSuggest" class="bpm-suggest" title="Use the suggested tempo">≈ 124</button>
-          <button class="play-btn" id="playBtn" data-ico="play" data-act="groove.play"><span data-i18n="play.play">Play</span></button>
-        </div>
-      </div>
-      <div id="midiGrid" class="midi-grid"></div>
-    </div>
-    <!-- The know-how lives folded below the action: the grid is what you DO,
-         this is what you READ when curious. -->
-    <details class="drawer learn-style">
-      <summary>
-        <span data-i18n="production.learn">Learn the style</span>
-        <span class="chev" data-ico="chevron" data-ico-size="12" aria-hidden="true"></span>
-      </summary>
-      <div class="drawer-body">
-        <div id="prodCards" class="prod-grid"></div>
-        <div id="elementsSection" class="elements-section"></div>
-        <div class="prog-section">
-          <h3 data-i18n="production.progressions">Typical Progressions</h3>
-          <div id="progList" class="prog-list"></div>
-        </div>
-        <div class="groove-section">
-          <h3 data-i18n="production.groove">Groove Construction</h3>
-          <div id="grooveRules" class="groove-rules"></div>
-        </div>
-        <div class="tips-section">
-          <h3 data-i18n="production.tips">Arrangement &amp; Fills</h3>
-          <div id="prodTips" class="tips-grid"></div>
-        </div>
-      </div>
-    </details>
-  </div>
 
 </div>
 

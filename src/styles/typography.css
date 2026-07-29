@@ -19,14 +19,12 @@
 .builder-title,
 .builder-next-title,
 .gravity-card .g-label,
-.tips-card h4,
 .metro-title,
 .iz-title,
 .lib-section-title,
 .settings-mini span,
 .pal-label,
 .intensity-wrap label,
-.prod-section-head,
 .genre-label {
   font-family: 'DM Mono', monospace !important;
   font-size: var(--fs-label) !important;
@@ -43,7 +41,6 @@
 .lib-section-title,
 .pal-label,
 .intensity-wrap label,
-.prod-section-head,
 .genre-label          { color: var(--muted) !important; }
 .builder-next-title   { color: var(--ink) !important; opacity: .9 !important; }
 

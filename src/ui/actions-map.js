@@ -16,6 +16,15 @@ ActionRegistry.addAll({
   'clip.drag':        (el, e) => BarDrag.start(e, _aInt(el, 'idx'), el),
   'clip.open':        (el, e) => BarDrag.key(e, _aInt(el, 'idx')),
   'clip.resize':      (el, e) => DurationDrag.start(e, _aInt(el, 'idx'), el),
+  // Deleting a chord used to mean keyboard Delete or clearing everything. The ×
+  // appears on the selected clip so it is one tap, where the chord is. It fires
+  // on pointerdown, not click: the clip itself owns pointerdown (clip.drag), and
+  // the nearest [data-act-down] wins — a click handler here would never run,
+  // because starting the drag swallows the click.
+  'clip.remove':      (el, e) => { if (e) { e.stopPropagation(); e.preventDefault(); }
+                                   const i = _aInt(el, 'idx');
+                                   if (typeof Inspector === 'object') Inspector.clear();
+                                   HistoryEngine.remove(i); },
   'playhead.drag':    (el, e) => PlayheadDrag.start(e, el),
 
   // ── Theory ──
@@ -101,11 +110,6 @@ ActionRegistry.addAll({
   // bubbled up from the panel inside it.
   'zoom.backdrop':    (el, e) => { if (e && e.target === el) InstrumentZoom.close(); },
 
-  // ── Production ──
-  'genre.set':        el => setGenre(_aStr(el, 'id'), el),
-  'grid.reset':       ()  => resetPattern(),
-  'groove.play':      ()  => togglePlay(),
-
   // ── Library ──
   'lib.toggle':       ()  => Library.toggle(),
   'lib.close':        ()  => Library.close(),
@@ -148,11 +152,6 @@ ActionRegistry.addAll({
   'variant.pick':     el => ChordVariants.pick(_aStr(el, 'id')),
   'variant.dup':      ()  => ChordVariants._dup(),
   'variant.del':      ()  => ChordVariants._del(),
-
-  // NOTE: src/ui/modulation-coach.js is NOT in build.js's JS_FILES — it has never
-  // shipped. Its handlers are therefore not registered here; registering them
-  // would point live markup at a module that doesn't exist in the bundle.
-  // Either add the file to the build or delete it, but don't wire it half-way.
 
   // ── Inspector (V2 · B1) ──
   'insp.clear':       ()  => Inspector.clear(),

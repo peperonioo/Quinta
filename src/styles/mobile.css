@@ -259,7 +259,7 @@
      it is there. This is what the restructure plan said from the start. */
   body.has-selection .inspector {
     position:fixed; left:0; right:0; bottom:0; z-index:58;
-    max-height:76svh; overflow-y:auto; overscroll-behavior:contain;
+    max-height:68svh; overflow-y:auto; overscroll-behavior:contain;
     margin:0; border-radius:20px 20px 0 0;
     border:1px solid var(--ui-border-strong); border-bottom:0;
     background:var(--ui-surface-strong);
@@ -267,6 +267,25 @@
     padding:14px 15px calc(16px + var(--mobile-safe-bottom,0px));
     animation:inspUp .26s var(--ease);
   }
+  /* The sheet is fixed, so it adds no height — without this the page cannot
+     scroll and the clip stays trapped underneath it. */
+  body.has-selection { padding-bottom:var(--insp-h,0px) }
+  /* The scroll-linked wheel collapse puts a transform on .below-wheel, and a
+     transformed ancestor becomes the containing block for position:fixed — so
+     the "bottom sheet" was anchored to that div and drifted up the screen as
+     you scrolled, landing on top of the clip lane. While the sheet is up the
+     collapse has nothing to collapse (the wheel is behind it), so stand it down
+     and let the sheet be fixed to the viewport for real.
+     Two ancestors do it: .below-wheel (the collapse) and #panel-theory, whose
+     tab-enter animation leaves an identity matrix behind — an identity
+     transform still creates the containing block. */
+  body.has-selection .below-wheel,
+  body.has-selection #panel-theory {
+    transform:none !important; will-change:auto; animation:none !important;
+  }
+  /* Room for the builder header above the clip when it is scrolled to the top,
+     and for the × that hangs off its corner. */
+  .builder-step { scroll-margin-top:92px }
   @keyframes inspUp { from { transform:translateY(16px); opacity:0 } to { transform:none; opacity:1 } }
   @media (prefers-reduced-motion:reduce) { body.has-selection .inspector { animation:none } }
   /* A grab bar, so it reads as a sheet you can dismiss (‹ closes it). */

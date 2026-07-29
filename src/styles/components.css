@@ -78,18 +78,15 @@
 }
 .builder-btn.danger:hover { background: color-mix(in oklab, var(--danger) 20%, transparent); color: var(--danger); }
 
-/* ── Pill — mood lens, genre ───────────────────────────────*/
-.mood-btn,
-.genre-btn {
+/* ── Pill — mood lens ──────────────────────────────────────*/
+.mood-btn {
   min-height: 30px; padding: 0 14px; border-radius: var(--r-full);
   border: 1px solid var(--line); background: var(--glass-1); color: var(--ink);
   font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
   cursor: pointer; transition: background .15s var(--ease), border-color .15s, color .15s, transform .12s var(--ease);
 }
-.mood-btn:hover,
-.genre-btn:hover:not(.active) { border-color: var(--muted); color: var(--ink); }
-.mood-btn.active,
-.genre-btn.active {
+.mood-btn:hover { border-color: var(--muted); color: var(--ink); }
+.mood-btn.active {
   background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600;
 }
 

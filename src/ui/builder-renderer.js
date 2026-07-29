@@ -387,6 +387,8 @@ const HistoryEngine = {
         <span class="step-chord">${chordLabel(it)}</span>
         <span class="step-sub"><span class="step-degree">${casedRoman(it.degree, it.quality)}</span><span class="step-len">${fmtBeats(it.beats)}</span></span>
         <span class="step-resize" title="Drag to set duration" data-act-down="clip.resize" data-idx="${i}"></span>
+        <button class="step-x" data-act-down="clip.remove" data-idx="${i}" tabindex="-1"
+          aria-label="${t('builder.removeChord')}" title="${t('builder.removeChord')}">×</button>
       </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead" data-act-down="playhead.drag"></div><div class="builder-spacer" aria-hidden="true"></div>`;
 
     // Re-rendering closes any open per-chord chooser.
