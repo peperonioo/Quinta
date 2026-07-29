@@ -45,8 +45,6 @@ const CASES = [
   ['emotion.close',    '#emotionPanel .mod-x',                            () => !EmotionSuggester.isOpen()],
   ['color.toggle',     '.card-action-btn[data-act="color.toggle"]',       () => !document.getElementById('colorPanel').hidden, () => switchTab('explore')],
   ['color.close',      '#colorPanel .mod-x',                              () => document.getElementById('colorPanel').hidden],
-  // The wheel breathes on an infinite animation, so its box is never "stable"
-  // for Playwright — this one is clicked with force.
   ['dirguide on',      '#wheelInfoBtn',                                   () => WheelDirectionGuide.visible === true, () => switchTab('explore')],
   ['dirguide off',     '#wheelInfoBtn',                                   () => WheelDirectionGuide.visible === false],
   ['metro.panel',      '.metro-pill',                                     () => document.getElementById('metronome').classList.contains('open')],
@@ -115,7 +113,10 @@ try {
       await page.waitForTimeout(160);
       const el = await page.$(sel);
       if (!el) { console.warn(`SKIP  ${name} (not rendered)`); skipped++; continue; }
-      await el.click({ timeout: 4000, force: sel.includes('wheelInfoBtn') });
+      // Anything inside the wheel needs force: it breathes on an infinite
+      // animation, so Playwright never sees a "stable" box for it.
+      const inWheel = sel.includes('wheelInfoBtn') || sel.includes('#wg');
+      await el.click({ timeout: 4000, force: inWheel });
       await page.waitForTimeout(300);
       const ok = await page.evaluate(check);
       if (!ok) { console.error(`FAIL  ${name}`); failed++; }
