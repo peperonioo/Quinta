@@ -50,7 +50,12 @@ const CASES = [
   ['metro.panel',      '.metro-pill',                                     () => document.getElementById('metronome').classList.contains('open')],
   ['metro.faster',     '[data-act="metro.faster"]',                       () => st.bpm > 100],
   ['metro.sound',      '[data-act="metro.sound"][data-id="rimshot"]',     () => st.metroSound === 'rimshot'],
-  ['voice.set',        '[data-act="voice.set"][data-id="epiano"]',        () => st.pianoSound === 'epiano', () => switchTab('build')],
+  // Voices moved into the inspector (they were the only thing keeping the dock
+  // alive). Reaching them now needs a selected chord.
+  ['insp.voice epiano','[data-act="insp.voice"][data-id="epiano"]',       () => st.pianoSound === 'epiano',
+    () => { switchTab('build'); if (!(st.history||[]).length) surpriseMe(); Inspector.select(0); Inspector.setInstrument('piano'); }],
+  ['insp.voice acústica','[data-act="insp.voice"][data-id="steel"]',      () => st.pianoSound === 'steel',
+    () => { Inspector.setInstrument('guitar'); }],
   // B3: Produce is no longer a mode. Its controls live in the rhythm track.
   ['rhythm.toggle on', '[data-act="rhythm.toggle"]',                      () => st.rhythmOn === true, () => switchTab('build')],
   ['rhythm.genre jazz','[data-act="rhythm.genre"][data-id="jazz"]',       () => st.genre === 'jazz'],

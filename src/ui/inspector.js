@@ -134,6 +134,7 @@ const Inspector = (() => {
           </div>
         </div>
         <div class="insp-instr" id="inspInstr"></div>
+        <div class="insp-voices">${_voicesHTML()}</div>
       </div>
 
       ${nx.length ? `<div class="insp-sec">
@@ -143,6 +144,26 @@ const Inspector = (() => {
             <span class="idn">${n.chord.chord}</span><span class="ipct">${n.fit}%</span>
           </button>`).join('')}
         </div></div>` : ''}`;
+  }
+
+  // The voice (timbre) belongs to the instrument you are looking at: keyboard
+  // voices under Piano, guitar voices under Guitar. They used to live ONLY inside
+  // the instrument dock, which is why the dock could not be retired — hiding it
+  // made five voices unreachable. Now they travel with the instrument.
+  const VOICES = {
+    piano:  [['piano', 'Piano'], ['epiano', 'E-Piano'], ['brass', 'Brass']],
+    guitar: [['steel', { en: 'Acoustic', es: 'Acústica' }], ['electric', { en: 'Electric', es: 'Eléctrica' }]],
+  };
+  function _voicesHTML() {
+    const list = VOICES[instr()] || [];
+    const cur = st.pianoSound || 'piano';
+    return list.map(([id, lbl]) => {
+      const name = (typeof lbl === 'object') ? L(lbl.en, lbl.es) : lbl;
+      const pid = (typeof voicePackId === 'function') ? voicePackId(id) : null;
+      const locked = pid && !packOwned(pid);
+      return `<button class="insp-voice${id === cur ? ' on' : ''}${locked ? ' locked' : ''}"
+        data-act="insp.voice" data-id="${id}">${name}${locked ? '<i>P1</i>' : ''}</button>`;
+    }).join('');
   }
 
   // ── the instrument, drawn for the current chord/view ──
@@ -225,5 +246,12 @@ const Inspector = (() => {
     select((st.history || []).length - 1);
   }
 
-  return { select, clear, selected, render, setInstrument, setView, pickVariant, addDegree };
+  function pickVoice(id) {
+    setVoice(id, null);
+    const it = item(); if (it) AudioEngine.playChord(chordPitchesForItem(it));
+    tel('inspect_voice', { voice: id });
+    render();
+  }
+
+  return { select, clear, selected, render, setInstrument, setView, pickVariant, addDegree, pickVoice };
 })();

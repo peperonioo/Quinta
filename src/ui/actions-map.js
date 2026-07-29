@@ -160,6 +160,7 @@ ActionRegistry.addAll({
   'insp.instr':       el  => Inspector.setInstrument(_aStr(el, 'id')),
   'insp.view':        el  => Inspector.setView(_aStr(el, 'id')),
   'insp.add':         el  => Inspector.addDegree(_aInt(el, 'idx')),
+  'insp.voice':       el  => Inspector.pickVoice(_aStr(el, 'id')),
 
   // ── Document (B2) ──
   'doc.save':         ()  => Doc.save(),

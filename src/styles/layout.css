@@ -336,15 +336,12 @@ body[data-mode="build"] #degreesBlock { display:none !important }
   }
 }
 
-/* The dock DOES duplicate the inspector — same chord, permanently on screen —
-   but it is not dead weight yet: the voice selector (Piano · E-Piano · Brass ·
-   Acústica · Eléctrica) lives inside it and nowhere else. Hiding the dock made
-   those voices unreachable, which the control smoke caught immediately.
-   So it only stands down while a chord is SELECTED: the inspector is answering
-   that question, and the dock would be showing the same thing twice. Retiring it
-   for good needs the voices moved into the inspector first — a separate change,
-   not a side effect of a layout tweak. */
-body.has-selection .drawers { display:none }
+/* The dock is retired in Build. It duplicated the inspector — same chord,
+   permanently on screen — and the one thing it held exclusively (the five voices)
+   now travels with the instrument inside the inspector. That gives back the 25%
+   of a phone screen it was holding. It stays in Explore, where playing around
+   without a selection is the point. */
+body[data-mode="build"] .drawers { display:none }
 
 
 /* Explore: the wheel is the subject of its own mode, so it gets the room. */

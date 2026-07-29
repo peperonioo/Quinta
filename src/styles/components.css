@@ -352,6 +352,18 @@ body.light .if-neck { background:linear-gradient(180deg,#b89670,#9c7c58) }
 /* The neck has a natural width — don't let it stretch across a wide inspector */
 .insp-instr { max-width:420px }
 
+/* Voices — the timbre of whatever instrument the inspector is showing. */
+.insp-voices { display:flex; gap:5px; flex-wrap:wrap; margin-top:7px }
+.insp-voice {
+  min-height:30px; padding:5px 11px; border-radius:8px; cursor:pointer;
+  border:1px solid var(--line); background:var(--sel-bg);
+  color:var(--muted); font-size:11px; font-weight:600; transition:all .15s var(--ease);
+}
+.insp-voice:hover { color:var(--ink); border-color:rgba(232,68,26,.35) }
+.insp-voice.on { background:var(--degree-tonic); border-color:rgba(232,68,26,.5); color:var(--accent2) }
+.insp-voice.locked { opacity:.6 }
+.insp-voice i { font-style:normal; font-size:8px; margin-left:5px; color:var(--accent2) }
+
 /* Key view: the degrees, as the way to add */
 .insp-degrees { display:grid; grid-template-columns:repeat(7,1fr); gap:4px }
 .insp-deg {
