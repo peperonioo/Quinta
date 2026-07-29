@@ -345,3 +345,9 @@ body[data-mode="build"] #degreesBlock { display:none !important }
    for good needs the voices moved into the inspector first — a separate change,
    not a side effect of a layout tweak. */
 body.has-selection .drawers { display:none }
+
+
+/* Explore: the wheel is the subject of its own mode, so it gets the room. */
+@media (min-width:861px) {
+  body[data-mode="explore"] #wheelSvg { width:min(62vw,600px); height:min(62vw,600px) }
+}

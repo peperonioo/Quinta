@@ -46,6 +46,12 @@
   /* No drop-shadow filter on mobile — re-rasterising a filter while the wheel
      scales every frame is the other big jank source. */
   #wheelSvg       { width:min(84vw,460px) !important; height:min(84vw,460px) !important; filter:none !important }
+  /* In Explore the wheel IS the screen — full size, full opacity. It was shrunk
+     to 84vw and faded by the scroll-linked --sp back when it shared a page with
+     the builder; in its own mode neither applies. */
+  body[data-mode="explore"] #wheelSvg { width:min(96vw,540px) !important; height:min(96vw,540px) !important }
+  body[data-mode="explore"] .circle-wrap { transform:none !important; opacity:1 !important }
+  body[data-mode="explore"] .below-wheel { transform:none !important }
   body.building .wheel-toggle-row { margin-top:6px }
   /* The wheel shrinks via transform, which does not shrink its layout box — that
      leaves dead space under it as you scroll. Pull the whole lower half up by the

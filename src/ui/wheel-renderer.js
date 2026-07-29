@@ -20,6 +20,27 @@ function syncWheelLabels(rot) {
   });
 }
 
+// Is this wheel sector one of the chords of the current key? If so, tapping it
+// appends it to the document and returns true (so the caller does NOT move the
+// key). Returns false for anything outside the key, where changing key is still
+// the useful thing to do.
+function _wheelAdd(rootName, quality) {
+  if (document.body.dataset.mode !== 'explore' && document.body.dataset.mode !== 'build') return false;
+  const chords = (typeof gc === 'function') ? gc() : [];
+  const want = ((ni(rootName) % 12) + 12) % 12;
+  const idx = chords.findIndex(c => {
+    const isMin = /Min|Dim/.test(c.quality);
+    return ((ni(c.note != null ? c.note : c.chord.replace(/m$|°$/, '')) % 12) + 12) % 12 === want
+      && (quality === 'Min' ? isMin : !isMin);
+  });
+  if (idx < 0) return false;
+  HistoryEngine.addDegree(idx);
+  tel('wheel_add', { degree: idx });
+  if (typeof Inspector === 'object') Inspector.select((st.history || []).length - 1);
+  _shareToast(`${chords[idx].chord} →`);
+  return true;
+}
+
 function renderWheel() {
   const aKey = wheelKey();           // rotate/highlight by the SECTOR, not the minor letter
   const ai   = FIFTHS.indexOf(aKey);
@@ -114,13 +135,15 @@ function renderWheel() {
     og.addEventListener('click', e => {
       if (suppressWheelClick) { e.preventDefault(); e.stopPropagation(); return; }
       e.stopPropagation();
-      if (typeof AudioEngine === 'object') {
-        const root = ni(k);
-        tel('wheel_chord', { ring: 'major', locked: !!wheelLocked });
-        AudioEngine.playChord([root, root + 4, root + 7]);
-      }
+      const root = ni(k);
+      tel('wheel_chord', { ring: 'major', locked: !!wheelLocked });
+      AudioEngine.playChord([root, root + 4, root + 7]);
       if (typeof wheelLocked !== 'undefined' && wheelLocked) auditionFlash(op);
-      selectWheelKey(k);
+      // V2 — the wheel can WRITE now. Tapping a sector that belongs to the current
+      // key adds that chord to the document; tapping one outside it moves the key,
+      // which is what it always did. The product is named after this thing and it
+      // could not put a single chord into a progression.
+      if (!_wheelAdd(k, 'Maj')) selectWheelKey(k);
     });
     grp.appendChild(og);
 
@@ -178,7 +201,7 @@ function renderWheel() {
         }
       }
       if (typeof wheelLocked !== 'undefined' && wheelLocked) auditionFlash(ip);
-      selectWheelKey(k);
+      if (!_wheelAdd(k, 'Min')) selectWheelKey(k);
     });
     grp.appendChild(ig);
   });

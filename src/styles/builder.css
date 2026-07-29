@@ -37,7 +37,9 @@ body.focus-builder #progressionStory.builder-next-moves {
   flex:1 1 auto; display:flex; flex-direction:column; justify-content:center;
 }
 body.focus-builder #progressionStory .next-orbit { min-height:clamp(120px, 17svh, 168px) }
-body.focus-builder #wheelSvg { opacity:.5; transition:opacity .45s var(--ui-ease) }   /* fade the wheel above as you commit */
+/* The wheel only fades when it is BACKGROUND to the builder. In Explore it is
+   the subject, so it never dims. */
+body.focus-builder:not([data-mode="explore"]) #wheelSvg { opacity:.5; transition:opacity .45s var(--ui-ease) }
 .builder-head    { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px }
 .builder-title   { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-weight:500 }
 /* A/B section tabs — segmented control under the title */

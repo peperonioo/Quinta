@@ -70,6 +70,11 @@ const CASES = [
       return v.length >= 6 && v.every(x => { const r = x.getBoundingClientRect();
         return r.top >= 0 && r.bottom <= innerHeight; });
     }, () => { switchTab('build'); if (!(st.history||[]).length) surpriseMe(); }],
+  // The wheel WRITES (V2). Tapping an in-key sector appends that chord instead of
+  // only sounding it — the product is named after this thing and for six versions
+  // it could not put a single chord into a progression.
+  ['wheel adds a chord', '#wg > g',                                       () => (st.history || []).length > 0,
+    () => { switchTab('explore'); HistoryEngine.clear(); }],
   ['builder.clear',    '[data-act="builder.clear"]',                      () => (st.history || []).length === 0,
     () => { switchTab('build'); const m = document.getElementById('builderMore'); if (m.hasAttribute('hidden')) document.getElementById('moreBtn').click(); }],
 ];
