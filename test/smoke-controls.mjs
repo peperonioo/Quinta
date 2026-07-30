@@ -142,6 +142,27 @@ try {
     }
   }
 
+  // The suggestion row is the ONLY place that answers "what goes well after this
+  // chord" now — the inspector's copy of it was removed. So the row has to read
+  // from the selection, not from the last clip in the lane.
+  {
+    const r = await page.evaluate(async () => {
+      const wait = () => new Promise(res => setTimeout(res, 260));
+      switchTab('build'); HistoryEngine.clear(); surpriseMe(); await wait();
+      const seen = [];
+      for (const i of [0, 1, 2]) {
+        Inspector.select(i); await wait();
+        seen.push(document.querySelector('.next-from b')?.textContent || '');
+      }
+      const chords = [0, 1, 2].map(i => st.history[i] && st.history[i].chord);
+      return { seen, chords, dupe: document.querySelectorAll('.insp-next').length };
+    });
+    // Each selection must label the row with THAT chord, and no second copy exists.
+    const wrong = r.seen.filter((v, i) => v !== r.chords[i]);
+    if (wrong.length) { console.error(`FAIL  suggestion row follows selection (${r.seen.join('/')} vs ${r.chords.join('/')})`); failed++; }
+    if (r.dupe) { console.error('FAIL  inspector still duplicates the suggestion row'); failed++; }
+  }
+
   // ── Mobile pass ──────────────────────────────────────
   // Everything above runs at 1440x1000. The inspector's phone layout is a fixed
   // bottom sheet, and it was silently NOT fixed: two ancestors carry a transform

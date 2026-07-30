@@ -301,5 +301,4 @@
   body.has-selection .ctx-bar,
   body.has-selection .rhythm-track { display:flex }
   body.has-selection .rhythm-track { display:block }
-  body.has-selection #progressionStory { display:block }
 }

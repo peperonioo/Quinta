@@ -2,6 +2,15 @@
 /* Old grid-style section is hidden; bubbles live in the builder */
 .suggestions-section { display:none !important }
 
+/* What the sizes are measured from. Without it the row was a set of bubbles of
+   unexplained sizes; this is the label the inspector's section used to carry. */
+.next-from {
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--muted); text-align:center; padding-top:2px;
+}
+.next-from b { font-family:var(--wheel-font); font-size:13px; letter-spacing:0;
+               text-transform:none; color:var(--ink); margin-left:4px }
+
 /* Next-orbit container */
 /* No !important needed: the only other rules are body.light (more specific)
    and the mobile .builder-next-moves override (more specific + !important). */

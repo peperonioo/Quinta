@@ -53,8 +53,21 @@ function renderGravityStatus() {
     </div>`;
 }
 
+// Which chord the suggestions are measured FROM. A selected clip wins: the whole
+// point of B1 is that the screen answers questions about the chord you tapped,
+// and this row and the inspector's old "goes well after" were the same call to
+// SuggestionEngine with a different source — the duplication the restructure
+// left open. The row keeps all seven degrees (and the drag-to-place), so nothing
+// became less reachable when that section went away.
+function _bubbleFrom() {
+  const h = Array.isArray(st.history) ? st.history : [];
+  const i = (typeof Inspector === 'object' && Inspector.selected) ? Inspector.selected() : -1;
+  if (i >= 0 && h[i] && h[i].degreeIndex >= 0) return h[i].degreeIndex;
+  return curDeg >= 0 ? curDeg : 0;
+}
+
 function _buildBubblesHTML() {
-  const from    = curDeg >= 0 ? curDeg : 0;
+  const from    = _bubbleFrom();
   const all     = SuggestionEngine.getNextWithScores(from); // strongest first
   const current = gc()[from];
 
@@ -113,7 +126,8 @@ function _buildBubblesHTML() {
       <span class="bk-text">${es ? 'Fuera de la escala' : 'Outside the key'}</span>
       <span class="bk-sub">${es ? 'préstamo · modulación' : 'borrow · modulate'}</span>
     </button>`;
-  const caption = ``;
+  const caption = current ? `<div class="next-from">${es ? 'Va bien después de' : 'Goes well after'}
+    <b>${current.chord}</b></div>` : '';
   return `${caption}<div class="next-orbit">${bubbles}</div>${beyond}`;
 }
 

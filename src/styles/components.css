@@ -372,17 +372,6 @@ body.light .if-neck { background:linear-gradient(180deg,#b89670,#9c7c58) }
 .insp-deg .idg { font-family:'DM Mono',monospace; font-size:8.5px; color:var(--accent2) }
 .insp-deg .idn { font-family:var(--wheel-font); font-size:15px; color:var(--ink); line-height:1 }
 
-/* What goes next */
-.insp-next { display:flex; gap:6px; flex-wrap:wrap }
-.insp-nextb {
-  display:flex; align-items:baseline; gap:6px; min-height:36px; padding:7px 12px;
-  border-radius:10px; cursor:pointer; border:1px solid rgba(232,68,26,.3);
-  background:var(--degree-tonic); transition:all .15s var(--ease);
-}
-.insp-nextb:hover { background:rgba(232,68,26,.22) }
-.insp-nextb .idn { font-family:var(--wheel-font); font-size:15px; color:var(--ink) }
-.insp-nextb .ipct { font-family:'DM Mono',monospace; font-size:9px; color:var(--accent2) }
-
 /* The selected clip is unmistakable */
 .builder-step.is-selected {
   border-color:var(--accent2) !important;

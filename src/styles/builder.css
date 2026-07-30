@@ -20,17 +20,25 @@ body.light .progression-builder { background:rgba(250,247,241,.92) }
    the work instead of the emptiness around it. */
 /* In Build mode the builder SHARES the screen with the inspector — the whole
    point of B1 is that selecting a chord shows everything about it without
-   scrolling. So the builder sizes to its content instead of claiming 64svh, and
-   the suggestion bubbles stand down while a chord is selected: the inspector's
-   "goes well after" is the same information, in context. */
+   scrolling. So the builder sizes to its content instead of claiming 64svh.
+   The bubble row used to stand down here, because the inspector carried the same
+   "goes well after". The row now reads FROM the selection instead, so it is the
+   one place that answers it — and it stays. */
 body[data-mode="build"] .progression-builder { display:flex; flex-direction:column }
 body[data-mode="build"] #progressionStory .next-orbit { min-height:0 }
-body.has-selection #progressionStory { display:none }
 body.has-selection .progression-builder { padding-bottom:12px }
 body.focus-builder .progression-builder {
-  min-height:64svh; max-height:88svh; display:flex; flex-direction:column;
+  max-height:88svh; display:flex; flex-direction:column;
   padding:18px 15px 22px;
   box-shadow:0 12px 44px -14px rgba(0,0,0,.55);
+}
+/* The reserved 64svh belongs to the phone, where the builder IS the screen. On a
+   wide screen the inspector is the co-protagonist in the next column, so a floor
+   here only bought void: 576px of panel around 499px of content, with the extra
+   77px plus a 140px hole between the lane and the bubbles. Hug the content and
+   let the taller of the two columns set the row height. */
+@media (max-width:860px) {
+  body.focus-builder .progression-builder { min-height:64svh }
 }
 body.focus-builder #flowRow.is-timeline { flex:0 0 auto }                 /* clips never stretch */
 body.focus-builder #progressionStory.builder-next-moves {

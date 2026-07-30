@@ -45,6 +45,8 @@ const Inspector = (() => {
     // With a chord selected the inspector already answers "what goes next", so
     // the bubble row stands down and the inspector fits without scrolling.
     document.body.classList.toggle('has-selection', sel >= 0);
+    // The bubble row measures from the selection now.
+    if (typeof renderProgressionStory === 'function') renderProgressionStory();
     if (sel >= 0) _keepClipVisible();
   }
 
@@ -87,12 +89,9 @@ const Inspector = (() => {
     return roles[d.role] || '';
   }
 
-  // ── what goes well after this chord ──────────────────
-  function _next(it) {
-    if (it.degreeIndex < 0) return [];
-    try { return SuggestionEngine.getNextWithScores(it.degreeIndex).slice(0, 4); }
-    catch (_) { return []; }
-  }
+  // "What goes well after this chord" lives in the builder's bubble row, which
+  // now reads from the selection — same engine, all seven degrees instead of the
+  // top four, and you can drag them onto the timeline.
 
   // ── render ───────────────────────────────────────────
   function render() {
@@ -127,7 +126,6 @@ const Inspector = (() => {
   function _chordHTML(it) {
     const vars = variantsFor(it.quality) || [];
     const cur  = it.variant || 'triad';
-    const nx   = _next(it);
     const T = (v, lbl) => `<button class="${view() === v ? 'on' : ''}" data-act="insp.view" data-id="${v}">${lbl}</button>`;
     const I = (x, lbl) => `<button class="${instr() === x ? 'on' : ''}" data-act="insp.instr" data-id="${x}">${lbl}</button>`;
     return `
@@ -159,13 +157,7 @@ const Inspector = (() => {
         <div class="insp-voices">${_voicesHTML()}</div>
       </div>
 
-      ${nx.length ? `<div class="insp-sec">
-        <div class="insp-lbl">${L('Goes well after', 'Va bien después')}</div>
-        <div class="insp-next">
-          ${nx.map(n => `<button class="insp-nextb" data-act="insp.add" data-idx="${n.to}">
-            <span class="idn">${n.chord.chord}</span><span class="ipct">${n.fit}%</span>
-          </button>`).join('')}
-        </div></div>` : ''}`;
+      `;
   }
 
   // The voice (timbre) belongs to the instrument you are looking at: keyboard
