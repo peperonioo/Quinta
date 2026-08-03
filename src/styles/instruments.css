@@ -48,6 +48,15 @@
 .black:active { transform:translateY(2px); filter:brightness(.85) }
 @media (prefers-reduced-motion: reduce){ .chord-on.white, .chord-on.black { animation:none } }
 
+/* Same idea as .fretboard-wrap: on a narrow screen the keys stay playable and
+   the keyboard slides, instead of 15 white keys sharing 336px. */
+.piano-wrap {
+  overflow-x:auto; border-radius:16px;
+  scrollbar-width:thin; scrollbar-color:var(--muted) transparent;
+}
+.piano-wrap::-webkit-scrollbar       { height:3px }
+.piano-wrap::-webkit-scrollbar-thumb { background:var(--muted); border-radius:2px }
+
 /* Fretboard */
 .fretboard-wrap {
   overflow-x:auto; border-radius:10px;

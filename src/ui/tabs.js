@@ -6,7 +6,12 @@
 // visible at once. Which surfaces belong to which mode is declared in CSS via
 // body[data-mode]; this only switches the flag and repairs what needs a live
 // measurement afterwards.
-const MODES_UI = ['explore', 'build'];   // B3 removed 'produce'
+// Three destinations, in the order the work happens: understand the key, write
+// the progression, play it on the board. 'produce' was removed in B3 (the rhythm
+// is a track of the document); 'instrument' arrives in V6.26 because retiring the
+// dock in B1 left a guitarist with no place to go — the inspector's six-fret
+// summary answers "this chord", not "the whole neck".
+const MODES_UI = ['explore', 'build', 'instrument'];
 
 function switchTab(tab, btn) {
   // Legacy names (and the removed 'produce') all resolve to Build now.
@@ -20,6 +25,9 @@ function switchTab(tab, btn) {
     tabsEl.style.setProperty('--tab-x', `calc(${Math.max(0, buttons.indexOf(el))} * 100%)`);
   }
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === el));
+  // The bottom bar is a second set of buttons for the same modes — match by mode,
+  // not by identity, so whichever bar you tapped they both end up in sync.
+  document.querySelectorAll('.tb-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === mode));
 
   document.getElementById('panel-theory').style.display     = 'block';
   document.body.dataset.mode = mode;
@@ -33,10 +41,31 @@ function switchTab(tab, btn) {
   if (mode === 'build' && (st.history || []).length) HistoryEngine.render();
   syncCtxBar();
 
+  // Instrument mode: the dock IS the page. On a phone it normally lives inside
+  // the transport island, so it has to come home before it can be the subject.
+  if (typeof TransportSheet === 'object') TransportSheet.placeInstruments();
+  if (mode === 'instrument') {
+    if (typeof TransportSheet === 'object' && TransportSheet.isOpen()) TransportSheet.collapse();
+    gotoInstrument(st.instr || 'piano');
+    // The boards read their own width, which was 0 while the mode was hidden.
+    requestAnimationFrame(() => { try { renderPiano(); renderGuitar(); } catch (_) {} });
+    syncInstrBar();
+  }
+
   if (typeof Doc === 'object') Doc.render();
   if (typeof Rhythm === 'object') Rhythm.render();
   const shown = document.getElementById('panel-theory');
   if (shown) { shown.classList.remove('tab-enter'); void shown.offsetWidth; shown.classList.add('tab-enter'); }
+}
+
+// The instrument mode's own header: the key (tap to go choose another) and the
+// progression as chips, so a chord can be auditioned on the board without a trip
+// back to Crear.
+function syncInstrBar() {
+  const k = document.getElementById('ibKey'); if (!k) return;
+  k.textContent = displayKeyLabel();
+  const m = document.getElementById('ibMode'); if (m) m.textContent = gm().name;
+  if (typeof renderInstrProgStrip === 'function') renderInstrProgStrip();
 }
 
 // The one bit of Explore you still need while working: what key you are in.

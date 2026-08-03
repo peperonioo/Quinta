@@ -449,3 +449,40 @@ body[data-mode="explore"] .rhythm-track { display:none }
   .rt-row { grid-template-columns:32px repeat(16,1fr) }
   .rt-c { height:15px }
 }
+
+
+/* ── BOTTOM TAB BAR (V6.26) ───────────────────────────
+   Phone only. On a wide screen the pointer reaches the top-right segmented
+   control at no cost, and a bar pinned to the bottom of a 1440px window is just
+   a stripe far from the work. */
+.tabbar { display:none }
+@media (max-width:860px) {
+  .tabbar {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    position:fixed; left:0; right:0; bottom:0; z-index:60;
+    /* Pinned to the token, not to whatever its children add up to: the sheet and
+       the page floor both offset by --tabbar-h, so a bar that is 61px tall
+       leaves a 3px seam under the sheet. */
+    box-sizing:border-box;
+    height:calc(var(--tabbar-h,64px) + var(--mobile-safe-bottom,0px));
+    padding:6px 8px calc(6px + var(--mobile-safe-bottom,0px));
+    border-top:1px solid var(--ui-border-strong);
+    background:var(--ui-surface-strong);
+    backdrop-filter:blur(22px) saturate(160%);
+    -webkit-backdrop-filter:blur(22px) saturate(160%);
+  }
+  .tb-btn {
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    min-height:48px; border:0; background:transparent; cursor:pointer;
+    color:var(--muted); border-radius:12px; padding:4px 2px;
+    transition:color .16s var(--ease), background .16s var(--ease);
+  }
+  .tb-lbl {
+    font-family:'DM Sans',sans-serif; font-size:10px; font-weight:600;
+    letter-spacing:.01em; line-height:1;
+  }
+  .tb-btn.active { color:var(--accent2); background:var(--degree-tonic) }
+  .tb-btn:active { transform:scale(.96) }
+  /* The top segmented control is redundant once the bar exists. */
+  .tabs { display:none }
+}

@@ -114,6 +114,7 @@ const I18N_EN = {
   'next.title':        'What goes well next',
   'tabs.explore':      'Explore',
   'tabs.build':        'Build',
+  'tabs.instrument':   'Instrument',
   'tabs.produce':      'Produce',
   'builder.removeChord': 'Remove chord',
 };

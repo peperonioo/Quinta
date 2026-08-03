@@ -290,6 +290,77 @@ body[data-mode="build"] .wheel-toggle-row,
 body[data-mode="build"] .theory-strip,
 body[data-mode="build"] #degreesBlock { display:none !important }
 
+/* INSTRUMENT — play the key. The board at full size, which is the thing B1 took
+   away: the inspector's fretboard is six frets in a 360px column, a summary of
+   one chord. Here the neck is 17 frets with the whole scale on it. Everything
+   that belongs to writing steps out. */
+body[data-mode="instrument"] .main-row,
+body[data-mode="instrument"] .wheel-toggle-row,
+body[data-mode="instrument"] .theory-strip,
+body[data-mode="instrument"] #degreesBlock,
+body[data-mode="instrument"] #progressionBuilder,
+body[data-mode="instrument"] .doc-bar,
+body[data-mode="instrument"] .inspector,
+body[data-mode="instrument"] .rhythm-track,
+body[data-mode="instrument"] .ctx-bar,
+body[data-mode="instrument"] .suggestions-section { display:none !important }
+body[data-mode="instrument"] .drawers { display:flex }
+/* The dock was built as a side panel; as a page it gets the width. */
+body[data-mode="instrument"] .drawers .drawer { max-width:none }
+/* Only the board you chose. The other one is not a tab you switch to, it is the
+   instrument you are not playing. */
+body[data-mode="instrument"] .drawers .drawer:not([open]) { display:none }
+/* The head carries the piano/guitar switch. It is hidden everywhere else because
+   elsewhere the instrument is chosen in the inspector, next to the chord. */
+body[data-mode="instrument"] .sheet-head {
+  display:flex; flex-direction:row; align-items:center; justify-content:space-between;
+  padding:0 2px 10px;
+}
+/* Not the island's swipe pager: here you chose an instrument, you are not
+   flicking between two. One board, and it owns the page. */
+body[data-mode="instrument"] .instr-pager { display:block !important; overflow:visible !important }
+body[data-mode="instrument"] .instr-pager > .drawer {
+  flex:none !important; min-width:0 !important; padding:0 !important; overflow:visible !important;
+}
+/* The board is the subject here, so it gets the height. Elsewhere it is a
+   reference squeezed under the wheel — 34px rows and a 128px piano. As a page
+   that left ~270px of a phone screen empty under a neck too cramped to play.
+   (The neck's own 860px min-width and .fretboard-wrap's scroll are untouched:
+   17 legible frets that slide under the finger beat 17 unreadable ones.) */
+body[data-mode="instrument"] .fret-cell { height:clamp(46px, 7svh, 64px) }
+body[data-mode="instrument"] .fret-note { width:30px; height:30px; font-size:9.5px }
+body[data-mode="instrument"] .piano { height:clamp(200px, 30svh, 300px) }
+/* 15 white keys in 336px is 23px each — a phone keyboard you cannot play. */
+@media (max-width:860px) {
+  body[data-mode="instrument"] .piano { min-width:620px }
+  /* The voice row is a list, not a paragraph: scroll it, don't wrap it. */
+  body[data-mode="instrument"] .snd-sel { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none }
+  body[data-mode="instrument"] .snd-sel::-webkit-scrollbar { display:none }
+  body[data-mode="instrument"] .snd-btn { flex:0 0 auto; white-space:nowrap }
+}
+/* The board runs past the edge — say so, or fret 12 may as well not exist. */
+body[data-mode="instrument"] .piano-wrap,
+body[data-mode="instrument"] .fretboard-wrap {
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 34px),transparent 100%);
+          mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 34px),transparent 100%);
+}
+
+/* The mode's own header. */
+.instr-bar { display:none }
+body[data-mode="instrument"] .instr-bar {
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  margin:0 0 12px; padding:9px 14px;
+  border:1px solid var(--line); border-radius:14px;
+  background:var(--degree-bg); backdrop-filter:blur(7px);
+}
+.ib-key { display:flex; align-items:baseline; gap:6px; padding:2px 4px; border:0; background:transparent; cursor:pointer; border-radius:8px }
+.ib-key b { font-family:var(--wheel-font); font-size:19px; color:var(--ink); line-height:1 }
+.ib-key small { font-size:11px; color:var(--muted) }
+.ib-key:hover b { color:var(--accent2) }
+.instr-strip { display:flex; gap:6px; overflow-x:auto; flex:1 1 200px; padding:2px 0 }
+.instr-strip::-webkit-scrollbar { height:3px }
+.instr-strip::-webkit-scrollbar-thumb { background:var(--muted); border-radius:3px }
+
 /* Three tabs need a third of the travel for the sliding indicator. */
 .tabs-3 .tab-btn { flex:1 }
 

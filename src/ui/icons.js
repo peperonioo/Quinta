@@ -17,6 +17,11 @@ const ICONS = {
   shapes:    { p: '<path d="M12 3l9 9-9 9-9-9z"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>' },
   piano:     { p: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M9 5v8M15 5v8"/><rect x="7.3" y="5" width="2.2" height="6.5" rx=".6" fill="currentColor" stroke="none"/><rect x="13.5" y="5" width="2.2" height="6.5" rx=".6" fill="currentColor" stroke="none"/>' },
   guitar:    { p: '<g transform="rotate(-38 12 12)"><path d="M10.9 12.6C10 12.8 9 12.9 8.6 12.2 8.2 13.4 8.6 14.8 8.8 16 9 17.2 7.9 17.8 7.6 19 7.3 20.6 9.4 22 12 22 14.6 22 16.7 20.6 16.4 19 16.1 17.8 15 17.2 15.2 16 15.4 14.8 15.8 13.4 15.4 12.2 15 12.9 14 12.8 13.1 12.6Z"/><path d="M11 12.6 11.4 3M13 12.6 12.6 3"/><path d="M11.4 3 12.6 3"/><path d="M11.4 3C10.8 2 11 .9 12 .8 13.2 .7 13.9 1.4 13.6 2.4 13.4 3 12.9 3 12.6 3"/><path d="M9.9 17.4 14.1 17.4M10.3 19.5 13.7 19.5"/><circle cx="12" cy="15.4" r=".55" fill="currentColor" stroke="none"/></g>' },
+  // The two modes that had no glyph. The wheel is the product's own mark: a ring
+  // with the twelve stations. Crear is the clip lane, which is literally what you
+  // look at while you write.
+  wheel:     { p: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v3.6M12 17.4V21M3 12h3.6M17.4 12H21M5.64 5.64l2.55 2.55M15.81 15.81l2.55 2.55M18.36 5.64l-2.55 2.55M8.19 15.81l-2.55 2.55"/>' },
+  lane:      { p: '<rect x="2.5" y="7" width="7" height="10" rx="1.8"/><rect x="11.5" y="7" width="4.5" height="10" rx="1.5"/><rect x="18" y="7" width="3.5" height="10" rx="1.4"/>' },
   help:      { p: '<circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a2.8 2.8 0 1 1 3.6 2.7c-.7.25-1.3.8-1.3 1.6v.4"/><circle cx="11.5" cy="17" r="1" fill="currentColor" stroke="none"/>' },
   chevron:   { p: '<path d="M6 9l6 6 6-6"/>' },
   chevronR:  { p: '<path d="M9 6l6 6-6 6"/>' },

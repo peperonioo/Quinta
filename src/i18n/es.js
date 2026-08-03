@@ -114,6 +114,7 @@ const I18N_ES = {
   'next.title':        'Qué va bien después',
   'tabs.explore':      'Explorar',
   'tabs.build':        'Construir',
+  'tabs.instrument':   'Instrumento',
   'tabs.produce':      'Producir',
   'builder.removeChord': 'Quitar acorde',
 };

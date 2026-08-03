@@ -13,6 +13,14 @@ const TransportSheet = (() => {
   function placeInstruments() {
     const drawers = document.querySelector('.drawers'); if (!drawers) return;
     const host = document.getElementById('tsInstruments');
+    // In Instrument mode the dock is the page, at every width — the island would
+    // bury the very thing you switched to.
+    const asPage = document.body.dataset.mode === 'instrument';
+    if (asPage && drawers._home && drawers.parentElement === host) {
+      drawers._home.insertBefore(drawers, drawers._homeNext);
+      return;
+    }
+    if (asPage) return;
     if (mobile() && host && drawers.parentElement !== host) {
       if (!drawers._home) { drawers._home = drawers.parentElement; drawers._homeNext = drawers.nextSibling; }
       drawers.querySelectorAll('.drawer').forEach(d => d.open = true);   // both boards visible in the pager

@@ -61,9 +61,10 @@
            MODULE and left everything of both visible at once. -->
       <!-- B3: Produce is gone as a mode. Rhythm is a TRACK of the document now,
            so there is one screen where the song lives and one Play for all of it. -->
-      <div class="tabs">
+      <div class="tabs tabs-3">
         <button class="tab-btn" data-act="tab.go" data-tab="explore" data-i18n="tabs.explore">Explore</button>
         <button class="tab-btn active" data-act="tab.go" data-tab="build" data-i18n="tabs.build">Build</button>
+        <button class="tab-btn" data-act="tab.go" data-tab="instrument" data-i18n="tabs.instrument">Instrument</button>
       </div>
     </div>
   </header>
@@ -369,6 +370,17 @@
         <div id="suggestions" class="suggestion-grid"></div>
       </section>
 
+      <!-- Instrument mode header. Only shown when the dock IS the page (V6.26):
+           the key you are in, plus your progression as tappable chips so you can
+           hear each chord on the board without going back to Crear. -->
+      <div id="instrBar" class="instr-bar">
+        <button class="ib-key" data-act="ctx.key" aria-label="Change key">
+          <b id="ibKey">C</b><small id="ibMode">Ionian</small>
+        </button>
+        <div id="instrStrip" class="tps-strip instr-strip"
+          aria-label="Tap a chord to show it on the instrument"></div>
+      </div>
+
       <!-- Instrument drawers (mobile: a swipeable pager; desktop: stacked) -->
       <div class="drawers">
         <div class="sheet-head">
@@ -398,7 +410,7 @@
               <button class="snd-btn"    data-snd="steel"    data-act="voice.set" data-id="steel"><span data-i18n="voice.steel">Acoustic</span><i class="pack-chip">P1</i></button>
               <button class="snd-btn"    data-snd="electric" data-act="voice.set" data-id="electric"><span data-i18n="voice.electric">Electric</span><i class="pack-chip">P1</i></button>
             </div>
-            <div id="piano" class="piano"></div>
+            <div class="piano-wrap"><div id="piano" class="piano"></div></div>
           </div>
         </details>
         <details class="drawer">
@@ -421,6 +433,28 @@
 
 
 </div>
+
+<!-- BOTTOM TAB BAR (V6.26)
+     The mode switch used to live top-right: on an 844px phone that is the far
+     corner from the thumb, for the control you touch most. It moves down here.
+     Three destinations, and only three — Explore is the key, Build is the
+     document, Instrument is the board at full size. Piano vs guitar is NOT here:
+     that is who you are, not where you are going, so it stays a setting that
+     travels with you (and this tab's icon follows it). -->
+<nav class="tabbar" id="tabbar" aria-label="Sections">
+  <button class="tb-btn" data-act="tab.go" data-tab="explore">
+    <span class="tb-ico" data-ico="wheel" data-ico-size="21"></span>
+    <span class="tb-lbl" data-i18n="tabs.explore">Explore</span>
+  </button>
+  <button class="tb-btn active" data-act="tab.go" data-tab="build">
+    <span class="tb-ico" data-ico="lane" data-ico-size="21"></span>
+    <span class="tb-lbl" data-i18n="tabs.build">Build</span>
+  </button>
+  <button class="tb-btn" data-act="tab.go" data-tab="instrument">
+    <span class="tb-ico" id="tbInstrIco" data-ico="piano" data-ico-size="21"></span>
+    <span class="tb-lbl" data-i18n="tabs.instrument">Instrument</span>
+  </button>
+</nav>
 
 <div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
 

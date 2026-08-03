@@ -3,6 +3,7 @@
    All other CSS layers consume these variables.       */
 
 :root {
+  --tabbar-h:64px;   /* phone bottom tab bar (V6.26) — see components.css */
   /* Colour */
   --bg:       #0a0a0b;
   --ink:      #f0ede8;

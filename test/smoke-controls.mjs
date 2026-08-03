@@ -64,6 +64,14 @@ const CASES = [
   // B2: the document header
   ['doc.save',         '[data-act="doc.save"]',                           () => !!st.docId,
     () => { switchTab('build'); if (!(st.history||[]).length) surpriseMe(); }],
+  // V6.26 — Instrument is a mode again. The dock lives inside the transport
+  // island on phones, so switching has to bring it home or you land on a page
+  // whose subject is buried in a collapsed sheet.
+  ['tab.go instrument', '[data-act="tab.go"][data-tab="instrument"]',       () => document.body.dataset.mode === 'instrument'
+     && document.querySelector('.drawers').getBoundingClientRect().height > 40, () => switchTab('build')],
+  ['instr.go guitar',  '.instr-tab[data-instr="guitar"]',                   () => st.instr === 'guitar'
+     && document.querySelectorAll('.drawers .drawer[open]').length === 1],
+  ['instr.go piano',   '.instr-tab[data-instr="piano"]',                    () => st.instr === 'piano'],
   ['ctx.key → explore','[data-act="ctx.key"]',                            () => document.body.dataset.mode === 'explore', () => switchTab('build')],
   // Tapping a chord must show its variations WITHOUT scrolling. This regressed
   // once (the inspector sat 628px down an 844px screen, so only its header
@@ -89,6 +97,7 @@ const CASES = [
   // it could not put a single chord into a progression.
   ['wheel adds a chord', '#wg > g',                                       () => (st.history || []).length > 0,
     () => { switchTab('explore'); HistoryEngine.clear(); }],
+  ['tab.go build back','[data-act="tab.go"][data-tab="build"]',            () => document.body.dataset.mode === 'build'],
   ['builder.clear',    '[data-act="builder.clear"]',                      () => (st.history || []).length === 0,
     () => { switchTab('build'); const m = document.getElementById('builderMore'); if (m.hasAttribute('hidden')) document.getElementById('moreBtn').click(); }],
 ];
@@ -183,18 +192,50 @@ try {
     });
     await mp.waitForTimeout(1100);
     const m = await mp.evaluate(() => {
+      const bar = document.getElementById('tabbar');
+      const bb = bar.getBoundingClientRect();
       const sheet = document.getElementById('inspector').getBoundingClientRect();
       const x = document.querySelector('.builder-step.is-selected .step-x');
       const r = x && x.getBoundingClientRect();
       const hit = r && document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       return {
-        anchored: Math.abs(sheet.bottom - innerHeight) < 2,     // really fixed to the viewport
+        anchored: Math.abs(sheet.bottom - bb.top) < 2,          // fixed to the viewport, resting on the bar
         clipClear: !!r && r.bottom < sheet.top,                 // the clip is not under the sheet
         xReachable: !!r && (x.contains(hit) || hit === x),
+        // The bottom bar exists, sits on the floor, and nothing docks on top of it.
+        barOnFloor: getComputedStyle(bar).display !== 'none' && Math.abs(bb.bottom - innerHeight) < 2,
+        barClear: sheet.bottom <= bb.top + 1,
+        topTabsGone: getComputedStyle(document.querySelector('.tabs')).display === 'none',
       };
     });
-    for (const k of ['anchored', 'clipClear', 'xReachable']) {
+    for (const k of ['anchored', 'clipClear', 'xReachable', 'barOnFloor', 'barClear', 'topTabsGone']) {
       if (!m[k]) { console.error(`FAIL  mobile: ${k}`); failed++; }
+    }
+
+    // Instrument mode, on a phone specifically: the dock normally lives inside
+    // the transport island here, so switching has to bring it home. On a desktop
+    // it already is home, which is why this cannot be asserted up there.
+    await mp.evaluate(() => switchTab('instrument'));
+    await mp.waitForTimeout(900);
+    const im = await mp.evaluate(() => {
+      const dr = document.querySelector('.drawers');
+      const r = dr.getBoundingClientRect();
+      const board = document.querySelector('.drawer[open] .piano-wrap, .drawer[open] .fretboard-wrap');
+      return {
+        dockIsPage: dr.parentElement.id !== 'tsInstruments' && r.height > 120,
+        oneBoard: document.querySelectorAll('.drawers .drawer[open]').length === 1,
+        switchReachable: (() => {
+          const b = document.querySelector('.instr-tab'); if (!b) return false;
+          const q = b.getBoundingClientRect(); if (q.height < 10) return false;
+          const hit = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2);
+          return b.contains(hit) || hit === b;
+        })(),
+        // A board narrower than the viewport would mean unplayable keys/frets.
+        boardScrolls: !!board && board.scrollWidth > board.clientWidth,
+      };
+    });
+    for (const k of ['dockIsPage', 'oneBoard', 'switchReachable', 'boardScrolls']) {
+      if (!im[k]) { console.error(`FAIL  mobile instrument: ${k}`); failed++; }
     }
     await mp.close();
   }

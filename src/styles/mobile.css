@@ -302,3 +302,17 @@
   body.has-selection .rhythm-track { display:flex }
   body.has-selection .rhythm-track { display:block }
 }
+
+
+@media (max-width:860px) {
+  /* ── Room for the bottom tab bar (V6.26) ────────────
+     It is fixed, so it adds no height: the page needs a floor of its own, and
+     everything else that docks to the bottom has to sit on top of it instead of
+     under it. --tabbar-h is the single number all three read. */
+  body { padding-bottom:var(--tabbar-h) }
+  .transport-sheet          { bottom:var(--tabbar-h) }
+  body.has-selection .inspector { bottom:var(--tabbar-h) }
+  /* The inspector already reserves its own height so the clip can scroll clear;
+     that reservation now stacks on top of the bar's. */
+  body.has-selection { padding-bottom:calc(var(--insp-h,0px) + var(--tabbar-h)) }
+}

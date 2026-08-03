@@ -39,7 +39,10 @@ function _chordPcSet() {
 }
 // Mark the active instrument on the island's piano/guitar tabs.
 function _setInstrUI(which) {
+  st.instr = which; saveState();
   document.querySelectorAll('.instr-tab').forEach(b => b.classList.toggle('on', b.dataset.instr === which));
+  const ico = document.getElementById('tbInstrIco');
+  if (ico && typeof setIcon === 'function') setIcon(ico, which === 'guitar' ? 'guitar' : 'piano');
   // Mobile island: the Shapes toggle in the sheet-head is guitar-only.
   document.body.classList.toggle('instr-on-guitar', which === 'guitar');
 }
@@ -59,7 +62,11 @@ function _wireInstrPager() {
 function gotoInstrument(which) {
   const drawers = document.querySelectorAll('.drawers .drawer');
   const piano = drawers[0], guitar = drawers[1];
-  if (matchMedia('(max-width:860px)').matches) {
+  // In Instrument mode the board is the page at every width, so the phone's
+  // swipe pager (which needs both drawers open) would show the wrong one.
+  const paged = matchMedia('(max-width:860px)').matches
+             && document.body.dataset.mode !== 'instrument';
+  if (paged) {
     if (piano)  piano.open  = true;
     if (guitar) guitar.open = true;
     _wireInstrPager();
@@ -82,16 +89,18 @@ function gotoInstrument(which) {
 // guitar) and plays it — so you can audition each chord without leaving the
 // instrument. Gives the piano the same fluency as the guitar's shapes view.
 function renderInstrProgStrip() {
-  const el = document.getElementById('tsProgStrip'); if (!el) return;
+  // Two homes since V6.26: the transport island, and the header of the
+  // Instrument mode. Same markup, so strip.pick keeps working in both.
+  const els = ['tsProgStrip', 'instrStrip'].map(id => document.getElementById(id)).filter(Boolean);
+  if (!els.length) return;
   const h = Array.isArray(st.history) ? st.history : [];
-  if (!h.length) {
-    el.innerHTML = `<span class="tps-empty">${typeof t === 'function' ? t('builder.empty') : 'No chords yet'}</span>`;
-    return;
-  }
-  el.innerHTML = h.map((it, i) => {
-    const lbl = (typeof chordDisplay === 'function') ? chordDisplay(it) : it.chord;
-    return `<button class="tps-chip" data-i="${i}" data-act="strip.pick" data-idx="${i}">${lbl}</button>`;
-  }).join('');
+  const html = !h.length
+    ? `<span class="tps-empty">${typeof t === 'function' ? t('builder.empty') : 'No chords yet'}</span>`
+    : h.map((it, i) => {
+        const lbl = (typeof chordDisplay === 'function') ? chordDisplay(it) : it.chord;
+        return `<button class="tps-chip" data-i="${i}" data-act="strip.pick" data-idx="${i}">${lbl}</button>`;
+      }).join('');
+  els.forEach(el => { el.innerHTML = html; });
 }
 function pickProgChord(i) {
   const h = Array.isArray(st.history) ? st.history : []; const it = h[i]; if (!it) return;
@@ -178,7 +187,7 @@ const InstrumentZoom = {
     el.classList.add('zoom');
     // Keep the chord strip in view while zoomed, so you don't lose the progression.
     const zs = document.getElementById('instrZoomStrip');
-    if (zs) zs.innerHTML = document.getElementById('tsProgStrip')?.innerHTML || '';
+    if (zs) zs.innerHTML = (document.getElementById('tsProgStrip') || document.getElementById('instrStrip'))?.innerHTML || '';
     ov.classList.add('open'); this.open = true;
     this._wireSwipe();
     (which === 'piano' ? renderPiano : renderGuitar)();
@@ -207,7 +216,8 @@ const InstrumentZoom = {
     (which === 'piano' ? renderPiano : renderGuitar)();
     // Return to the previous screen (the instrument in the transport island),
     // not the main wheel — re-open the island on phones and scroll it into view.
-    if (typeof TransportSheet === 'object' && matchMedia('(max-width:860px)').matches) {
+    if (typeof TransportSheet === 'object' && matchMedia('(max-width:860px)').matches
+        && document.body.dataset.mode !== 'instrument') {
       if (!TransportSheet.isOpen()) TransportSheet.open();
       requestAnimationFrame(() => {
         document.getElementById('transportSheet')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
