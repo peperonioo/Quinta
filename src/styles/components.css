@@ -506,8 +506,27 @@ body[data-mode="explore"] .rhythm-track { display:none }
   body.tabbar-min .tb-btn { padding:0 11px }
   body.tabbar-min .tb-btn.active .tb-lbl { max-width:0; opacity:0 }
 
+  /* Held: the capsule becomes something you steer. It grows a little (so the
+     thumb has room and it reads as "lifted"), the label of whatever is under the
+     finger appears, and the accent pill follows instead of jumping. */
+  body.tabbar-scrubbing .tabbar {
+    transform:translateX(-50%) scale(1.06);
+    box-shadow:0 16px 44px -10px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  body.tabbar-scrubbing { -webkit-user-select:none; user-select:none; touch-action:none }
+  body.tabbar-scrubbing .tb-btn.active:not(.is-scrub) { background:transparent; color:var(--muted); box-shadow:none }
+  body.tabbar-scrubbing .tb-btn.active:not(.is-scrub) .tb-lbl { max-width:0; opacity:0 }
+  .tb-btn.is-scrub {
+    color:#fff; background:var(--accent);
+    box-shadow:0 4px 16px -2px rgba(232,68,26,.6);
+  }
+  .tb-btn.is-scrub .tb-lbl { max-width:110px; opacity:1 }
+  .tb-btn.is-scrub .tb-ico { transform:scale(1.12) }
+  .tb-ico { transition:transform .2s var(--ui-ease) }
+
   @media (prefers-reduced-motion:reduce) {
-    .tabbar, .tb-btn, .tb-lbl { transition:none }
+    .tabbar, .tb-btn, .tb-lbl, .tb-ico { transition:none }
+    body.tabbar-scrubbing .tabbar { transform:translateX(-50%) }
   }
 
   /* The top segmented control is redundant once the bar exists. */

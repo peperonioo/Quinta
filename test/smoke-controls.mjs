@@ -238,6 +238,63 @@ try {
     await mp.evaluate(() => scrollTo(0, 0));
     await mp.waitForTimeout(300);
 
+    // Press-and-slide: hold a tab, drag across, lift on another. Coordinates are
+    // re-measured after the hold on purpose — the capsule reflows when the
+    // scrubbed tab's label expands, so pre-hold coordinates land on the wrong
+    // button (which is exactly how this first "failed" in development).
+    {
+      await mp.evaluate(() => { switchTab('build'); scrollTo(0, 0); });
+      await mp.waitForTimeout(500);
+      const at = t => mp.evaluate(tab => {
+        const r = document.querySelector(`.tb-btn[data-tab="${tab}"]`).getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      }, t);
+      const from = await at('build');
+      await mp.mouse.move(from.x, from.y);
+      await mp.mouse.down();
+      await mp.waitForTimeout(340);
+      const held = await mp.evaluate(() => document.body.classList.contains('tabbar-scrubbing'));
+      const to = await at('instrument');                     // measured AFTER the reflow
+      await mp.mouse.move(to.x, to.y, { steps: 8 });
+      await mp.waitForTimeout(200);
+      const previewing = await mp.evaluate(() => document.querySelector('.tb-btn.is-scrub')?.dataset.tab);
+      await mp.mouse.up();
+      await mp.waitForTimeout(600);
+      const after = await mp.evaluate(() => ({
+        mode: document.body.dataset.mode,
+        cleared: !document.body.classList.contains('tabbar-scrubbing') && !document.querySelector('.tb-btn.is-scrub'),
+      }));
+      if (!held)                       { console.error('FAIL  mobile scrub: hold did not arm'); failed++; }
+      if (previewing !== 'instrument') { console.error(`FAIL  mobile scrub: preview ${previewing}`); failed++; }
+      if (after.mode !== 'instrument') { console.error(`FAIL  mobile scrub: committed ${after.mode}`); failed++; }
+      if (!after.cleared)              { console.error('FAIL  mobile scrub: state left behind'); failed++; }
+      await mp.evaluate(() => switchTab('build'));
+      await mp.waitForTimeout(300);
+    }
+
+    // Nothing may widen the page. A board is 620-860px BY DESIGN and scrolls
+    // inside its wrap — but if any box in the chain sizes to content instead,
+    // the browser does not scroll it, it zooms the WHOLE PAGE out to fit
+    // (innerWidth 390 -> 422, every pixel of UI at 92%). It was a flex row
+    // missing min-width:0, and the symptom is invisible unless you measure the
+    // viewport itself: no console error, no horizontal scrollbar.
+    const zoom = { };
+    for (const [label, setup] of [
+      ['build',        () => switchTab('build')],
+      ['instr-piano',  () => { switchTab('instrument'); gotoInstrument('piano'); }],
+      ['instr-guitar', () => { switchTab('instrument'); gotoInstrument('guitar'); }],
+      ['island',       () => { switchTab('build'); TransportSheet.open(); }],
+    ]) {
+      await mp.evaluate(setup);
+      await mp.waitForTimeout(700);
+      zoom[label] = await mp.evaluate(() => innerWidth);
+    }
+    for (const k of Object.keys(zoom)) {
+      if (zoom[k] !== 390) { console.error(`FAIL  mobile zoom-out in ${k}: innerWidth ${zoom[k]} (expected 390)`); failed++; }
+    }
+    await mp.evaluate(() => { TransportSheet.collapse(); switchTab('build'); });
+    await mp.waitForTimeout(400);
+
     // Instrument mode, on a phone specifically: the dock normally lives inside
     // the transport island here, so switching has to bring it home. On a desktop
     // it already is home, which is why this cannot be asserted up there.

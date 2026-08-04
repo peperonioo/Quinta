@@ -332,9 +332,24 @@ body[data-mode="instrument"] .fret-note { width:30px; height:30px; font-size:9.5
 body[data-mode="instrument"] .piano { height:clamp(200px, 30svh, 300px) }
 /* 15 white keys in 336px is 23px each — a phone keyboard you cannot play. */
 @media (max-width:860px) {
+  /* The boards are deliberately wider than the phone, so every box between them
+     and the viewport has to be a hard wall. Miss one and the browser does not
+     scroll the board — it zooms the WHOLE PAGE out to make it fit (innerWidth
+     390 → 422, everything rendered at 92%, the tab capsule included). */
+  body[data-mode="instrument"] .drawers,
+  body[data-mode="instrument"] .instr-pager,
+  body[data-mode="instrument"] .instr-pager > .drawer,
+  body[data-mode="instrument"] .drawer-body,
+  body[data-mode="instrument"] .piano-wrap,
+  body[data-mode="instrument"] .fretboard-wrap { max-width:100%; min-width:0 }
   body[data-mode="instrument"] .piano { min-width:620px }
-  /* The voice row is a list, not a paragraph: scroll it, don't wrap it. */
-  body[data-mode="instrument"] .snd-sel { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none }
+  /* The voice row is a list, not a paragraph: scroll it, don't wrap it. The
+     min-width/max-width pair is what makes it scroll instead of stretch — this
+     row is what was widening the page and zooming the whole UI out to 92%. */
+  body[data-mode="instrument"] .snd-sel {
+    flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none;
+    min-width:0; max-width:100%;
+  }
   body[data-mode="instrument"] .snd-sel::-webkit-scrollbar { display:none }
   body[data-mode="instrument"] .snd-btn { flex:0 0 auto; white-space:nowrap }
 }
@@ -348,7 +363,7 @@ body[data-mode="instrument"] .fretboard-wrap {
 /* The mode's own header. */
 .instr-bar { display:none }
 body[data-mode="instrument"] .instr-bar {
-  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  display:flex; max-width:100%; align-items:center; gap:14px; flex-wrap:wrap;
   margin:0 0 12px; padding:9px 14px;
   border:1px solid var(--line); border-radius:14px;
   background:var(--degree-bg); backdrop-filter:blur(7px);
@@ -357,7 +372,10 @@ body[data-mode="instrument"] .instr-bar {
 .ib-key b { font-family:var(--wheel-font); font-size:19px; color:var(--ink); line-height:1 }
 .ib-key small { font-size:11px; color:var(--muted) }
 .ib-key:hover b { color:var(--accent2) }
-.instr-strip { display:flex; gap:6px; overflow-x:auto; flex:1 1 200px; padding:2px 0 }
+/* min-width:0 is load-bearing: a flex item defaults to min-width:auto, so this
+   would size to its chips instead of scrolling them — widening .instr-bar, then
+   the page, and the browser answers that by zooming everything out. */
+.instr-strip { display:flex; gap:6px; overflow-x:auto; flex:1 1 200px; min-width:0; padding:2px 0 }
 .instr-strip::-webkit-scrollbar { height:3px }
 .instr-strip::-webkit-scrollbar-thumb { background:var(--muted); border-radius:3px }
 

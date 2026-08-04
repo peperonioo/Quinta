@@ -319,3 +319,19 @@
      that reservation now stacks on top of the bar's. */
   body.has-selection { padding-bottom:calc(var(--insp-h,0px) + var(--tabbar-space)) }
 }
+
+
+@media (max-width:860px) {
+  /* ── The boards must never widen the page (V6.28) ────
+     The fretboard is 860px and the keyboard 620px BY DESIGN: legible frets and
+     playable keys that slide under the finger. Their wraps scroll, but a wrap
+     only clips if it is itself constrained — and if any box in the chain is not,
+     the browser does not scroll the board, it zooms the WHOLE PAGE out to fit
+     it. Measured entering Instrument mode: innerWidth 390 → 422, every pixel of
+     UI rendered at 92%, the tab capsule included.
+     Scoped to the whole phone layout, not to one mode: the same boards live in
+     the transport island, and the moment both drawers lay out at once (which is
+     exactly what the swipe pager does) the same thing happens. */
+  .drawers, .instr-pager, .instr-pager > .drawer,
+  .drawer, .drawer-body, .piano-wrap, .fretboard-wrap { min-width:0; max-width:100% }
+}

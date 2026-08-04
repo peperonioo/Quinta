@@ -80,6 +80,75 @@ function initTabbarMinimise() {
   }, { passive: true });
 }
 
+// ── Press-and-slide between tabs (V6.28) ─────────────
+// The other half of an iOS 26 tab bar: hold a tab and the capsule turns into
+// something you steer — slide the thumb across and the selection follows it,
+// commit by lifting. A tap still just switches, so nothing is behind the
+// gesture that was not already one touch away.
+//
+// The system's own version refracts the glass under your finger. That part is
+// native and cannot be reproduced honestly in a page, so this does what it CAN
+// do faithfully: the accent pill tracks the thumb and the tab under it lifts.
+const HOLD_MS = 240;
+
+function initTabbarScrub() {
+  const bar = document.getElementById('tabbar'); if (!bar || bar._scrub) return;
+  bar._scrub = true;
+
+  let timer = null, scrubbing = false, pid = null, target = null, suppress = false;
+  const btns  = () => [...bar.querySelectorAll('.tb-btn')];
+  const under = x => btns().find(b => { const r = b.getBoundingClientRect(); return x >= r.left && x <= r.right; })
+                  || (x < bar.getBoundingClientRect().left ? btns()[0] : btns()[btns().length - 1]);
+
+  function paint(el) {
+    target = el || null;
+    btns().forEach(b => b.classList.toggle('is-scrub', b === target));
+  }
+  function stop() {
+    clearTimeout(timer); timer = null;
+    if (pid !== null) { try { bar.releasePointerCapture(pid); } catch (_) {} pid = null; }
+    scrubbing = false;
+    document.body.classList.remove('tabbar-scrubbing');
+    paint(null);
+  }
+
+  bar.addEventListener('pointerdown', ev => {
+    const b = ev.target.closest && ev.target.closest('.tb-btn'); if (!b) return;
+    pid = ev.pointerId;
+    timer = setTimeout(() => {
+      scrubbing = true;
+      document.body.classList.add('tabbar-scrubbing');
+      // The bar is small; capture so the thumb can wander off it and still steer.
+      try { bar.setPointerCapture(pid); } catch (_) {}
+      paint(b);
+      haptic('sel');
+      tel('tabbar_scrub', {});
+    }, HOLD_MS);
+  });
+
+  bar.addEventListener('pointermove', ev => {
+    if (!scrubbing) return;
+    ev.preventDefault();
+    const el = under(ev.clientX);
+    if (el !== target) { paint(el); haptic('sel'); }
+  });
+
+  const release = () => {
+    if (!scrubbing) { stop(); return; }
+    const go = target;
+    // A real gesture happened, so the click that follows it is not a second
+    // intent — it would re-fire tab.go on whichever button was pressed FIRST.
+    suppress = true; setTimeout(() => { suppress = false; }, 320);
+    stop();
+    if (go) switchTab(go.dataset.tab);          // no btn: switchTab finds the right one
+  };
+  bar.addEventListener('pointerup', release);
+  bar.addEventListener('pointercancel', stop);
+  bar.addEventListener('click', ev => {
+    if (suppress) { ev.stopPropagation(); ev.preventDefault(); }
+  }, true);                                      // capture: beat the delegated action
+}
+
 // The instrument mode's own header: the key (tap to go choose another) and the
 // progression as chips, so a chord can be auditioned on the board without a trip
 // back to Crear.
