@@ -180,12 +180,18 @@ function build() {
       icons: [{ src: '../icons/icon-192.png', sizes: '192x192', type: 'image/png' },
               { src: '../icons/icon-512.png', sizes: '512x512', type: 'image/png' }],
     }, null, 2), 'utf8');
+    // Cache-bust on the VERSION, not the date: three deploys landed on
+    // 2026-07-29 and all three shared one cache bucket. The SW is network-first
+    // so nobody online was ever stuck, but an offline install would have kept
+    // whichever build it happened to see first that day.
+    const APP_VER = (fs.readFileSync('src/core/constants.js', 'utf8')
+      .match(/APP_VERSION\s*=\s*'([^']+)'/) || [, 'dev'])[1].replace(/[^\w.]/g, '').toLowerCase();
     // Minimal SW: scope /v2/, caches only its own shell. No samples (out of scope).
     fs.writeFileSync(path.join(V2DIR, 'sw.js'),
 `// Quinta V2 — isolated shell cache. Scope is /v2/, so it can never touch the
 // V1 install at the root. Samples are fetched from ../samples/ and NOT cached:
 // they are outside this scope by design.
-const CACHE = 'quinta-v2-${new Date().toISOString().slice(0,10)}';
+const CACHE = 'quinta-v2-${APP_VER}';
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => e.waitUntil(
   caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('quinta-v2-') && k !== CACHE).map(k => caches.delete(k))))
