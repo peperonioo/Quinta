@@ -199,18 +199,44 @@ try {
       const r = x && x.getBoundingClientRect();
       const hit = r && document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       return {
-        anchored: Math.abs(sheet.bottom - bb.top) < 2,          // fixed to the viewport, resting on the bar
+        anchored: Math.abs(sheet.bottom - innerHeight) < 2,     // runs to the screen edge, capsule floats on it
         clipClear: !!r && r.bottom < sheet.top,                 // the clip is not under the sheet
         xReachable: !!r && (x.contains(hit) || hit === x),
-        // The bottom bar exists, sits on the floor, and nothing docks on top of it.
-        barOnFloor: getComputedStyle(bar).display !== 'none' && Math.abs(bb.bottom - innerHeight) < 2,
-        barClear: sheet.bottom <= bb.top + 1,
+        // A FLOATING capsule (V6.27), not an edge-to-edge bar: air on both sides
+        // and under it, and narrower than the screen. The V6.26 shape passes
+        // none of these.
+        barFloats: getComputedStyle(bar).display !== 'none'
+          && bb.left > 6 && bb.right < innerWidth - 6 && bb.bottom < innerHeight - 4,
+        // ...and the sheet's own content still clears it.
+        barClear: (() => {
+          const btns = [...document.querySelectorAll('#inspector button')]
+            .filter(x => x.getBoundingClientRect().height > 6);
+          if (!btns.length) return false;
+          return Math.max(...btns.map(x => x.getBoundingClientRect().bottom)) <= bb.top;
+        })(),
         topTabsGone: getComputedStyle(document.querySelector('.tabs')).display === 'none',
       };
     });
-    for (const k of ['anchored', 'clipClear', 'xReachable', 'barOnFloor', 'barClear', 'topTabsGone']) {
+    for (const k of ['anchored', 'clipClear', 'xReachable', 'barFloats', 'barClear', 'topTabsGone']) {
       if (!m[k]) { console.error(`FAIL  mobile: ${k}`); failed++; }
     }
+
+    // The capsule stands down while you scroll INTO content and comes back on
+    // the way out. Measured on the real element, not the class, so a broken
+    // transition or a missing rule fails it too.
+    const min = await mp.evaluate(async () => {
+      const wait = ms => new Promise(r => setTimeout(r, ms));
+      const w = () => document.getElementById('tabbar').getBoundingClientRect().width;
+      scrollTo(0, 0); await wait(420); const rest = w();
+      scrollTo(0, 420); await wait(520); const down = w();
+      scrollTo(0, 140); await wait(520); const up = w();
+      return { shrinks: down < rest - 12, restores: Math.abs(up - rest) < 2 };
+    });
+    for (const k of ['shrinks', 'restores']) {
+      if (!min[k]) { console.error(`FAIL  mobile tabbar: ${k}`); failed++; }
+    }
+    await mp.evaluate(() => scrollTo(0, 0));
+    await mp.waitForTimeout(300);
 
     // Instrument mode, on a phone specifically: the dock normally lives inside
     // the transport island here, so switching has to bring it home. On a desktop

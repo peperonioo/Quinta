@@ -277,7 +277,8 @@ function toggleTheme() {
   const _metro = document.getElementById('metronome');
   if (_metro && _metro.parentElement !== document.body) document.body.appendChild(_metro);
   _syncVoiceUI();   // reflect the saved instrument sound
-  initBuilderFocus();   // scroll → builder fills the screen
+  initBuilderFocus();     // scroll → builder fills the screen
+  initTabbarMinimise();   // scroll → the tab capsule stands down
   tel('app_open');
   st.visits = (st.visits || 0) + 1; saveState();          // install nudge waits for visit 2+
   setTimeout(() => { try { _maybeInstallNudge(); } catch (_) {} }, 3200);

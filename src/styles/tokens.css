@@ -3,7 +3,10 @@
    All other CSS layers consume these variables.       */
 
 :root {
-  --tabbar-h:64px;   /* phone bottom tab bar (V6.26) — see components.css */
+  --tabbar-h:52px;                /* the floating capsule itself */
+  --tabbar-gap:11px;              /* air between it and the screen edge */
+  /* What anything docking to the bottom must clear. One number, three readers. */
+  --tabbar-space:calc(var(--tabbar-h) + var(--tabbar-gap) * 2 + var(--mobile-safe-bottom,0px));
   /* Colour */
   --bg:       #0a0a0b;
   --ink:      #f0ede8;

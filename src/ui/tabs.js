@@ -58,6 +58,28 @@ function switchTab(tab, btn) {
   if (shown) { shown.classList.remove('tab-enter'); void shown.offsetWidth; shown.classList.add('tab-enter'); }
 }
 
+// ── The bar minimises while you scroll down (V6.27) ───
+// The floating capsule is small, but on a phone every row counts, so it stands
+// down to icons-only when you are heading INTO content and comes back the
+// moment you head out of it — the same contract as an iOS 26 tab bar. A 6px
+// deadband stops a jittery finger from flipping it on every frame.
+function initTabbarMinimise() {
+  if (document.body._tbWired) return;
+  document.body._tbWired = true;
+  let last = scrollY, ticking = false;
+  const apply = () => {
+    ticking = false;
+    const y = Math.max(0, scrollY), d = y - last;
+    if (Math.abs(d) < 6) return;
+    last = y;
+    // Never minimised at the top: there is nothing to get out of the way of.
+    document.body.classList.toggle('tabbar-min', d > 0 && y > 40);
+  };
+  addEventListener('scroll', () => {
+    if (ticking) return; ticking = true; requestAnimationFrame(apply);
+  }, { passive: true });
+}
+
 // The instrument mode's own header: the key (tap to go choose another) and the
 // progression as chips, so a chord can be auditioned on the board without a trip
 // back to Crear.

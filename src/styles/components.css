@@ -451,38 +451,65 @@ body[data-mode="explore"] .rhythm-track { display:none }
 }
 
 
-/* ── BOTTOM TAB BAR (V6.26) ───────────────────────────
-   Phone only. On a wide screen the pointer reaches the top-right segmented
-   control at no cost, and a bar pinned to the bottom of a 1440px window is just
-   a stripe far from the work. */
+/* ── BOTTOM TAB BAR (V6.27) ───────────────────────────
+   V6.26 shipped an edge-to-edge 64px bar with stacked icon+label — the iOS 7-18
+   shape. It ate a strip of every screen and read as chrome.
+   This is the floating kind: a capsule that hovers over the content with air
+   around it, so it occupies its own width and nothing more. The page scrolls
+   underneath and the blur shows it moving, which is the whole point of the
+   material. Only the selected tab spends room on a label; the others are their
+   icon, and the capsule shrinks further once you scroll down. */
 .tabbar { display:none }
 @media (max-width:860px) {
   .tabbar {
-    display:grid; grid-template-columns:repeat(3,1fr);
-    position:fixed; left:0; right:0; bottom:0; z-index:60;
-    /* Pinned to the token, not to whatever its children add up to: the sheet and
-       the page floor both offset by --tabbar-h, so a bar that is 61px tall
-       leaves a 3px seam under the sheet. */
-    box-sizing:border-box;
-    height:calc(var(--tabbar-h,64px) + var(--mobile-safe-bottom,0px));
-    padding:6px 8px calc(6px + var(--mobile-safe-bottom,0px));
-    border-top:1px solid var(--ui-border-strong);
+    display:flex; align-items:center; gap:2px;
+    position:fixed; left:50%; bottom:calc(var(--tabbar-gap) + var(--mobile-safe-bottom,0px));
+    transform:translateX(-50%); z-index:60;
+    box-sizing:border-box; height:var(--tabbar-h); padding:5px;
+    border-radius:999px; border:1px solid var(--ui-border-strong);
     background:var(--ui-surface-strong);
-    backdrop-filter:blur(22px) saturate(160%);
-    -webkit-backdrop-filter:blur(22px) saturate(160%);
+    backdrop-filter:blur(30px) saturate(180%);
+    -webkit-backdrop-filter:blur(30px) saturate(180%);
+    /* Two shadows and a top-edge highlight: the glass has to sit ON the page,
+       not be a hole cut into it. */
+    box-shadow:0 10px 34px -8px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.3),
+               inset 0 1px 0 rgba(255,255,255,.13);
+    transition:height .3s var(--ui-ease), transform .3s var(--ui-ease);
   }
+  body.light .tabbar { box-shadow:0 10px 34px -10px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.7) }
+
   .tb-btn {
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
-    min-height:48px; border:0; background:transparent; cursor:pointer;
-    color:var(--muted); border-radius:12px; padding:4px 2px;
-    transition:color .16s var(--ease), background .16s var(--ease);
+    display:flex; align-items:center; gap:7px;
+    height:100%; min-width:46px; padding:0 13px;
+    border:0; background:transparent; cursor:pointer; color:var(--muted);
+    border-radius:999px; white-space:nowrap;
+    transition:color .2s var(--ease), background .25s var(--ui-ease), padding .3s var(--ui-ease);
   }
+  .tb-ico { display:grid; place-items:center; flex:none }
+  /* The label belongs to the tab you are ON. Everything else is its icon —
+     that is what keeps the capsule the width of a capsule. */
   .tb-lbl {
-    font-family:'DM Sans',sans-serif; font-size:10px; font-weight:600;
-    letter-spacing:.01em; line-height:1;
+    font-family:'DM Sans',sans-serif; font-size:12.5px; font-weight:600;
+    line-height:1; max-width:0; opacity:0; overflow:hidden;
+    transition:max-width .3s var(--ui-ease), opacity .2s var(--ease);
   }
-  .tb-btn.active { color:var(--accent2); background:var(--degree-tonic) }
-  .tb-btn:active { transform:scale(.96) }
+  .tb-btn.active {
+    color:#fff; background:var(--accent);
+    box-shadow:0 3px 12px -2px rgba(232,68,26,.55);
+  }
+  .tb-btn.active .tb-lbl { max-width:110px; opacity:1 }
+  .tb-btn:active { transform:scale(.94) }
+
+  /* Scrolled down: the bar gets out of the way — icons only, and shorter. It
+     comes back the moment you scroll up, which is where iOS puts it too. */
+  body.tabbar-min .tabbar { height:calc(var(--tabbar-h) - 10px) }
+  body.tabbar-min .tb-btn { padding:0 11px }
+  body.tabbar-min .tb-btn.active .tb-lbl { max-width:0; opacity:0 }
+
+  @media (prefers-reduced-motion:reduce) {
+    .tabbar, .tb-btn, .tb-lbl { transition:none }
+  }
+
   /* The top segmented control is redundant once the bar exists. */
   .tabs { display:none }
 }

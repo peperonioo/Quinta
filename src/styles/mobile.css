@@ -309,10 +309,13 @@
      It is fixed, so it adds no height: the page needs a floor of its own, and
      everything else that docks to the bottom has to sit on top of it instead of
      under it. --tabbar-h is the single number all three read. */
-  body { padding-bottom:var(--tabbar-h) }
-  .transport-sheet          { bottom:var(--tabbar-h) }
-  body.has-selection .inspector { bottom:var(--tabbar-h) }
+  body { padding-bottom:var(--tabbar-space) }
+  .transport-sheet { bottom:var(--tabbar-space) }
+  /* The sheet keeps running to the bottom edge and the capsule floats ON it —
+     stopping the sheet short of the floor would leave a strip of page showing
+     under it. Its own padding is what keeps the content out from under. */
+  body.has-selection .inspector { padding-bottom:calc(16px + var(--tabbar-space)) }
   /* The inspector already reserves its own height so the clip can scroll clear;
      that reservation now stacks on top of the bar's. */
-  body.has-selection { padding-bottom:calc(var(--insp-h,0px) + var(--tabbar-h)) }
+  body.has-selection { padding-bottom:calc(var(--insp-h,0px) + var(--tabbar-space)) }
 }
