@@ -72,7 +72,9 @@ function initTabbarMinimise() {
     const y = Math.max(0, scrollY), d = y - last;
     if (Math.abs(d) < 6) return;
     last = y;
-    // Never minimised at the top: there is nothing to get out of the way of.
+    // Never minimised at the top, and never while a scrub is steering the bar —
+    // resizing the thing under the finger mid-gesture moves its hit zones.
+    if (document.body.classList.contains('tabbar-scrubbing')) return;
     document.body.classList.toggle('tabbar-min', d > 0 && y > 40);
   };
   addEventListener('scroll', () => {
@@ -90,12 +92,17 @@ function initTabbarMinimise() {
 // native and cannot be reproduced honestly in a page, so this does what it CAN
 // do faithfully: the accent pill tracks the thumb and the tab under it lifts.
 const HOLD_MS = 240;
+const HOLD_SLOP = 10;   // px of finger drift that still counts as "holding still"
 
 function initTabbarScrub() {
   const bar = document.getElementById('tabbar'); if (!bar || bar._scrub) return;
   bar._scrub = true;
 
+  // iOS long-press wants to select text / show the callout — both fight the hold.
+  bar.addEventListener('contextmenu', ev => ev.preventDefault());
+
   let timer = null, scrubbing = false, pid = null, target = null, suppress = false;
+  let sx = 0, sy = 0;   // where the press started, for the slop check
   const btns  = () => [...bar.querySelectorAll('.tb-btn')];
   const under = x => btns().find(b => { const r = b.getBoundingClientRect(); return x >= r.left && x <= r.right; })
                   || (x < bar.getBoundingClientRect().left ? btns()[0] : btns()[btns().length - 1]);
@@ -114,7 +121,7 @@ function initTabbarScrub() {
 
   bar.addEventListener('pointerdown', ev => {
     const b = ev.target.closest && ev.target.closest('.tb-btn'); if (!b) return;
-    pid = ev.pointerId;
+    pid = ev.pointerId; sx = ev.clientX; sy = ev.clientY;
     timer = setTimeout(() => {
       scrubbing = true;
       document.body.classList.add('tabbar-scrubbing');
@@ -127,7 +134,15 @@ function initTabbarScrub() {
   });
 
   bar.addEventListener('pointermove', ev => {
-    if (!scrubbing) return;
+    if (!scrubbing) {
+      // Finger on the move before the hold armed = this is a swipe, not a hold.
+      // Without this the timer fired mid-scroll and the scrub grabbed a gesture
+      // the browser was already using — the "se vuelve loco" bug.
+      if (timer && Math.hypot(ev.clientX - sx, ev.clientY - sy) > HOLD_SLOP) {
+        clearTimeout(timer); timer = null;
+      }
+      return;
+    }
     ev.preventDefault();
     const el = under(ev.clientX);
     if (el !== target) { paint(el); haptic('sel'); }

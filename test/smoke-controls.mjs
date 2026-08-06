@@ -272,6 +272,24 @@ try {
       await mp.waitForTimeout(300);
     }
 
+    // A swipe that STARTS on the bar is a swipe, not a hold: finger drift past
+    // the slop must cancel the arm timer. This is the on-device "se vuelve
+    // loco" bug — the timer fired mid-scroll and fought the browser's pan.
+    {
+      const r = await mp.evaluate(() => {
+        const q = document.querySelector('.tb-btn[data-tab="build"]').getBoundingClientRect();
+        return { x: q.left + q.width / 2, y: q.top + q.height / 2 };
+      });
+      await mp.mouse.move(r.x, r.y);
+      await mp.mouse.down();
+      await mp.mouse.move(r.x + 40, r.y, { steps: 4 });   // move BEFORE the hold arms
+      await mp.waitForTimeout(320);
+      const armed = await mp.evaluate(() => document.body.classList.contains('tabbar-scrubbing'));
+      await mp.mouse.up();
+      if (armed) { console.error('FAIL  mobile scrub: swipe armed the hold'); failed++; }
+      await mp.waitForTimeout(200);
+    }
+
     // Nothing may widen the page. A board is 620-860px BY DESIGN and scrolls
     // inside its wrap — but if any box in the chain sizes to content instead,
     // the browser does not scroll it, it zooms the WHOLE PAGE out to fit
