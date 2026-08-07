@@ -310,6 +310,20 @@ body[data-mode="instrument"] .drawers .drawer { max-width:none }
 /* Only the board you chose. The other one is not a tab you switch to, it is the
    instrument you are not playing. */
 body[data-mode="instrument"] .drawers .drawer:not([open]) { display:none }
+/* The drawer is a PAGE here, so its summary is a title, not a fold: tapping it
+   must not collapse the mode's own subject, and the chevron promising that goes.
+   Its buttons (Shapes, enlarge) stay live. */
+body[data-mode="instrument"] .drawer > summary { pointer-events:none }
+body[data-mode="instrument"] .drawer > summary button { pointer-events:auto }
+body[data-mode="instrument"] .drawer > summary .chev { display:none }
+/* The shapes strip is already deployed below the neck, so every control whose
+   job is showing/hiding it says nothing here: the two toggles AND the strip's
+   own ×. (body.instr-on-guitar re-shows the head toggle with display:grid, so
+   the !important is load-bearing, not decoration.) */
+body[data-mode="instrument"] .gss-btn,
+body[data-mode="instrument"] .gss-x,
+body[data-mode="instrument"] .instr-shapes-toggle { display:none !important }
+
 /* The head carries the piano/guitar switch. It is hidden everywhere else because
    elsewhere the instrument is chosen in the inspector, next to the chord. */
 body[data-mode="instrument"] .sheet-head {

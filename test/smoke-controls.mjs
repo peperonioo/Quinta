@@ -335,6 +335,27 @@ try {
         boardScrolls: !!board && board.scrollWidth > board.clientWidth,
       };
     });
+    // "Quiero que guitarra, sus shapes etc estén desplegados ya" — on guitar the
+    // finger diagrams are open on arrival, and every control whose only job is
+    // showing/hiding them is gone (tapping any of them would leave a hole).
+    await mp.evaluate(() => gotoInstrument('guitar'));
+    await mp.waitForTimeout(800);
+    const gs = await mp.evaluate(() => {
+      const vis = sel => { const e = document.querySelector(sel);
+        return !!e && e.getBoundingClientRect().width > 0 && getComputedStyle(e).display !== 'none'; };
+      return {
+        shapesDeployed: document.getElementById('guitarShapeStrip').classList.contains('gss-on')
+          && document.querySelectorAll('.gss-card').length >= 3,
+        noShapeToggles: !vis('.gss-x') && !vis('.gss-btn') && !vis('.instr-shapes-toggle'),
+        summaryInert: getComputedStyle(document.querySelector('.drawer[open] > summary')).pointerEvents === 'none',
+      };
+    });
+    for (const k of ['shapesDeployed', 'noShapeToggles', 'summaryInert']) {
+      if (!gs[k]) { console.error(`FAIL  mobile instrument: ${k}`); failed++; }
+    }
+    await mp.evaluate(() => gotoInstrument('piano'));
+    await mp.waitForTimeout(400);
+
     for (const k of ['dockIsPage', 'oneBoard', 'switchReachable', 'boardScrolls']) {
       if (!im[k]) { console.error(`FAIL  mobile instrument: ${k}`); failed++; }
     }

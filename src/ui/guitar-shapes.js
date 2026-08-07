@@ -359,6 +359,13 @@ const GuitarShapes = (() => {
   }
 
   return {
+    // Idempotent open, for code that wants shapes VISIBLE (Instrument mode)
+    // rather than flipped — toggle() from code is a coin flip.
+    show() {
+      if (isOpen()) { _render(); return; }   // re-render: the key may have changed
+      _view = 'chords'; _sel = []; _activePos = -1;
+      _render();
+    },
     toggle() {
       if (isOpen()) { this.close(); return; }
       _view = 'chords'; _sel = []; _activePos = -1;

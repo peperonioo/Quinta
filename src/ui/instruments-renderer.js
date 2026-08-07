@@ -82,6 +82,12 @@ function gotoInstrument(which) {
     _setInstrUI(which);
     requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   }
+  // Instrument mode is a page: everything the guitarist came for is ALREADY
+  // deployed — the neck, and the finger diagrams under it. No tap to reveal.
+  if (document.body.dataset.mode === 'instrument' && typeof GuitarShapes === 'object') {
+    if (which === 'guitar') GuitarShapes.show();
+    else GuitarShapes.close();
+  }
 }
 
 // ── Progression strip (inside the instrument island) ──────
