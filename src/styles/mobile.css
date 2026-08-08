@@ -310,7 +310,6 @@
      everything else that docks to the bottom has to sit on top of it instead of
      under it. --tabbar-h is the single number all three read. */
   body { padding-bottom:var(--tabbar-space) }
-  .transport-sheet { bottom:var(--tabbar-space) }
   /* The sheet keeps running to the bottom edge and the capsule floats ON it —
      stopping the sheet short of the floor would leave a strip of page showing
      under it. Its own padding is what keeps the content out from under. */

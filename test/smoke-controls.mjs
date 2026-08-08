@@ -272,6 +272,35 @@ try {
       await mp.waitForTimeout(300);
     }
 
+    // The transport capsule is the bar's docked accessory: fully ABOVE it (it
+    // shipped exactly underneath — a later stylesheet's inset:0 killed the
+    // offset), it leaves with the scroll-minimise, and the bar stands down
+    // while the island is open.
+    {
+      // The earlier pass left a chord selected; with the inspector sheet up the
+      // capsule hides BY DESIGN, so clear it before measuring.
+      await mp.evaluate(() => { switchTab('build'); Inspector.clear(); scrollTo(0, 0); });
+      await mp.waitForTimeout(500);
+      const acc = await mp.evaluate(async () => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const gap = () => document.getElementById('tabbar').getBoundingClientRect().top
+                        - document.querySelector('.ts-cap').getBoundingClientRect().bottom;
+        const capOp = () => getComputedStyle(document.querySelector('.ts-cap')).opacity;
+        const r = { restGap: gap() };
+        scrollTo(0, 420); await wait(550); r.hiddenOnScroll = capOp() === '0';
+        scrollTo(0, 0);   await wait(550);
+        TransportSheet.open(); await wait(450);
+        r.barYieldsToIsland = getComputedStyle(document.getElementById('tabbar')).opacity === '0';
+        TransportSheet.collapse(); await wait(450);
+        r.backAfter = capOp() === '1' && gap() >= 4;
+        return r;
+      });
+      if (!(acc.restGap >= 4))    { console.error(`FAIL  mobile accessory: overlaps the bar (gap ${Math.round(acc.restGap)})`); failed++; }
+      if (!acc.hiddenOnScroll)    { console.error('FAIL  mobile accessory: stays during scroll-min'); failed++; }
+      if (!acc.barYieldsToIsland) { console.error('FAIL  mobile accessory: bar floats over the open island'); failed++; }
+      if (!acc.backAfter)         { console.error('FAIL  mobile accessory: does not come back'); failed++; }
+    }
+
     // A swipe that STARTS on the bar is a swipe, not a hold: finger drift past
     // the slop must cancel the arm timer. This is the on-device "se vuelve
     // loco" bug — the timer fired mid-scroll and fought the browser's pan.

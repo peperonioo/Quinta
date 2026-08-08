@@ -543,6 +543,11 @@ body[data-mode="explore"] .rhythm-track { display:none }
     body.tabbar-scrubbing .tabbar { transform:translateX(-50%) }
   }
 
+  /* While the transport island is open it owns the bottom of the screen — the
+     tab capsule floating on top of a modal panel is two chromes fighting. */
+  body.ts-open .tabbar { opacity:0; transform:translateX(-50%) translateY(10px); pointer-events:none }
+  .tabbar { transition:height .3s var(--ui-ease), transform .3s var(--ui-ease), opacity .2s var(--ease) }
+
   /* The top segmented control is redundant once the bar exists. */
   .tabs { display:none }
 }
