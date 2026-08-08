@@ -283,16 +283,24 @@ try {
       await mp.waitForTimeout(500);
       const acc = await mp.evaluate(async () => {
         const wait = ms => new Promise(r => setTimeout(r, ms));
+        // Poll, don't sample: these are .2-.3s transitions, and the CI runner's
+        // GPU-less Chrome settles them late — a fixed-delay snapshot flakes there
+        // while passing locally every time.
+        const settle = async (cond, ms = 2000) => {
+          const t0 = performance.now();
+          while (performance.now() - t0 < ms) { if (cond()) return true; await wait(80); }
+          return cond();
+        };
         const gap = () => document.getElementById('tabbar').getBoundingClientRect().top
                         - document.querySelector('.ts-cap').getBoundingClientRect().bottom;
         const capOp = () => getComputedStyle(document.querySelector('.ts-cap')).opacity;
         const r = { restGap: gap() };
-        scrollTo(0, 420); await wait(550); r.hiddenOnScroll = capOp() === '0';
-        scrollTo(0, 0);   await wait(550);
-        TransportSheet.open(); await wait(450);
-        r.barYieldsToIsland = getComputedStyle(document.getElementById('tabbar')).opacity === '0';
-        TransportSheet.collapse(); await wait(450);
-        r.backAfter = capOp() === '1' && gap() >= 4;
+        scrollTo(0, 420); r.hiddenOnScroll = await settle(() => capOp() === '0');
+        scrollTo(0, 0);   await settle(() => capOp() === '1');
+        TransportSheet.open();
+        r.barYieldsToIsland = await settle(() => getComputedStyle(document.getElementById('tabbar')).opacity === '0');
+        TransportSheet.collapse();
+        r.backAfter = await settle(() => capOp() === '1' && gap() >= 4);
         return r;
       });
       if (!(acc.restGap >= 4))    { console.error(`FAIL  mobile accessory: overlaps the bar (gap ${Math.round(acc.restGap)})`); failed++; }
