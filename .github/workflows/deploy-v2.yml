@@ -49,6 +49,14 @@ jobs:
       - name: Build V2 bundle
         run: node build.js --v2
 
+      # The preview must get the SAMPLED sound. The samplers fetch relative to
+      # the page, and under /v2/ that once 404ed silently into the synth
+      # fallback for weeks — no error, no failing test, just a worse product.
+      - name: V2 samples resolve
+        run: node test/v2-samples.mjs
+        env:
+          PW_EXECUTABLE_PATH: ${{ steps.chrome.outputs.chrome-path }}
+
       - name: Publish v2/ to main
         run: |
           git config user.name  "github-actions[bot]"

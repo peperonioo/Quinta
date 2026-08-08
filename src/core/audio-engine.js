@@ -853,26 +853,34 @@ function _makeSampler(base, names, opts = {}) {
   };
 }
 
-const SamplePiano = _makeSampler('samples/piano/',
+// V2 lives at /v2/ while the samples stay at the app root (shared with V1, and
+// V2's service worker deliberately does not cache them). Every loader resolves
+// through this or the whole sampled-sound layer 404s in the preview and the app
+// silently runs on the synth fallback — which is how V2 shipped for weeks with
+// no sampled piano, no guitar, and a drum kit whose synth kick is a ~60Hz sine
+// a phone speaker cannot physically reproduce ("el ritmo no se escucha").
+const SAMPLE_ROOT = /\/v2\//.test(location.pathname) ? '../samples/' : 'samples/';
+
+const SamplePiano = _makeSampler(SAMPLE_ROOT + 'piano/',
   ['C2','Ds2','Fs2','A2','C3','Ds3','Fs3','A3','C4','Ds4','Fs4','A4','C5','Ds5','Fs5','A5','C6'],
   { gain: 1.15 });
 
-const SampleGuitar = _makeSampler('samples/guitar/',
+const SampleGuitar = _makeSampler(SAMPLE_ROOT + 'guitar/',
   ['E2','Fs2','A2','B2','Cs3','D3','Fs3','G3','B3','Cs4','E4','Fs4','A4','B4','Cs5','D5','E5'],
   { gain: 1.0, release: 0.6, maxShift: 4 });
 
 // Electric bass (VSCO2 CE, CC0) — the real low end under progressions. The
 // voice-led bass note routes here instead of the piano's left hand.
-const SampleBass = _makeSampler('samples/bass/',
+const SampleBass = _makeSampler(SAMPLE_ROOT + 'bass/',
   ['E1','G1','As1','Cs2','E2','G2','As2','Cs3','E3','G3'],
   { gain: 1.25, release: 0.35, maxShift: 3, busName: 'bassBus' });
 
 // ── Instrument Pack 1 (free in beta; pack-gated, see PACKS) ──
 // Steel acoustic (neo-soul strums, singer-songwriter warmth) + clean electric.
-const SampleSteel = _makeSampler('samples/steel/',
+const SampleSteel = _makeSampler(SAMPLE_ROOT + 'steel/',
   ['D2','F2','Gs2','B2','D3','F3','Gs3','B3','D4','F4','Gs4','B4','D5'],
   { gain: 0.95, release: 0.5, maxShift: 4 });
-const SampleElectric = _makeSampler('samples/electric/',
+const SampleElectric = _makeSampler(SAMPLE_ROOT + 'electric/',
   ['A2','C3','Ds3','Fs3','A3','C4','Ds4','Fs4','A4','C5'],
   { gain: 0.85, release: 0.45, maxShift: 4 });
 
@@ -893,7 +901,7 @@ const DrumKits = {
     if (k.state !== 'idle') return;
     k.state = 'loading';
     this.PIECES.forEach(p => {
-      fetch(`samples/drums/${kit}/${p}.mp3`)
+      fetch(`${SAMPLE_ROOT}drums/${kit}/${p}.mp3`)
         .then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); })
         .then(ab => AudioEngine.ctx.decodeAudioData(ab))
         .then(buf => { k.buffers[p] = buf; k.state = 'ready'; })
