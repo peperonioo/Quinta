@@ -22,6 +22,9 @@ else if (process.env.PW_CHANNEL)    launchOpts.channel = process.env.PW_CHANNEL;
 // [name, selector, predicate, optional setup]. `setup` also switches mode:
 // after V6.22 a control only exists in its own mode.
 const M = m => `(() => switchTab('${m}'))()`;
+// Open the "···" panel first — these controls moved inside it in V6.33.
+const MORE = () => { switchTab('build'); const m = document.getElementById('builderMore');
+  if (m.hasAttribute('hidden')) document.getElementById('moreBtn').click(); };
 const CASES = [
   ['settings.toggle',  '#settingsBtn',                                    () => !document.getElementById('settingsSheet').hidden],
   ['set.theme light',  '[data-act="set.theme"][data-id="light"]',         () => document.body.classList.contains('light')],
@@ -29,10 +32,15 @@ const CASES = [
   ['settings.close',   '.settings-sheet .mod-x',                          () => document.getElementById('settingsSheet').hidden],
   ['view.set minor',   '[data-act="view.set"][data-id="minor"]',          () => st.wheelView === 'minor', () => switchTab('explore')],
   ['view.set major',   '[data-act="view.set"][data-id="major"]',          () => st.wheelView === 'major'],
-  ['builder.surprise', '[data-act="builder.surprise"]',                   () => (st.history || []).length > 0, () => switchTab('build')],
+  ['builder.surprise', '[data-act="builder.surprise"]',                   () => (st.history || []).length > 0,
+    () => { switchTab('build'); const m = document.getElementById('builderMore');
+            if (m.hasAttribute('hidden')) document.getElementById('moreBtn').click(); }],
   ['prog.loop',        '#loopBtn',                                        () => st.loop === true],
   ['prog.chain',       '#chainBtn',                                       () => st.chain === true],
-  ['builder.more',     '#moreBtn',                                        () => !document.getElementById('builderMore').hasAttribute('hidden')],
+  // Earlier cases leave the panel open; close it so this toggle OPENS.
+  ['builder.more',     '#moreBtn',                                        () => !document.getElementById('builderMore').hasAttribute('hidden'),
+    () => { const m = document.getElementById('builderMore');
+            if (!m.hasAttribute('hidden')) document.getElementById('moreBtn').click(); }],
   ['play.opt countIn', '[data-act="play.opt"][data-id="countIn"]',        () => st.countIn === true],
   ['builder.snap',     '#snapBtn',                                        () => st.snap !== 0.25],
   ['section.go B',     '[data-act="section.go"][data-id="B"]',            () => st.activeSection === 'B'],

@@ -382,48 +382,7 @@ function _hideInstallNudge() {
   if (!navigator.onLine) setTimeout(sync, 800);
 })();
 
-// ── SECTION DOTS (mobile · theory tab) ────────────────
-// A whisper-quiet rail on the right edge showing where you are on the long
-// mobile page — Wheel · Chords · Builder. Tap a dot to jump. Desktop and the
-// Production tab hide it via CSS.
-(function initSectionDots() {
-  const sections = [
-    { sel: '.circle-wrap',        es: 'Rueda',   en: 'Wheel'   },
-    { sel: '#degrees',            es: 'Acordes', en: 'Chords'  },
-    { sel: '#progressionBuilder', es: 'Builder', en: 'Builder' },
-  ];
-  const nav = document.createElement('nav');
-  nav.className = 'section-dots';
-  nav.setAttribute('aria-label', 'Secciones');
-  sections.forEach((s, i) => {
-    const b = document.createElement('button');
-    b.className = 'sd-dot';
-    b.setAttribute('aria-label', (typeof st === 'object' && st.lang === 'es') ? s.es : s.en);
-    b.addEventListener('click', () => {
-      document.querySelector(s.sel)?.scrollIntoView({ behavior: 'smooth', block: i === 2 ? 'start' : 'center' });
-      haptic('tap');
-    });
-    nav.appendChild(b);
-  });
-  document.body.appendChild(nav);
-  const dots = [...nav.children];
-  let raf = 0;
-  const sync = () => {
-    raf = 0;
-    // You are "in" the last section whose top has crossed the 55% line —
-    // robust for tall sections (the builder), unlike nearest-midpoint.
-    let best = 0;
-    sections.forEach((s, i) => {
-      const el = document.querySelector(s.sel); if (!el) return;
-      if (el.getBoundingClientRect().top <= innerHeight * 0.55) best = i;
-    });
-    dots.forEach((d, i) => {
-      d.classList.toggle('on', i === best);
-      if (i === best) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current');
-    });
-  };
-  const onScroll = () => { if (!raf) raf = requestAnimationFrame(sync); };
-  addEventListener('scroll', onScroll, { passive: true });
-  addEventListener('resize', onScroll, { passive: true });
-  sync();
-})();
+// The section-dots rail (V5.x–V6.31) died with the single long page: it jumped
+// between Wheel · Chords · Builder when they shared one scroll. Those are three
+// TABS now, and the rail floated over every one of them pointing at sections
+// that were no longer there.

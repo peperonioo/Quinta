@@ -117,4 +117,6 @@ const I18N_EN = {
   'tabs.instrument':   'Instrument',
   'tabs.produce':      'Produce',
   'builder.removeChord': 'Remove chord',
+  'doc.save': 'Save',
+  'doc.new': 'New',
 };

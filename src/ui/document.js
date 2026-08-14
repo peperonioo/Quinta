@@ -46,22 +46,23 @@ const Doc = (() => {
     const el = document.getElementById('docBar'); if (!el) return;
     const h = Array.isArray(st.history) ? st.history : [];
     const saved = !!st.docId;
+    const isPlaying = (typeof playing !== 'undefined' && playing)
+                   || (typeof _progRAF !== 'undefined' && _progRAF);
+    const sect = st.activeSection || 'A';
     el.innerHTML = `
       <input class="doc-name" id="docName" value="${name().replace(/"/g, '&quot;')}"
         aria-label="${L('Document name', 'Nombre del documento')}"
-        data-act-enter="doc.rename" placeholder="${L('Untitled', 'Sin título')}">
+        data-act-enter="doc.rename" placeholder="${L('Untitled', 'Sin título')}"
+        title="${saved ? L('Saved', 'Guardado') : L('Not saved yet — Save lives under ···', 'Sin guardar — Guardar está en ···')}">
+      <div class="sect-tabs" role="group" aria-label="${L('Song sections', 'Secciones')}">
+        <button class="sect-tab${sect === 'A' ? ' active' : ''}" data-sect="A" data-act="section.go" data-id="A" aria-label="${L('Section A', 'Sección A')}">A</button>
+        <button class="sect-tab${sect === 'B' ? ' active' : ''}" data-sect="B" data-act="section.go" data-id="B" aria-label="${L('Section B', 'Sección B')}">B</button>
+      </div>
       <div class="doc-acts">
-        <button class="doc-btn" data-act="doc.save" title="${L('Save', 'Guardar')}">
-          <span data-ico="library" data-ico-size="13"></span><span>${saved ? L('Saved', 'Guardado') : L('Save', 'Guardar')}</span>
-        </button>
-        <button class="doc-btn" data-act="doc.open" title="${L('Open', 'Abrir')}">${L('Open', 'Abrir')}</button>
-        <button class="doc-btn${h.length >= 2 ? ' cta' : ''}" data-act="export.open" title="${L('Export', 'Exportar')}"
-          ${h.length < 2 ? 'disabled' : ''}>
-          <span data-ico="download" data-ico-size="13"></span><span>${L('Export', 'Exportar')}</span>
-        </button>
-        <button class="doc-btn" data-act="prog.share" title="${L('Share link', 'Compartir enlace')}"
-          ${h.length ? '' : 'disabled'}><span data-ico="share" data-ico-size="13"></span></button>
-        <button class="doc-btn" data-act="doc.new" title="${L('New', 'Nuevo')}">＋</button>
+        <button class="builder-btn play${isPlaying ? ' is-stop playing' : ''}" id="playProgBtn" data-ico="${isPlaying ? 'stop' : 'play'}" data-act="prog.play"><span>${isPlaying ? t('play.stop') : t('builder.play')}</span></button>
+        <button class="builder-btn export-cta" id="exportBtn" data-ico="download" data-act="export.open" ${h.length < 2 ? 'hidden' : ''}
+          title="${L('Export as WAV, stems or MIDI', 'Exportar como WAV, stems o MIDI')}"><span data-i18n="builder.grpExport">${L('Export', 'Exportar')}</span></button>
+        <button class="builder-btn opt" id="moreBtn" data-ico="more" data-act="builder.more" title="${L('More actions', 'Más acciones')}" aria-label="${L('More actions', 'Más acciones')}" aria-expanded="false"></button>
       </div>`;
     applyIcons(el);
   }

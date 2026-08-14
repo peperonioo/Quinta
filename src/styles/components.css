@@ -384,8 +384,9 @@ body.light .if-neck { background:linear-gradient(180deg,#b89670,#9c7c58) }
    where everyone looks for them, instead of inside a "···" menu. */
 .doc-bar {
   display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-  margin-bottom:10px; padding:8px 12px;
-  border:1px solid var(--line); border-radius:12px; background:rgba(0,0,0,.22);
+  margin-bottom:12px;
+  /* Inside the builder card since V6.33 — its own border/background made it a
+     second card stacked on the first. */
 }
 body[data-mode="explore"] .doc-bar { display:none }
 .doc-name {

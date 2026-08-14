@@ -280,33 +280,14 @@
       <div class="build-cols">
         <!-- DOCUMENT HEADER (B2) — the progression has a name and file-level
              actions, where everyone looks for them. -->
-        <div class="doc-bar" id="docBar"></div>
-
-        <!-- Progression Builder -->
+        <!-- Progression Builder. ONE header (V6.33): the doc bar and the
+             builder head were two rows of chrome for the same object, with
+             Export appearing in BOTH, 60px apart. Doc.render draws the whole
+             row now: name · A/B · Play · Export · "···". Everything demoted
+             from the old rows lives in the "···" panel. -->
         <section class="progression-builder" id="progressionBuilder"
           data-dropzone="degrees">
-          <div class="builder-head">
-            <div>
-              <h2 class="builder-title" data-i18n="builder.title">Progression builder</h2>
-              <div class="sect-tabs" role="group" aria-label="Song sections">
-                <button class="sect-tab active" data-sect="A" data-act="section.go" data-id="A" aria-label="Section A">A</button>
-                <button class="sect-tab" data-sect="B" data-act="section.go" data-id="B" aria-label="Section B">B</button>
-              </div>
-            </div>
-            <div class="builder-actions">
-              <button class="builder-btn play" id="playProgBtn" data-ico="play" data-act="prog.play"><span data-i18n="builder.play">Play</span></button>
-              <!-- Export is the monetisable surface. It used to live only inside the
-                   "···" menu, where a new user never found it — which would have read
-                   in telemetry as "nobody wants export". It surfaces here as soon as
-                   there is something worth exporting (2+ chords). -->
-              <button class="builder-btn export-cta" id="exportBtn" data-ico="download" data-act="export.open" hidden
-                title="Export this progression as WAV, stems or MIDI"><span data-i18n="builder.grpExport">Export</span></button>
-              <button class="builder-btn opt surprise-opt" id="surpriseBtn" data-ico="spark" data-act="builder.surprise" title="Drop in a random progression and play it" aria-label="Surprise me"></button>
-              <button class="builder-btn opt" id="loopBtn" data-ico="loop" data-act="prog.loop" title="Loop the progression" aria-label="Loop" aria-pressed="false"></button>
-              <button class="builder-btn opt sect-chain" id="chainBtn" data-act="prog.chain" title="Play section A then B as one song" aria-label="Chain A to B" aria-pressed="false">A→B</button>
-              <button class="builder-btn opt" id="moreBtn" data-ico="more" data-act="builder.more" title="More actions" aria-label="More actions" aria-expanded="false"></button>
-            </div>
-          </div>
+          <div class="doc-bar" id="docBar"></div>
           <!-- "More" panel — grouped by intent (Export / Session / Playback) so seven
                actions read as three decisions, not a button soup. -->
           <div class="builder-more" id="builderMore" hidden>
@@ -321,14 +302,19 @@
             <div class="bm-group" role="group" aria-label="Session">
               <span class="bm-label" data-i18n="builder.grpSession">Session</span>
               <div class="bm-btns">
+                <button class="builder-btn" data-act="doc.save" title="Save this progression"><span data-i18n="doc.save">Save</span></button>
                 <button class="builder-btn" data-lib-trigger data-ico="library" data-act="lib.toggle" title="Saved progressions & presets"><span data-i18n="builder.library">Library</span></button>
                 <button class="builder-btn" data-ico="share" data-act="prog.share" title="Copy a shareable link"><span data-i18n="builder.share">Share</span></button>
+                <button class="builder-btn" data-act="doc.new" title="Start a new progression"><span data-i18n="doc.new">New</span></button>
                 <button class="builder-btn danger" data-ico="trash" data-act="builder.clear" title="Clear progression"><span data-i18n="builder.clear">Clear</span></button>
               </div>
             </div>
             <div class="bm-group" role="group" aria-label="Playback">
               <span class="bm-label" data-i18n="builder.grpPlayback">Playback</span>
               <div class="bm-btns">
+                <button class="builder-btn opt" id="surpriseBtn" data-ico="spark" data-act="builder.surprise" title="Drop in a random progression and play it" aria-label="Surprise me"></button>
+                <button class="builder-btn opt" id="loopBtn" data-ico="loop" data-act="prog.loop" title="Loop the progression" aria-label="Loop" aria-pressed="false"></button>
+                <button class="builder-btn opt sect-chain" id="chainBtn" data-act="prog.chain" title="Play section A then B as one song" aria-label="Chain A to B" aria-pressed="false">A→B</button>
                 <button class="builder-btn opt" id="countInBtn" data-ico="countin" data-act="play.opt" data-id="countIn" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false"></button>
                 <button class="builder-btn opt" id="voicingBtn" data-ico="voicing" data-act="play.opt" data-id="voicingOpen" title="Open (spread) voicing" aria-label="Open voicing" aria-pressed="false"></button>
               </div>

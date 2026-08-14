@@ -427,10 +427,9 @@ body[data-mode="instrument"] .instr-bar {
 @media (min-width:1100px) {
   body[data-mode="build"] .build-cols {
     display:grid; grid-template-columns:minmax(0,1fr) 360px;
-    grid-template-areas:'doc insp' 'build insp' 'rhythm insp';
+    grid-template-areas:'build insp' 'rhythm insp';
     gap:0 16px; align-items:start;
   }
-  body[data-mode="build"] .build-cols > .doc-bar       { grid-area:doc }
   body[data-mode="build"] .build-cols > #progressionBuilder { grid-area:build }
   body[data-mode="build"] .build-cols > .rhythm-track  { grid-area:rhythm }
   body[data-mode="build"] .build-cols > .inspector {
