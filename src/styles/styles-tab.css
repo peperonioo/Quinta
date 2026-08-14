@@ -1,0 +1,76 @@
+/* ── STYLES TAB (V6.33) ───────────────────────────────
+   The reading surface for what characterises each genre. Recovered from the
+   retired production.css — minus the drum grid, second Play and second tempo,
+   which stayed dead on purpose: the rhythm is a track of the document (B3). */
+#panel-styles { display:none }
+body[data-mode="styles"] #panel-styles { display:block; animation:fadeIn .3s var(--ease) }
+#panel-styles > * + * { margin-top:14px }
+#panel-styles h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-weight:500; margin-bottom:10px }
+
+.genre-tabs  { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:16px }
+.genre-btn   { padding:7px 14px; border:1px solid var(--line); border-radius:8px; background:var(--card); font-family:'DM Sans',sans-serif; font-size:11px; font-weight:500; color:var(--muted); cursor:pointer; transition:all .15s; backdrop-filter:blur(10px) }
+.genre-btn.active { background:var(--accent); color:#fff; border-color:var(--accent) }
+.genre-btn.soon   { opacity:.3; cursor:not-allowed }
+.prod-header  { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; gap:12px }
+.prod-title   { font-family:'DM Serif Display',serif; font-size:30px; letter-spacing:-.03em; color:var(--ink) }
+.prod-meta    { font-family:'DM Mono',monospace; font-size:10.5px; color:var(--muted); margin-top:5px; letter-spacing:.04em }
+.prod-grid    { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px }
+.prod-card    { padding:14px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px) }
+.prod-card h3 { font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:10px }
+.prod-card .bigline { font-family:'DM Serif Display',serif; font-size:17px; margin-bottom:4px; color:var(--ink) }
+.prod-card p  { font-size:12px; color:var(--muted); line-height:1.55 }
+/* Elements section */
+.elements-section { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px }
+.elements-card    { padding:14px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px) }
+.elements-card h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:10px }
+.element-item     { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--line) }
+.element-item:last-child { border-bottom:0 }
+.element-icon     { width:32px; height:32px; border-radius:9px; background:var(--sel-bg); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0 }
+.element-item .el-body { min-width:0 }
+.el-name { font-size:12px; font-weight:500; color:var(--ink); display:flex; align-items:center; gap:7px; flex-wrap:wrap }
+.el-gear { font-family:'DM Mono',monospace; font-size:8.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--accent2); background:var(--degree-tonic); border:1px solid rgba(232,68,26,.22); border-radius:5px; padding:1px 6px }
+.el-desc { font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.45 }
+/* Suggested-tempo button next to the BPM badge */
+.bpm-suggest {
+  font-family:'DM Mono',monospace; font-size:10px; padding:3px 8px; cursor:pointer;
+  background:var(--degree-tonic); border:1px solid rgba(232,68,26,.28); border-radius:5px; color:var(--accent2);
+}
+.bpm-suggest:hover { background:rgba(232,68,26,.2) }
+/* Arrangement & Fills tips */
+.tips-section  { padding:14px 16px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px); margin-bottom:12px }
+.tips-section h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px }
+.tips-grid     { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px }
+.tips-card     { padding:10px 12px; border-radius:10px; background:var(--sel-bg); border:1px solid var(--line) }
+.tips-card h4  { font-size:11px; font-weight:600; color:var(--accent2); margin:0 0 6px; text-transform:none; letter-spacing:0 }
+.tips-card ul  { margin:0; padding-left:15px; display:flex; flex-direction:column; gap:5px }
+.tips-card li  { font-size:10.5px; line-height:1.4; color:var(--muted) }
+/* Progressions / groove */
+.prog-section  { margin-bottom:12px; padding:14px 16px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px) }
+.prog-section h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px }
+.prog-list     { display:flex; flex-direction:column; gap:6px }
+.prog-item     { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; background:var(--sel-bg); border:1px solid var(--line); flex-wrap:wrap }
+.prog-chords   { display:flex; gap:4px; flex-wrap:wrap }
+.prog-chord    { padding:3px 8px; border-radius:6px; background:var(--degree-tonic); border:1px solid rgba(232,68,26,.2); font-family:'DM Mono',monospace; font-size:11px; font-weight:500; color:var(--accent2) }
+.prog-desc     { font-size:10px; color:var(--muted) }
+.groove-section { padding:14px 16px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px); margin-bottom:12px }
+.groove-section h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px }
+.groove-rules  { display:flex; flex-direction:column; gap:6px }
+.groove-rule   { display:flex; gap:8px; align-items:flex-start; padding:6px 0; border-bottom:1px solid var(--line) }
+.groove-rule:last-child { border-bottom:0 }
+.rule-num      { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); width:18px; flex-shrink:0; margin-top:1px }
+.rule-text     { font-size:12px; line-height:1.5; color:var(--ink); opacity:.8 }
+.stab-icon { display:flex; align-items:flex-end; gap:1px; height:18px }
+.sk   { width:4px; border-radius:1px; background:var(--accent2); transform-origin:bottom }
+.sk:nth-child(1){ height:16px; animation:stab 1.2s 0s infinite }
+.sk:nth-child(2){ height:10px; animation:stab 1.2s .08s infinite }
+.sk:nth-child(3){ height:16px; animation:stab 1.2s .16s infinite }
+.sk:nth-child(4){ height:8px;  animation:stab 1.2s .24s infinite }
+.sk:nth-child(5){ height:16px; animation:stab 1.2s .32s infinite }
+.sk.bk { width:3px; height:10px; background:var(--muted); margin:0 1px }
+.bass-icon { display:flex; align-items:center; gap:2px; height:18px }
+.bb { width:4px; border-radius:2px; background:var(--accent2) }
+.bb:nth-child(1){ height:12px; animation:bass-p 1.6s 0s infinite }
+.bb:nth-child(2){ height:7px;  animation:bass-p 1.6s .4s infinite }
+.bb:nth-child(3){ height:16px; animation:bass-p 1.6s .2s infinite }
+.bb:nth-child(4){ height:9px;  animation:bass-p 1.6s .6s infinite }
+.bb:nth-child(5){ height:12px; animation:bass-p 1.6s .1s infinite }

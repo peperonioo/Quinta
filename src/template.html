@@ -65,6 +65,7 @@
         <button class="tab-btn" data-act="tab.go" data-tab="explore" data-i18n="tabs.explore">Explore</button>
         <button class="tab-btn active" data-act="tab.go" data-tab="build" data-i18n="tabs.build">Build</button>
         <button class="tab-btn" data-act="tab.go" data-tab="instrument" data-i18n="tabs.instrument">Instrument</button>
+        <button class="tab-btn" data-act="tab.go" data-tab="styles" data-i18n="tabs.styles">Styles</button>
       </div>
     </div>
   </header>
@@ -417,14 +418,16 @@
     </div>
   </div>
 
+  <!-- STYLES TAB (V6.33) — what characterises each genre; StylesTab renders here -->
+  <div id="panel-styles"></div>
 
 </div>
 
 <!-- BOTTOM TAB BAR (V6.26)
      The mode switch used to live top-right: on an 844px phone that is the far
      corner from the thumb, for the control you touch most. It moves down here.
-     Three destinations, and only three — Explore is the key, Build is the
-     document, Instrument is the board at full size. Piano vs guitar is NOT here:
+     Explore is the key, Build is the document, Instrument is the board at full
+     size, Styles is the genre reference. Piano vs guitar is NOT a tab:
      that is who you are, not where you are going, so it stays a setting that
      travels with you (and this tab's icon follows it). -->
 <nav class="tabbar" id="tabbar" aria-label="Sections">
@@ -439,6 +442,10 @@
   <button class="tb-btn" data-act="tab.go" data-tab="instrument">
     <span class="tb-ico" id="tbInstrIco" data-ico="piano" data-ico-size="21"></span>
     <span class="tb-lbl" data-i18n="tabs.instrument">Instrument</span>
+  </button>
+  <button class="tb-btn" data-act="tab.go" data-tab="styles">
+    <span class="tb-ico" data-ico="vinyl" data-ico-size="21"></span>
+    <span class="tb-lbl" data-i18n="tabs.styles">Styles</span>
   </button>
 </nav>
 

@@ -39,6 +39,7 @@ const CSS_FILES = [
   'src/styles/popovers.css',
   'src/styles/instruments.css',
   'src/styles/onboarding.css',
+  'src/styles/styles-tab.css',
   'src/styles/components.css',
   'src/styles/typography.css',
   'src/styles/mobile.css',
@@ -97,6 +98,7 @@ const JS_FILES = [
   // Document (B2) + rhythm track (B3)
   'src/ui/document.js',
   'src/ui/rhythm.js',
+  'src/ui/styles-tab.js',
   // The data-act → function map. Lambdas, so targets resolve at call time.
   'src/ui/actions-map.js',
   'src/ui/guitar-shapes.js',

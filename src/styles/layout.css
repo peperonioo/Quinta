@@ -374,6 +374,19 @@ body[data-mode="instrument"] .fretboard-wrap {
           mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 34px),transparent 100%);
 }
 
+/* STYLES — read what characterises the genre. Everything interactive steps out. */
+body[data-mode="styles"] .main-row,
+body[data-mode="styles"] .wheel-toggle-row,
+body[data-mode="styles"] .theory-strip,
+body[data-mode="styles"] #degreesBlock,
+body[data-mode="styles"] #progressionBuilder,
+body[data-mode="styles"] .inspector,
+body[data-mode="styles"] .rhythm-track,
+body[data-mode="styles"] .ctx-bar,
+body[data-mode="styles"] .drawers,
+body[data-mode="styles"] .instr-bar,
+body[data-mode="styles"] .suggestions-section { display:none !important }
+
 /* The mode's own header. */
 .instr-bar { display:none }
 body[data-mode="instrument"] .instr-bar {

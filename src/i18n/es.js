@@ -115,6 +115,7 @@ const I18N_ES = {
   'tabs.explore':      'Explorar',
   'tabs.build':        'Construir',
   'tabs.instrument':   'Instrumento',
+  'tabs.styles':       'Estilos',
   'tabs.produce':      'Producir',
   'builder.removeChord': 'Quitar acorde',
   'doc.save': 'Guardar',

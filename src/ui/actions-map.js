@@ -171,6 +171,10 @@ ActionRegistry.addAll({
   'rhythm.toggle':    ()  => Rhythm.toggle(),
   'rhythm.genre':     el  => Rhythm.setGenre(_aStr(el, 'id')),
 
+  // ── Styles tab (V6.33) ──
+  'styles.genre':     el => StylesTab.pick(_aStr(el, 'id')),
+  'styles.bpm':       ()  => StylesTab.useBpm(),
+
   // ── Misc ──
   'strip.pick':       el => pickProgChord(_aInt(el, 'idx')),
   'install.accept':   ()  => _acceptInstall(),

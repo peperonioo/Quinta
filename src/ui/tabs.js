@@ -11,7 +11,7 @@
 // is a track of the document); 'instrument' arrives in V6.26 because retiring the
 // dock in B1 left a guitarist with no place to go — the inspector's six-fret
 // summary answers "this chord", not "the whole neck".
-const MODES_UI = ['explore', 'build', 'instrument'];
+const MODES_UI = ['explore', 'build', 'instrument', 'styles'];
 
 function switchTab(tab, btn) {
   // Legacy names (and the removed 'produce') all resolve to Build now.
@@ -44,6 +44,7 @@ function switchTab(tab, btn) {
   // Instrument mode: the dock IS the page. On a phone it normally lives inside
   // the transport island, so it has to come home before it can be the subject.
   if (typeof TransportSheet === 'object') TransportSheet.placeInstruments();
+  if (mode === 'styles' && typeof StylesTab === 'object') StylesTab.render();
   if (mode === 'instrument') {
     if (typeof TransportSheet === 'object' && TransportSheet.isOpen()) TransportSheet.collapse();
     gotoInstrument(st.instr || 'piano');
