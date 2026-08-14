@@ -452,6 +452,24 @@
   </button>
 </nav>
 
+<!-- GUITAR TUNER (V6.33) — slide the metronome right to open -->
+<div id="tunerPanel" class="tuner-panel" hidden role="dialog" aria-modal="true" aria-label="Tuner">
+  <button class="tn-x" data-ico="close" data-ico-size="16" data-act="tuner.close" aria-label="Close"></button>
+  <div class="tn-note">–</div>
+  <div class="tn-meter" aria-hidden="true">
+    <div class="tn-scale"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="tn-needle"></div>
+    <div class="tn-center"></div>
+  </div>
+  <div class="tn-cents"></div>
+  <div class="tn-hint"></div>
+  <div class="tn-strings">
+    <button class="tn-str" data-f="82.4069">E</button><button class="tn-str" data-f="110">A</button>
+    <button class="tn-str" data-f="146.8324">D</button><button class="tn-str" data-f="195.9977">G</button>
+    <button class="tn-str" data-f="246.9417">B</button><button class="tn-str" data-f="329.6276">E</button>
+  </div>
+</div>
+
 <div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
 
 <!-- Undo toast — appears after a destructive change (Surprise me / Clear / load) -->

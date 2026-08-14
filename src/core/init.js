@@ -280,6 +280,7 @@ function toggleTheme() {
   initBuilderFocus();     // scroll → builder fills the screen
   initTabbarMinimise();   // scroll → the tab capsule stands down
   initTabbarScrub();      // hold → steer the capsule with the thumb
+  _wireMetroSwipe();      // slide the metronome right → tuner
   tel('app_open');
   st.visits = (st.visits || 0) + 1; saveState();          // install nudge waits for visit 2+
   setTimeout(() => { try { _maybeInstallNudge(); } catch (_) {} }, 3200);
@@ -381,6 +382,32 @@ function _hideInstallNudge() {
   addEventListener('online', sync); addEventListener('offline', sync);
   if (!navigator.onLine) setTimeout(sync, 800);
 })();
+
+// Slide the metronome capsule to the right and the tuner opens (V6.33). A
+// horizontal drag, decided early: >36px of x-travel with x clearly dominating
+// y arms it; anything else falls through to the metronome's own taps.
+function _wireMetroSwipe() {
+  // "El metrónomo" is two elements: the top bubble on desktop, and the
+  // transport accessory capsule on phones (the BPM lives there). Wire both.
+  const targets = [document.getElementById('metronome'), document.querySelector('.ts-cap')].filter(Boolean);
+  targets.forEach(m => {
+    if (m._tunerWired) return;
+    m._tunerWired = true;
+    let sx = 0, sy = 0, live = false, fired = false;
+    m.addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; live = true; fired = false; }, { passive: true });
+    m.addEventListener('pointermove', e => {
+      if (!live) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (dx > 36 && dx > Math.abs(dy) * 1.6) { live = false; fired = true; haptic('ok'); Tuner.open(); }
+    }, { passive: true });
+    ['pointerup', 'pointercancel'].forEach(t => m.addEventListener(t, () => { live = false; }, { passive: true }));
+    // The click that follows the swipe is not a second intent — without this it
+    // would also open the transport island / metronome panel over the tuner.
+    m.addEventListener('click', e => {
+      if (fired) { fired = false; e.stopPropagation(); e.preventDefault(); }
+    }, true);
+  });
+}
 
 // The section-dots rail (V5.x–V6.31) died with the single long page: it jumped
 // between Wheel · Chords · Builder when they shared one scroll. Those are three

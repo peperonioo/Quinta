@@ -552,3 +552,43 @@ body[data-mode="explore"] .rhythm-track { display:none }
   /* The top segmented control is redundant once the bar exists. */
   .tabs { display:none }
 }
+
+
+/* ── GUITAR TUNER (V6.33) ─────────────────────────────
+   One note, one needle, six strings. Green means done. */
+.tuner-panel {
+  position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:70;
+  width:min(340px, calc(100vw - 36px)); padding:26px 22px 20px;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  border-radius:22px; border:1px solid var(--ui-border-strong);
+  background:var(--ui-surface-strong);
+  backdrop-filter:blur(30px) saturate(180%);
+  box-shadow:0 24px 70px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1);
+}
+.tuner-panel[hidden] { display:none }
+.tn-x { position:absolute; top:10px; right:10px; width:34px; height:34px; border-radius:50%;
+  border:1px solid var(--line); background:transparent; color:var(--muted); cursor:pointer;
+  display:grid; place-items:center }
+.tn-note { font-family:var(--wheel-font); font-size:64px; line-height:1; color:var(--ink);
+  transition:color .2s var(--ease) }
+.tuner-panel.in-tune .tn-note { color:#4ade80 }
+.tn-meter { position:relative; width:100%; height:46px }
+.tn-scale { position:absolute; inset:0; display:flex; justify-content:space-between; align-items:center; padding:0 6px }
+.tn-scale i { width:1px; height:12px; background:var(--line) }
+.tn-scale i:nth-child(5) { height:22px }
+.tn-center { position:absolute; left:50%; top:50%; width:2px; height:26px;
+  transform:translate(-50%,-50%); background:var(--muted); opacity:.6 }
+.tn-needle { position:absolute; left:50%; top:50%; width:3px; height:34px; border-radius:2px;
+  background:var(--accent); box-shadow:0 0 10px rgba(232,68,26,.5);
+  transform:translate(calc(-50% + (var(--c, 0) / 50) * 150px), -50%);
+  transition:transform .12s var(--ease), background .2s }
+.tuner-panel.in-tune .tn-needle { background:#4ade80; box-shadow:0 0 12px rgba(74,222,128,.55) }
+.tn-cents { font-family:'DM Mono',monospace; font-size:14px; color:var(--muted); min-height:18px }
+.tuner-panel.in-tune .tn-cents { color:#4ade80 }
+.tn-hint { font-size:12px; color:var(--muted); min-height:16px; text-align:center }
+.tn-strings { display:flex; gap:7px; margin-top:4px }
+.tn-str { width:38px; height:38px; border-radius:50%; border:1px solid var(--line);
+  background:var(--sel-bg); color:var(--muted); font-family:var(--wheel-font); font-size:15px;
+  cursor:default; transition:all .18s var(--ease) }
+.tn-str.on { border-color:var(--accent); color:var(--accent2); background:var(--degree-tonic);
+  box-shadow:0 0 12px rgba(232,68,26,.3) }

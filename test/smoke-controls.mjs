@@ -398,6 +398,28 @@ try {
     for (const k of ['shapesDeployed', 'noShapeToggles', 'summaryInert']) {
       if (!gs[k]) { console.error(`FAIL  mobile instrument: ${k}`); failed++; }
     }
+    // Tuner (V6.33): slide the transport capsule right → the tuner opens; the
+    // click that trails the swipe must NOT also open the island under it.
+    {
+      await mp.evaluate(() => { Inspector.clear(); scrollTo(0, 0); switchTab('build'); });
+      await mp.waitForTimeout(500);
+      const c = await mp.evaluate(() => { const q = document.querySelector('.ts-cap').getBoundingClientRect();
+        return { x: q.left + 20, y: q.top + q.height / 2 }; });
+      await mp.mouse.move(c.x, c.y); await mp.mouse.down();
+      await mp.mouse.move(c.x + 70, c.y + 2, { steps: 6 }); await mp.mouse.up();
+      await mp.waitForTimeout(600);
+      const tn = await mp.evaluate(() => ({
+        open: Tuner.isOpen(), noIsland: !document.body.classList.contains('ts-open') }));
+      await mp.evaluate(() => Tuner.close());
+      await mp.waitForTimeout(200);
+      if (!tn.open)     { console.error('FAIL  mobile tuner: swipe did not open it'); failed++; }
+      if (!tn.noIsland) { console.error('FAIL  mobile tuner: the trailing click opened the island'); failed++; }
+      const closed = await mp.evaluate(() => !Tuner.isOpen());
+      if (!closed) { console.error('FAIL  mobile tuner: does not close'); failed++; }
+      await mp.evaluate(() => { switchTab('instrument'); gotoInstrument('guitar'); });
+      await mp.waitForTimeout(700);
+    }
+
     // Identify mode (V6.33): toggle on → tap C-E-G → the bar names C; toggle
     // off → shapes come back. The backlog feature, end to end.
     const id = await mp.evaluate(async () => {

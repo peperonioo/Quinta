@@ -126,6 +126,24 @@
           && r([0, 1]).length === 0 && r([0, 1, 2]).length === 0;
     }, false));
 
+    // ── Tuner detector (V6.33) — precision is an assertion, not a promise ──
+    assert('Tuner: pure sines within ±1 cent', safe(() => {
+      const sr = 48000, N = 2048;
+      const sine = f => Float32Array.from({ length: N }, (_, i) => Math.sin(2 * Math.PI * f * i / sr));
+      const cents = (a, b) => Math.abs(1200 * Math.log2(a / b));
+      return [82.4069, 110, 146.8324, 196, 246.94, 329.63].every(f =>
+        cents(Tuner._detect(sine(f), sr), f) < 1);
+    }, false));
+    assert('Tuner: survives noise, gates silence', safe(() => {
+      const sr = 48000, N = 2048;
+      let seed = 1; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5;
+      const noisy = Float32Array.from({ length: N }, (_, i) =>
+        Math.sin(2 * Math.PI * 110 * i / sr) + rnd() * 0.3);
+      const silence = new Float32Array(N);
+      const f = Tuner._detect(noisy, sr);
+      return Math.abs(1200 * Math.log2(f / 110)) < 5 && Tuner._detect(silence, sr) === -1;
+    }, false));
+
     withState({ key:'C', mode:'ionian', tonality:'major' }, () => {
       assert('C major scale',           safe(() => gs().join(' ') === 'C D E F G A B', false), safe(() => gs(), []));
       assert('C major chord count = 7', safe(() => gc().length === 7, false));

@@ -179,6 +179,9 @@ ActionRegistry.addAll({
   'ident.toggle':     ()  => ChordIdent.toggle(),
   'ident.clear':      ()  => ChordIdent.clear(),
 
+  // ── Tuner (V6.33) ──
+  'tuner.close':      ()  => Tuner.close(),
+
   // ── Misc ──
   'strip.pick':       el => pickProgChord(_aInt(el, 'idx')),
   'install.accept':   ()  => _acceptInstall(),
