@@ -233,6 +233,58 @@ const InstrumentZoom = {
   },
 };
 
+// ── Identify mode (V6.33) — "¿qué acorde es este?" ───
+// The board flips from telling you where notes are to LISTENING to where your
+// fingers are: overlays clear, every position becomes tappable, and the chord
+// the selection spells is named live (with slash basses, ranked candidates).
+const ChordIdent = {
+  on: false,
+  sel: new Map(),                       // "ti:fret" → absolute pitch
+  toggle() {
+    this.on = !this.on;
+    if (!this.on) this.sel.clear();
+    document.body.classList.toggle('ident-on', this.on);
+    tel('ident_toggle', { on: this.on });
+    // Shapes and identify fight for the same board.
+    if (this.on && typeof GuitarShapes === 'object') GuitarShapes.close();
+    else if (!this.on && document.body.dataset.mode === 'instrument'
+             && (st.instr || 'piano') === 'guitar' && typeof GuitarShapes === 'object') GuitarShapes.show();
+    renderGuitar();
+  },
+  clear() { this.sel.clear(); renderGuitar(); },
+  tap(key, pitch) {
+    if (this.sel.has(key)) this.sel.delete(key);
+    else { this.sel.set(key, pitch); _hearGuitar(pitch); }
+    haptic('sel');
+    this._readout();
+  },
+  names() { return ChordNamer.name([...this.sel.values()]); },
+  _readout() {
+    const el = document.getElementById('identBar'); if (!el) return;
+    el.innerHTML = this._readoutHTML();
+    // re-mark the dots without a full rebuild (rebuild would drop touch focus)
+    document.querySelectorAll('.fret-note.ident').forEach(d =>
+      d.classList.toggle('sel', this.sel.has(d.dataset.ik)));
+  },
+  _readoutHTML() {
+    const es = st.lang === 'es';
+    const n = this.sel.size;
+    if (!n) return `<span class="ib-hint">${es ? 'Toca las notas de tu acorde en el mástil' : 'Tap the notes of your chord on the neck'}</span>`;
+    const names = this.names();
+    const notes = [...this.sel.values()].sort((a, b) => a - b)
+      // Raw sharp names on purpose: dn() respells to the ACTIVE KEY's signature,
+      // and identify mode is key-agnostic — Ab next to an E chord reads wrong.
+      .map(p => ChordNamer.NAMES[((p % 12) + 12) % 12]).filter((v, i, a) => a.indexOf(v) === i).join(' · ');
+    if (!names.length) return `<span class="ib-notes">${notes}</span>
+      <span class="ib-hint">${es ? 'aún sin nombre — sigue añadiendo' : 'no name yet — keep adding'}</span>`;
+    const [best, ...alts] = names;
+    return `<span class="ib-notes">${notes}</span>
+      <b class="ib-best">${best.name}</b>
+      ${alts.slice(0, 2).map(a => `<span class="ib-alt">${a.name}</span>`).join('')}
+      <button class="ib-clear" data-act="ident.clear">${es ? 'limpiar' : 'clear'}</button>`;
+  },
+};
+
 function renderGuitar() {
   const root = document.getElementById('guitar'); if (!root) return;
   root.innerHTML = '';
@@ -268,6 +320,19 @@ function renderGuitar() {
   root.appendChild(nR);
 
   const inChord = pc => chord && chord.has(((pc % 12) + 12) % 12);
+  const ident = typeof ChordIdent === 'object' && ChordIdent.on
+             && document.body.dataset.mode === 'instrument';
+
+  // Identify mode: readout bar above the neck.
+  if (ident) {
+    const bar = document.createElement('div');
+    bar.id = 'identBar'; bar.className = 'ident-bar';
+    bar.innerHTML = ChordIdent._readoutHTML();
+    root.parentElement?.parentElement?.querySelector('.ident-bar')?.remove();
+    root.parentElement?.parentElement?.insertBefore(bar, root.parentElement);
+  } else {
+    document.querySelector('.ident-bar')?.remove();
+  }
   // _activeShape = [e6, a5, d4, g3, b2, e1]; tuning[0]=high-e → shape[5], tuning[5]=low-E → shape[0]
   tuning.forEach(([name, start, base], ti) => {
     const shapeFret = _activeShape ? _activeShape[5 - ti] : null; // fret for this string in active shape
@@ -280,7 +345,16 @@ function renderGuitar() {
     nc.style.cssText = 'width:40px;display:flex;align-items:center;justify-content:center;height:32px;border-right:2px solid rgba(255,255,255,.2);position:relative;z-index:1';
     const on = na(start), isOn = sc.has(on), isRoot = on === rootNote, isCh = inChord(start);
     const od = document.createElement('div');
-    if (_activeShape) {
+    if (ident) {
+      const key = `${ti}:0`;
+      od.className = 'fret-note ident' + (ChordIdent.sel.has(key) ? ' sel' : '');
+      od.dataset.ik = key;
+      od.textContent = dn(on);
+      od.onclick = () => ChordIdent.tap(key, base);
+      nc.appendChild(od);
+      row.appendChild(nc);
+      // strings render below; skip the normal nut branches
+    } else if (_activeShape) {
       // Shape mode: nut column shows muted (×) or open-string indicator
       if (shapeFret === -1) {
         od.className = 'fret-note'; od.textContent = '×';
@@ -297,13 +371,26 @@ function renderGuitar() {
       od.textContent = isOn ? dn(on) : name;
       if (!isOn && !isCh) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
     }
-    od.onclick = () => _hearGuitar(base);
-    nc.appendChild(od);
-    row.appendChild(nc);
+    if (!ident) {
+      od.onclick = () => _hearGuitar(base);
+      nc.appendChild(od);
+      row.appendChild(nc);
+    }
     for (let f = 1; f <= FRETS; f++) {
       const n = na(start + f); const isO = sc.has(n); const isR = n === rootNote; const isC = inChord(start + f);
       const cell = document.createElement('div');
       cell.className = 'fret-cell';
+      if (ident) {
+        const key = `${ti}:${f}`, pitch = base + f;
+        const dot = document.createElement('div');
+        dot.className = 'fret-note ident' + (ChordIdent.sel.has(key) ? ' sel' : '');
+        dot.dataset.ik = key;
+        dot.textContent = dn(n);
+        dot.onclick = () => ChordIdent.tap(key, pitch);
+        cell.appendChild(dot);
+        row.appendChild(cell);
+        continue;
+      }
       if (_activeShape) {
         // Shape mode: only show the specific fret dot for this string
         if (shapeFret === f) {

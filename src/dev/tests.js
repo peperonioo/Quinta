@@ -53,7 +53,8 @@
       if (state.selectedDegree != null && state.selectedDegree !== -1 &&
           (state.selectedDegree < 0 || state.selectedDegree > 6)) issues.push('selectedDegree out of range');
       if (state.progressionLength > 64) issues.push('Progression is unusually long');
-      return { ok: issues.length === 0, issues, state };
+    
+  return { ok: issues.length === 0, issues, state };
     },
   };
 
@@ -107,6 +108,23 @@
     assert('Circle of fifths has 12 roots', safe(() => FIFTHS.length === 12, false));
     assert('Relative minor C → Am',         safe(() => relativeMinor('C') === 'Am', false));
     assert('Relative major A minor → C',    safe(() => relativeMajorFromMinor('Am') === 'C', false));
+
+    // ── Chord namer (V6.33) ──
+    assert('Namer: triads & sevenths', safe(() => {
+      const n = ps => (ChordNamer.name(ps)[0] || {}).name;
+      return n([0, 4, 7]) === 'C' && n([9, 12, 16]) === 'Am'
+          && n([0, 4, 7, 11]) === 'Cmaj7' && n([7, 11, 14, 17]) === 'G7'
+          && n([0, 3, 6]) === 'Cdim' && n([0, 4, 8]) === 'Caug' && n([0, 5, 7]) === 'Csus4';
+    }, false));
+    assert('Namer: bass decides (C/E · Am7 vs C6)', safe(() => {
+      const n = ps => (ChordNamer.name(ps)[0] || {}).name;
+      return n([4, 12, 19]) === 'C/E' && n([9, 12, 16, 19]) === 'Am7' && n([0, 4, 7, 9]) === 'C6';
+    }, false));
+    assert('Namer: honest edges', safe(() => {
+      const r = ps => ChordNamer.name(ps);
+      return r([0])[0].quality === 'note' && r([0, 7])[0].name === 'C5'
+          && r([0, 1]).length === 0 && r([0, 1, 2]).length === 0;
+    }, false));
 
     withState({ key:'C', mode:'ionian', tonality:'major' }, () => {
       assert('C major scale',           safe(() => gs().join(' ') === 'C D E F G A B', false), safe(() => gs(), []));

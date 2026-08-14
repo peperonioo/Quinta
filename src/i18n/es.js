@@ -120,4 +120,5 @@ const I18N_ES = {
   'builder.removeChord': 'Quitar acorde',
   'doc.save': 'Guardar',
   'doc.new': 'Nuevo',
+  'ident.btn': '¿Acorde?',
 };

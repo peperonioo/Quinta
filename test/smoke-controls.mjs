@@ -398,6 +398,23 @@ try {
     for (const k of ['shapesDeployed', 'noShapeToggles', 'summaryInert']) {
       if (!gs[k]) { console.error(`FAIL  mobile instrument: ${k}`); failed++; }
     }
+    // Identify mode (V6.33): toggle on → tap C-E-G → the bar names C; toggle
+    // off → shapes come back. The backlog feature, end to end.
+    const id = await mp.evaluate(async () => {
+      const wait = ms => new Promise(r => setTimeout(r, ms));
+      document.querySelector('.ident-toggle').click(); await wait(500);
+      const tap = (ti, f) => document.querySelector(`.fret-note.ident[data-ik="${ti}:${f}"]`)?.click();
+      tap(4, 3); tap(3, 2); tap(2, 0);   // C · E · G
+      await wait(300);
+      const named = document.querySelector('.ib-best')?.textContent;
+      document.querySelector('.ident-toggle').click(); await wait(600);
+      return { named, shapesBack: document.getElementById('guitarShapeStrip').classList.contains('gss-on'),
+               barGone: !document.getElementById('identBar') };
+    });
+    if (id.named !== 'C') { console.error(`FAIL  mobile ident: C-E-G named '${id.named}'`); failed++; }
+    if (!id.shapesBack)   { console.error('FAIL  mobile ident: shapes do not return'); failed++; }
+    if (!id.barGone)      { console.error('FAIL  mobile ident: readout left behind'); failed++; }
+
     await mp.evaluate(() => gotoInstrument('piano'));
     await mp.waitForTimeout(400);
 

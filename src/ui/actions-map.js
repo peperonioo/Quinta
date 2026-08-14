@@ -175,6 +175,10 @@ ActionRegistry.addAll({
   'styles.genre':     el => StylesTab.pick(_aStr(el, 'id')),
   'styles.bpm':       ()  => StylesTab.useBpm(),
 
+  // ── Chord identify (V6.33) ──
+  'ident.toggle':     ()  => ChordIdent.toggle(),
+  'ident.clear':      ()  => ChordIdent.clear(),
+
   // ── Misc ──
   'strip.pick':       el => pickProgChord(_aInt(el, 'idx')),
   'install.accept':   ()  => _acceptInstall(),

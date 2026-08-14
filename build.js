@@ -75,6 +75,7 @@ const JS_FILES = [
   // Harmony logic — pure, uses state/utils at runtime
   'src/theory/harmony-engine.js',
   'src/theory/suggestion-engine.js',
+  'src/theory/chord-namer.js',
   // New: wheel direction guide
   'src/theory/wheel-direction-engine.js',
   // Interaction controller (used by mobile-optimizer and wheel-interaction)

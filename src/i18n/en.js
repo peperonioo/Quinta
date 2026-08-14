@@ -120,4 +120,5 @@ const I18N_EN = {
   'builder.removeChord': 'Remove chord',
   'doc.save': 'Save',
   'doc.new': 'New',
+  'ident.btn': 'Chord?',
 };
