@@ -89,11 +89,6 @@ OverlayManager.register('comeback', {
   close:    () => { if (typeof Comeback === 'object') Comeback.close(); },
   contains: (t) => !!t.closest('#comeback'),
 });
-OverlayManager.register('instr-zoom', {
-  isOpen:   () => !!(typeof InstrumentZoom === 'object' && InstrumentZoom.open),
-  close:    () => { if (typeof InstrumentZoom === 'object' && InstrumentZoom.open) InstrumentZoom.close(); },
-  contains: (t) => !!(t.closest('#instrZoomPanel') || t.closest('[data-zoom-trigger]')),
-});
 OverlayManager.register('guitar-shapes', {
   persistent: true,   // inline strip — don't auto-close it when a chord chooser opens
   isOpen:   () => !!document.getElementById('guitarShapeStrip')?.classList.contains('gss-on'),

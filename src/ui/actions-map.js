@@ -99,16 +99,6 @@ ActionRegistry.addAll({
   'instr.go':         el => gotoInstrument(_aStr(el, 'id')),
   'voice.set':        el => setVoice(_aStr(el, 'id'), el),
   'shapes.toggle':    ()  => GuitarShapes.toggle(),
-  'zoom.show':        el => InstrumentZoom.show(_aStr(el, 'id')),
-  'zoom.close':       ()  => InstrumentZoom.close(),
-  // Was a DOM query written inline in the markup; it belongs here.
-  'zoom.active':      ()  => {
-    const tab = document.querySelector('.instr-tab.on');
-    InstrumentZoom.show((tab && tab.dataset.instr) || 'piano');
-  },
-  // Backdrop: only a click on the backdrop itself closes, never one that
-  // bubbled up from the panel inside it.
-  'zoom.backdrop':    (el, e) => { if (e && e.target === el) InstrumentZoom.close(); },
 
   // ── Library ──
   'lib.toggle':       ()  => Library.toggle(),

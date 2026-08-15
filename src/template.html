@@ -384,15 +384,12 @@
               title="What chord is this?"><span data-ico="help" data-ico-size="15"></span><span class="it-lbl" data-i18n="ident.btn">Chord?</span></button>
             <button class="tuner-toggle" data-act="tuner.open" title="Tuner"
               aria-label="Guitar tuner"><span data-ico="fork" data-ico-size="15"></span><span class="it-lbl" data-i18n="tuner.btn">Tuner</span></button>
-            <button class="instr-zoom-toggle" data-act="zoom.active" aria-label="Fullscreen"><span data-ico="expand" data-ico-size="17"></span></button>
           </div>
         </div>
         <div class="instr-pager">
         <details class="drawer" open>
           <summary>
             <span data-i18n="drawers.piano">Piano</span>
-            <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge piano"
-              data-act="zoom.show" data-id="piano" data-stop="1" data-ico="expand" data-ico-size="14"></button>
             <span class="chev" data-ico="chevron" data-ico-size="12" aria-hidden="true"></span>
           </summary>
           <div class="drawer-body">
@@ -410,8 +407,6 @@
           <summary>
             <span data-i18n="drawers.guitar">Guitar / Fretboard</span>
             <button class="gss-btn" data-ico="shapes" data-act="shapes.toggle" data-stop="1" title="Show chord shapes" aria-label="Show chord voicing diagrams"><span>Shapes</span></button>
-            <button class="instr-expand" data-zoom-trigger title="Enlarge" aria-label="Enlarge fretboard"
-              data-act="zoom.show" data-id="guitar" data-stop="1" data-ico="expand" data-ico-size="14"></button>
             <span class="chev" data-ico="chevron" data-ico-size="12" aria-hidden="true"></span>
           </summary>
           <div class="drawer-body">
@@ -493,18 +488,7 @@
 </div>
 
 <!-- INSTRUMENT FULLSCREEN / ENLARGE -->
-<div id="instrZoom" class="instr-zoom" data-act="zoom.backdrop">
-  <!-- Close lives OUTSIDE the (rotated) panel so it stays at a fixed screen corner -->
-  <button class="iz-close" data-act="zoom.close" aria-label="Close"><span data-ico="close" data-ico-size="22"></span></button>
-  <span class="iz-swipe-hint" data-i18n="zoom.close">swipe down to close</span>
-  <div class="iz-panel" id="instrZoomPanel" role="dialog" aria-modal="true" aria-label="Instrument">
-    <div class="iz-head">
-      <span id="instrZoomTitle" class="iz-title">Piano</span>
-    </div>
-    <div id="instrZoomStrip" class="ts-prog-strip iz-strip"></div>
-    <div id="instrZoomBody" class="iz-body"></div>
-  </div>
-</div>
+<!-- InstrumentZoom retired in V6.34: Instrument mode IS the full-size board. -->
 
 
 <!-- PROGRESSION LIBRARY -->
@@ -605,7 +589,6 @@
     <div class="ts-body">
       <div class="ts-section-label" data-i18n="strip.chords">Chords</div>
       <div id="tsProgStrip" class="ts-prog-strip" aria-label="Tap a chord to show it on the instrument"></div>
-      <div id="tsInstruments"></div>
       <div class="ts-section-label" data-i18n="strip.harmony">Harmony</div>
       <div class="ts-tools">
         <button class="ts-tool ghost" data-act="emotion.toggle" data-i18n="emotion.btn">Emotion</button>

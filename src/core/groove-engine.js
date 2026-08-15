@@ -1,0 +1,110 @@
+// ── GROOVE ENGINE ─────────────────────────────────────
+// Drums + voice-led chords + sub-bass on one lookahead scheduler, synced to
+// st.bpm. Lived inside tabs.js since the Production-tab era; the tab died in
+// B3 (the rhythm is a track of the document) and the file finally says what it
+// is. Consumers: the rhythm track (Build) and toggleProgPlay's routing.
+function setGenre(id) {
+  if (!GENRES[id]) return;
+  curGenre = id;
+  if (typeof DrumKits === 'object' && typeof AudioEngine === 'object' && AudioEngine.ctx) DrumKits.ensure(id);
+  stopPlay();
+  st.genre = id;
+  saveState();
+  if (typeof Rhythm === 'object') Rhythm.render();
+  applyI18n();
+}
+
+// Resolve a Production string for the current language. Strings may be plain
+// (English-only, e.g. drum-row labels) or {en, es} — falls back to en.
+function PL(v) { return (v && typeof v === 'object' && !Array.isArray(v)) ? (v[st.lang] ?? v.en) : v; }
+
+// ── Editable rhythm grid (V5.68) ──────────────────────
+// The genre patterns are read-only constants; a user's edits live in
+// st.userPatterns[genre] as an overlay (a copy of each lane's 16 steps), so they
+// persist and never mutate the shared defaults. Playback + render use this overlay.
+function _genrePattern(key) {
+  const g = GENRES[key]; if (!g) return [];
+  const ov = st.userPatterns && st.userPatterns[key];
+  return g.pattern.map((row, ri) => (ov && ov[ri]) ? { ...row, p: ov[ri] } : row);
+}
+function toggleStep(ri, i) {
+  const key = curGenre, g = GENRES[key]; if (!g || !g.pattern[ri]) return;
+  if (!st.userPatterns) st.userPatterns = {};
+  if (!st.userPatterns[key]) st.userPatterns[key] = g.pattern.map(r => r.p.slice());  // fork the default on first edit
+  const p = st.userPatterns[key][ri];
+  p[i] = p[i] ? 0 : 1;
+  saveState();
+  haptic('sel');
+  const cell = document.getElementById(`s-${ri}-${i}`);
+  if (cell) cell.className = `step${p[i] ? ' on ' + g.pattern[ri].cl : ''} ${i % 4 === 0 ? 'beat-1' : ''}`;
+  if (p[i] && typeof AudioEngine === 'object') AudioEngine.drumHit(g.pattern[ri].snd, 0, false);   // audition the hit
+}
+// ── Connected groove player (V4.9) ────────────────────
+// Plays the genre's drum pattern + the user's PROGRESSION (voiced & voice-led)
+// + an 808 sub-bass, all on a lookahead scheduler synced to st.bpm (shared with
+// the metronome). With no progression it just plays the beat.
+let _prodNext = 0, _prodStep = 0, _prodBar = 0, _prodPrevUpper = null, _prodVoicing = null;
+
+function startPlay() {
+  if (typeof AudioEngine !== 'object' || !AudioEngine.resume()) return;
+  // Only one chord source plays at a time. The production groove already voices
+  // the progression, so cancel the dry Theory playback first — otherwise the two
+  // run together and the chords double up. (Theory's play does the reverse.)
+  if (typeof _progRAF !== 'undefined' && _progRAF) stopProgression();
+  haptic('ok');
+  tel('play_groove', { genre: curGenre, bars: (st.history || []).length });
+  playing = true; _prodStep = 0; _prodBar = 0; _prodPrevUpper = null; _prodVoicing = null;
+  _prodNext = AudioEngine.now() + 0.08;
+  pInterval = setInterval(_prodSchedule, 25);
+}
+
+function stopPlay() {
+  playing = false;
+  clearInterval(pInterval); pInterval = null;
+  if (typeof AudioEngine === 'object') AudioEngine.killVoices();   // cut sustained chords/sub
+  document.querySelectorAll('.rt-c.playing').forEach(el => el.classList.remove('playing'));
+}
+
+function _prodSchedule() {
+  const ctx = AudioEngine.ctx; if (!ctx) return;
+  const g = GENRES[curGenre]; if (!g) return;
+  const sec16 = 60 / (st.bpm || 120) / 4;        // one 16th note at the shared BPM
+  while (_prodNext < ctx.currentTime + 0.12) {
+    _prodPlayStep(g, _prodStep, _prodBar, _prodNext, sec16);
+    _prodFlash(_prodStep, _prodNext - ctx.currentTime);
+    _prodStep++;
+    if (_prodStep >= 16) { _prodStep = 0; _prodBar++; }
+    _prodNext += sec16;
+  }
+}
+
+function _prodPlayStep(g, step, bar, when, sec16) {
+  const accent = step % 4 === 0;
+  _genrePattern(curGenre).forEach(row => { if (row.p[step] && row.snd) AudioEngine.drumHit(row.snd, when, accent); });
+
+  const h = Array.isArray(st.history) ? st.history : [];
+  const item = h.length ? h[bar % h.length] : null;
+  if (!item) return;
+
+  // Re-voice the chord once per bar (voice-led from the previous bar).
+  if (step === 0) {
+    const v = AudioEngine._leadVoicing(_prodPrevUpper, chordPitchesForItem(item));
+    _prodVoicing = v.all; _prodPrevUpper = v.upper;
+    if (g.chordStyle === 'pad') AudioEngine.playChord(_prodVoicing, (60 / (st.bpm || 120)) * 3.6, when, false);
+  }
+  if (g.chordStyle === 'stab' && g.chordLane && g.chordLane[step] && _prodVoicing) {
+    AudioEngine.playChord(_prodVoicing, 0.22, when, false);
+  }
+  if (g.bassLane && g.bassLane[step]) {
+    AudioEngine.subBass(chordPitchesForItem(item)[0], when, sec16 * 1.9);
+  }
+}
+
+function _prodFlash(step, delay) {
+  setTimeout(() => {
+    if (!playing) return;
+    const g = GENRES[curGenre]; if (!g) return;
+    document.querySelectorAll('.rt-c.playing').forEach(el => el.classList.remove('playing'));
+    _genrePattern(curGenre).forEach((r, ri) => { if (r.p[step]) document.getElementById(`s-${ri}-${step}`)?.classList.add('playing'); });
+  }, Math.max(0, delay * 1000));
+}

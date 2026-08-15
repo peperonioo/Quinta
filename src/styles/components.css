@@ -252,8 +252,7 @@ body.light .comeback { background:rgba(40,34,28,.34) }
   background:rgba(10,10,14,.88); backdrop-filter:blur(8px);
 }
 body.light .inspector { background:rgba(250,247,241,.92) }
-body[data-mode="explore"] .inspector,
-body[data-mode="produce"] .inspector { display:none }
+body[data-mode="explore"] .inspector { display:none }
 
 .insp-head { position:relative; margin-bottom:12px }
 .insp-back {

@@ -8,34 +8,11 @@ const TransportSheet = (() => {
   const mobile = () => matchMedia('(max-width:860px)').matches;
   const pager = () => document.querySelector('.instr-pager');
 
-  // Move the instrument drawers into the island on phones; restore on desktop
-  // (the renderers target #piano / #guitar by id, so relocation is safe).
-  function placeInstruments() {
-    const drawers = document.querySelector('.drawers'); if (!drawers) return;
-    const host = document.getElementById('tsInstruments');
-    // In Instrument mode the dock is the page, at every width — the island would
-    // bury the very thing you switched to.
-    const asPage = document.body.dataset.mode === 'instrument';
-    if (asPage && drawers._home && drawers.parentElement === host) {
-      drawers._home.insertBefore(drawers, drawers._homeNext);
-      return;
-    }
-    if (asPage) return;
-    if (mobile() && host && drawers.parentElement !== host) {
-      if (!drawers._home) { drawers._home = drawers.parentElement; drawers._homeNext = drawers.nextSibling; }
-      drawers.querySelectorAll('.drawer').forEach(d => d.open = true);   // both boards visible in the pager
-      host.appendChild(drawers);
-      wirePager();
-    } else if (!mobile() && drawers._home && drawers.parentElement === host) {
-      drawers._home.insertBefore(drawers, drawers._homeNext);
-    }
-  }
-
-  // Keep the piano/guitar tabs in sync if the pager is swiped.
-  function wirePager() {
-    _wireInstrPager();
-  }
-
+  // V6.34 — the island stopped hosting the instruments. Since Instrument
+  // became a mode, the pager here was the same boards in a third home with its
+  // own DOM-relocation choreography — the source of two shipped bugs (the dock
+  // buried under the island; zoom force-opening it). The island is TRANSPORT:
+  // play, key, BPM, tools. The boards live in their tab.
   function apply(s) {
     const e = el(); if (!e) return;
     state = s; e.dataset.state = s;
@@ -60,10 +37,8 @@ const TransportSheet = (() => {
   function init() {
     if (!el()) return;
     apply('peek');
-    placeInstruments();
     sync();
-    window.addEventListener('resize', placeInstruments);
   }
 
-  return { init, open, collapse, toggle, sync, isOpen, placeInstruments, get state() { return state; } };
+  return { init, open, collapse, toggle, sync, isOpen, get state() { return state; } };
 })();

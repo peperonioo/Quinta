@@ -186,63 +186,7 @@ function renderPiano() {
   });
 }
 
-// ── Fullscreen / enlarge a board ──────────────────────
-// Moves the live #piano / fretboard into a glass overlay (fullscreen on phones,
-// large on desktop) so it's playable at a comfortable size. Registered with
-// OverlayManager (Escape + backdrop click).
-const InstrumentZoom = {
-  open: false, which: null, _el: null, _parent: null,
-  show(which) {
-    const ov = document.getElementById('instrZoom'); if (!ov) return;
-    const el = which === 'piano' ? document.getElementById('piano')
-                                 : document.getElementById('guitar')?.closest('.fretboard-wrap');
-    if (!el) return;
-    this.which = which; this._el = el; this._parent = el.parentElement;
-    const title = document.getElementById('instrZoomTitle');
-    if (title) title.textContent = which === 'piano' ? t('drawers.piano') : t('drawers.guitar');
-    const body = document.getElementById('instrZoomBody'); body.innerHTML = ''; body.appendChild(el);
-    el.classList.add('zoom');
-    // Keep the chord strip in view while zoomed, so you don't lose the progression.
-    const zs = document.getElementById('instrZoomStrip');
-    if (zs) zs.innerHTML = (document.getElementById('tsProgStrip') || document.getElementById('instrStrip'))?.innerHTML || '';
-    ov.classList.add('open'); this.open = true;
-    this._wireSwipe();
-    (which === 'piano' ? renderPiano : renderGuitar)();
-    if (typeof OverlayManager === 'object') OverlayManager.opened('instr-zoom');
-  },
-  // A clear downward swipe anywhere on the overlay dismisses it. We only detect
-  // the gesture (no live translate) so it works regardless of the panel rotation,
-  // and a tap (to play) or a horizontal fret pan never closes it.
-  _wireSwipe() {
-    const ov = document.getElementById('instrZoom'); if (!ov || ov._swipe) return;
-    ov._swipe = true;
-    let sx = 0, sy = 0, tracking = false;
-    ov.addEventListener('pointerdown', ev => { tracking = true; sx = ev.clientX; sy = ev.clientY; }, { passive: true });
-    ov.addEventListener('pointerup', ev => {
-      if (!tracking) return; tracking = false;
-      const dy = ev.clientY - sy, dx = ev.clientX - sx;
-      if (dy > 90 && Math.abs(dy) > Math.abs(dx) * 1.4) this.close();   // deliberate swipe down
-    }, { passive: true });
-  },
-  close() {
-    if (!this.open) return;
-    if (this._el && this._parent) { this._el.classList.remove('zoom'); this._parent.appendChild(this._el); }
-    document.getElementById('instrZoom')?.classList.remove('open');
-    const which = this.which;
-    this.open = false; this._el = null; this._parent = null; this.which = null;
-    (which === 'piano' ? renderPiano : renderGuitar)();
-    // Return to the previous screen (the instrument in the transport island),
-    // not the main wheel — re-open the island on phones and scroll it into view.
-    if (typeof TransportSheet === 'object' && matchMedia('(max-width:860px)').matches
-        && document.body.dataset.mode !== 'instrument') {
-      if (!TransportSheet.isOpen()) TransportSheet.open();
-      requestAnimationFrame(() => {
-        document.getElementById('transportSheet')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        gotoInstrument(which || 'piano');
-      });
-    }
-  },
-};
+// InstrumentZoom retired in V6.34 — Instrument mode is the full-size board.
 
 // ── Identify mode (V6.33) — "¿qué acorde es este?" ───
 // The board flips from telling you where notes are to LISTENING to where your
