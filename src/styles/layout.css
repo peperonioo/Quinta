@@ -389,13 +389,22 @@ body[data-mode="styles"] .suggestions-section { display:none !important }
 
 /* Identify mode (V6.33). The toggle only exists where the board is the page
    and the instrument is the guitar; the ident dots are faint until selected. */
-.ident-toggle { display:none }
+.ident-toggle, .tuner-toggle { display:none }
+body[data-mode="instrument"].instr-on-guitar .tuner-toggle,
 body[data-mode="instrument"].instr-on-guitar .ident-toggle {
   display:inline-flex; align-items:center; gap:6px; min-height:36px; padding:0 12px;
   border:1px solid var(--glass-border); border-radius:10px; background:var(--glass-1);
   color:var(--muted); cursor:pointer; font-size:11px; font-weight:600;
 }
 body.ident-on .ident-toggle { background:var(--degree-tonic); border-color:rgba(232,68,26,.5); color:var(--accent2) }
+/* The swipe on the BPM capsule still works; these make the tuner FINDABLE —
+   a gesture with no visual signal is only found by people who already know. */
+.metro-tuner {
+  width:30px; height:30px; border-radius:50%; border:1px solid var(--glass-border);
+  background:var(--glass-1); color:var(--muted); cursor:pointer;
+  display:grid; place-items:center; margin-right:6px;
+}
+.metro-tuner:hover { color:var(--ink) }
 .ident-bar {
   display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   margin:0 0 10px; padding:9px 13px; min-height:44px;
@@ -409,12 +418,13 @@ body.ident-on .ident-toggle { background:var(--degree-tonic); border-color:rgba(
   margin-left:auto; border:1px solid var(--line); border-radius:8px; background:transparent;
   color:var(--muted); font-size:10px; padding:4px 9px; cursor:pointer;
 }
+/* No light-theme variant on purpose: the neck is dark wood in both themes,
+   and dark dots on dark wood was an invisible board (found in the V6.33 sweep). */
 .fret-note.ident { background:rgba(255,255,255,.05); color:rgba(255,255,255,.28); cursor:pointer }
 .fret-note.ident.sel {
   background:linear-gradient(180deg,#ffb38a,var(--accent)); color:#fff;
   box-shadow:0 0 0 2px rgba(232,68,26,.4), 0 0 10px rgba(232,68,26,.45);
 }
-body.light .fret-note.ident { background:rgba(0,0,0,.06); color:rgba(0,0,0,.3) }
 
 /* The mode's own header. */
 .instr-bar { display:none }

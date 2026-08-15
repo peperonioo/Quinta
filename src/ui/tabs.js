@@ -55,6 +55,9 @@ function switchTab(tab, btn) {
 
   if (typeof Doc === 'object') Doc.render();
   if (typeof Rhythm === 'object') Rhythm.render();
+  // First visit to Build used to show a 26px empty <aside>: the inspector only
+  // rendered on selection changes, never on plain arrival.
+  if (mode === 'build' && typeof Inspector === 'object') Inspector.render();
   const shown = document.getElementById('panel-theory');
   if (shown) { shown.classList.remove('tab-enter'); void shown.offsetWidth; shown.classList.add('tab-enter'); }
 }

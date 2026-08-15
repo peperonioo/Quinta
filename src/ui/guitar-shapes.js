@@ -274,16 +274,25 @@ const GuitarShapes = (() => {
         const name = (variant !== 'triad') ? chordDisplay(it) : it.chord;
         push(rootName, qual, name, variant);
       });
+    } else if (typeof ChordVariants === 'object' && ChordVariants.ctx && ChordVariants.ctx.root) {
+      const root = ChordVariants.ctx.root;
+      const qual = /min/i.test(ChordVariants.ctx.quality) ? 'min' : /dim/i.test(ChordVariants.ctx.quality) ? 'dim' : 'maj';
+      push(root, qual, root + (qual === 'min' ? 'm' : qual === 'dim' ? '°' : ''), ChordVariants.ctx.current || 'triad');
     } else {
-      let root, qual, variant = 'triad';
-      if (typeof ChordVariants === 'object' && ChordVariants.ctx && ChordVariants.ctx.root) {
-        root = ChordVariants.ctx.root;
-        qual = /min/i.test(ChordVariants.ctx.quality) ? 'min' : /dim/i.test(ChordVariants.ctx.quality) ? 'dim' : 'maj';
-        variant = ChordVariants.ctx.current || 'triad';
-      } else {
-        root = st.key; qual = (typeof modeIsMinor === 'function' && modeIsMinor(st.mode)) ? 'min' : 'maj';
+      // Empty document: the KEY's own chords (I…vi), so walking into Instrument
+      // before writing anything still shows a full rack of playable voicings —
+      // one orphan tonic card was the old answer. vii° is skipped: the SPEC has
+      // no idiomatic open shape for it and a blank card teaches nothing.
+      try {
+        gc().forEach(c => {
+          if (c.quality === 'Dim') return;
+          const rootName = String(c.chord).replace(/m$|°$/, '');
+          push(rootName, c.quality === 'Min' ? 'min' : 'maj', c.chord, 'triad');
+        });
+      } catch (_) {
+        const root = st.key, qual = (typeof modeIsMinor === 'function' && modeIsMinor(st.mode)) ? 'min' : 'maj';
+        push(root, qual, root + (qual === 'min' ? 'm' : ''), 'triad');
       }
-      push(root, qual, root + (qual === 'min' ? 'm' : qual === 'dim' ? '°' : ''), variant);
     }
     return list;
   }

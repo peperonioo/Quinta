@@ -121,4 +121,5 @@ const I18N_ES = {
   'doc.save': 'Guardar',
   'doc.new': 'Nuevo',
   'ident.btn': '¿Acorde?',
+  'tuner.btn': 'Afinador',
 };

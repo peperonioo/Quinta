@@ -100,14 +100,25 @@ function renderInstrProgStrip() {
   const els = ['tsProgStrip', 'instrStrip'].map(id => document.getElementById(id)).filter(Boolean);
   if (!els.length) return;
   const h = Array.isArray(st.history) ? st.history : [];
+  // Empty document → the key's chords instead of stale copy. (The old message
+  // said "tap a suggestion bubble below"; the bubbles moved tabs in V6.26.)
   const html = !h.length
-    ? `<span class="tps-empty">${typeof t === 'function' ? t('builder.empty') : 'No chords yet'}</span>`
+    ? gc().map((c, i) => `<button class="tps-chip key" data-act="strip.pickKey" data-idx="${i}"
+        title="${c.degree}">${c.chord}</button>`).join('')
     : h.map((it, i) => {
         const lbl = (typeof chordDisplay === 'function') ? chordDisplay(it) : it.chord;
         return `<button class="tps-chip" data-i="${i}" data-act="strip.pick" data-idx="${i}">${lbl}</button>`;
       }).join('');
   els.forEach(el => { el.innerHTML = html; });
 }
+function pickKeyChord(i) {
+  const pcs = (typeof chordPitchesForDegree === 'function') ? chordPitchesForDegree(i) : null;
+  if (!pcs) return;
+  setActiveChord(pcs);
+  if (typeof AudioEngine === 'object') AudioEngine.playChord(pcs);
+  document.querySelectorAll('.tps-chip.key').forEach((c, k) => c.classList.toggle('on', k === i));
+}
+
 function pickProgChord(i) {
   const h = Array.isArray(st.history) ? st.history : []; const it = h[i]; if (!it) return;
   const pcs = (typeof chordPitchesForItem === 'function') ? chordPitchesForItem(it) : null;

@@ -121,4 +121,5 @@ const I18N_EN = {
   'doc.save': 'Save',
   'doc.new': 'New',
   'ident.btn': 'Chord?',
+  'tuner.btn': 'Tuner',
 };
