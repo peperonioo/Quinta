@@ -391,6 +391,11 @@ const HistoryEngine = {
           aria-label="${t('builder.removeChord')}" title="${t('builder.removeChord')}">×</button>
       </div>`).join('') + `<div class="builder-playhead" id="builderPlayhead" data-act-down="playhead.drag"></div><div class="builder-spacer" aria-hidden="true"></div>`;
 
+    // The lane fades at the edge only when there IS more lane — nine chords
+    // used to just stop mid-clip with no signal that the timeline continues.
+    requestAnimationFrame(() =>
+      root.classList.toggle('has-overflow', root.scrollWidth > root.clientWidth + 2));
+
     // Re-rendering closes any open per-chord chooser.
     if (typeof ChordVariants === 'object') ChordVariants.close();
 

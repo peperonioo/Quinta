@@ -387,6 +387,14 @@ body[data-mode="styles"] .drawers,
 body[data-mode="styles"] .instr-bar,
 body[data-mode="styles"] .suggestions-section { display:none !important }
 
+/* Desktop repeats the scale twice within 200px: the ctx-bar chips and the
+   inspector's key card. The card keeps it only where the ctx-bar drops it. */
+@media (min-width:861px) {
+  body[data-mode="build"] #inspScale, 
+  body[data-mode="build"] #inspScale + *, 
+  body[data-mode="build"] .insp-sec:has(> #inspScale) { display:none }
+}
+
 /* Identify mode (V6.33). The toggle only exists where the board is the page
    and the instrument is the guitar; the ident dots are faint until selected. */
 .ident-toggle, .tuner-toggle { display:none }
@@ -483,6 +491,17 @@ body[data-mode="instrument"] .instr-bar {
     gap:0 16px; align-items:start;
   }
   body[data-mode="build"] .build-cols > #progressionBuilder { grid-area:build }
+  /* The column used to hug ~470px of content over ~400px of empty page. The
+     builder now fills the viewport's height and hands the slack to the
+     suggestion area — the same deal focus-builder makes on phones. */
+  body[data-mode="build"] .build-cols > #progressionBuilder {
+    min-height:calc(100svh - 250px);
+    display:flex; flex-direction:column;
+  }
+  body[data-mode="build"] #progressionStory.builder-next-moves {
+    flex:1 1 auto; display:flex; flex-direction:column; justify-content:center;
+  }
+  body[data-mode="build"] #progressionStory .next-orbit { min-height:150px }
   body[data-mode="build"] .build-cols > .rhythm-track  { grid-area:rhythm }
   body[data-mode="build"] .build-cols > .inspector {
     grid-area:insp; position:sticky; top:12px; margin-top:0;
