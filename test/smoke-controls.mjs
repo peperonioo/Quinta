@@ -437,11 +437,15 @@ try {
       await mp.mouse.move(c.x + 70, c.y + 2, { steps: 6 }); await mp.mouse.up();
       await mp.waitForTimeout(600);
       const tn = await mp.evaluate(() => ({
-        open: Tuner.isOpen(), noIsland: !document.body.classList.contains('ts-open') }));
+        open: Tuner.isOpen(), noIsland: !document.body.classList.contains('ts-open'),
+        // Not listening here (no mic in the test browser) → the manual,
+        // tap-bound path to the permission prompt MUST be on screen.
+        micPath: !document.querySelector('.tn-mic').hidden }));
       await mp.evaluate(() => Tuner.close());
       await mp.waitForTimeout(200);
       if (!tn.open)     { console.error('FAIL  mobile tuner: swipe did not open it'); failed++; }
       if (!tn.noIsland) { console.error('FAIL  mobile tuner: the trailing click opened the island'); failed++; }
+      if (!tn.micPath)  { console.error('FAIL  mobile tuner: no manual mic button while not listening'); failed++; }
       const closed = await mp.evaluate(() => !Tuner.isOpen());
       if (!closed) { console.error('FAIL  mobile tuner: does not close'); failed++; }
       await mp.evaluate(() => { switchTab('instrument'); gotoInstrument('guitar'); });

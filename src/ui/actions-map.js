@@ -171,6 +171,7 @@ ActionRegistry.addAll({
 
   // ── Tuner (V6.33) ──
   'tuner.open':       ()  => Tuner.open(),
+  'tuner.mic':        ()  => Tuner.start(),
   'tuner.close':      ()  => Tuner.close(),
 
   // ── Misc ──

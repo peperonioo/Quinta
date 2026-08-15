@@ -105,12 +105,30 @@ const Tuner = (() => {
     raf = requestAnimationFrame(_tick);
   }
 
-  async function open() {
+  // ── mic lifecycle ───────────────────────────────────
+  // The prompt is precious: browsers only show it for a request made in direct
+  // response to a tap, and iOS is strict about it — the auto-request on open
+  // could lose that context and fail SILENTLY with the permission still in
+  // 'prompt' (measured: hint shown, no dialog, no way to retry). So the mic
+  // button is always there until we are actually listening: a manual, tap-bound
+  // path that can always re-trigger the prompt.
+  const _es = () => st.lang === 'es';
+  function _setHint(msg) { const h = el()?.querySelector('.tn-hint'); if (h) h.textContent = msg; }
+  function _micBtn(show, label) {
+    const b = el()?.querySelector('.tn-mic'); if (!b) return;
+    b.hidden = !show;
+    if (label) b.textContent = label;
+  }
+
+  async function start() {
     const p = el(); if (!p) return;
-    p.hidden = false;
-    document.body.classList.add('tuner-open');
-    tel('tuner_open', {});
-    if (typeof OverlayManager === 'object') OverlayManager.opened('tuner');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      _micBtn(false);
+      _setHint(_es() ? 'Este navegador no permite usar el micrófono aquí (¿app instalada con iOS antiguo?). Ábrelo en Safari/Chrome.'
+                     : 'This browser cannot use the microphone here (old-iOS installed app?). Open it in Safari/Chrome.');
+      return;
+    }
+    _setHint(_es() ? 'Pidiendo micrófono…' : 'Requesting microphone…');
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
@@ -123,17 +141,42 @@ const Tuner = (() => {
       src.connect(analyser);
       buf = new Float32Array(analyser.fftSize);
       _smooth = null;
+      _micBtn(false);
+      tel('tuner_mic', { ok: true });
       _tick();
-    } catch (_) {
-      const hint = p.querySelector('.tn-hint');
-      if (hint) hint.textContent = st.lang === 'es'
-        ? 'Sin acceso al micrófono — actívalo en los permisos del navegador'
-        : 'No microphone access — enable it in the browser permissions';
+    } catch (err) {
+      tel('tuner_mic', { ok: false, err: String(err && err.name) });
+      // Distinguish "you dismissed/it never asked" from "hard-denied": a hard
+      // denial cannot be re-prompted, only fixed in the browser's site settings.
+      let denied = false;
+      try { denied = (await navigator.permissions.query({ name: 'microphone' })).state === 'denied'; } catch (_) {}
+      if (denied) {
+        _micBtn(true, _es() ? 'Reintentar' : 'Retry');
+        _setHint(_es()
+          ? 'Micrófono bloqueado para este sitio. iPhone: Ajustes → Safari → Micrófono (o el menú “ᴀA” → Ajustes del sitio). Android: el candado de la barra → Permisos.'
+          : 'Microphone is blocked for this site. iPhone: Settings → Safari → Microphone (or the “aA” menu → Website Settings). Android: the padlock in the bar → Permissions.');
+      } else {
+        _micBtn(true, _es() ? 'Activar micrófono' : 'Enable microphone');
+        _setHint(_es() ? 'Toca el botón — el navegador te pedirá permiso.'
+                       : 'Tap the button — the browser will ask for permission.');
+      }
     }
   }
 
+  function open() {
+    const p = el(); if (!p) return;
+    p.hidden = false;
+    document.body.classList.add('tuner-open');
+    tel('tuner_open', {});
+    if (typeof OverlayManager === 'object') OverlayManager.opened('tuner');
+    _micBtn(true, _es() ? 'Activar micrófono' : 'Enable microphone');
+    // Try immediately too — where the gesture context survives (Android,
+    // desktop) this prompts or connects with zero extra taps.
+    start();
+  }
+
   function close() {
-    const p = el(); if (p) p.hidden = true;
+    const p = el(); if (p) { p.hidden = true; _micBtn(true); }
     document.body.classList.remove('tuner-open');
     cancelAnimationFrame(raf); raf = 0;
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
@@ -142,5 +185,5 @@ const Tuner = (() => {
 
   function isOpen() { return !!el() && !el().hidden; }
 
-  return { open, close, isOpen, STRINGS, _detect: detect };
+  return { open, close, start, isOpen, STRINGS, _detect: detect };
 })();
