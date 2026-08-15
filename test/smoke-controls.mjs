@@ -454,14 +454,20 @@ try {
       const wait = ms => new Promise(r => setTimeout(r, ms));
       document.querySelector('.ident-toggle').click(); await wait(500);
       const tap = (ti, f) => document.querySelector(`.fret-note.ident[data-ik="${ti}:${f}"]`)?.click();
-      tap(4, 3); tap(3, 2); tap(2, 0);   // C · E · G
+      // A full E-shape barre F, tapped the way a guitarist marks it: the barre
+      // first (six taps at fret 1), then the fingers — which must REPLACE the
+      // barre note on their string, not stack a second note on it.
+      for (let ti = 0; ti < 6; ti++) tap(ti, 1);
+      tap(2, 2); tap(4, 3); tap(3, 3);
       await wait(300);
       const named = document.querySelector('.ib-best')?.textContent;
+      const oneNotePerString = ChordIdent.sel.size === 6;
+      if (!oneNotePerString) { console.error('FAIL  mobile ident: two notes on one string'); failed++; }
       document.querySelector('.ident-toggle').click(); await wait(600);
       return { named, shapesBack: document.getElementById('guitarShapeStrip').classList.contains('gss-on'),
                barGone: !document.getElementById('identBar') };
     });
-    if (id.named !== 'C') { console.error(`FAIL  mobile ident: C-E-G named '${id.named}'`); failed++; }
+    if (id.named !== 'F') { console.error(`FAIL  mobile ident: barre F named '${id.named}'`); failed++; }
     if (!id.shapesBack)   { console.error('FAIL  mobile ident: shapes do not return'); failed++; }
     if (!id.barGone)      { console.error('FAIL  mobile ident: readout left behind'); failed++; }
 

@@ -208,8 +208,16 @@ const ChordIdent = {
   },
   clear() { this.sel.clear(); renderGuitar(); },
   tap(key, pitch) {
-    if (this.sel.has(key)) this.sel.delete(key);
-    else { this.sel.set(key, pitch); _hearGuitar(pitch); }
+    if (this.sel.has(key)) { this.sel.delete(key); }
+    else {
+      // One note per string, like the instrument: a string sounds only its
+      // highest fretted position. Marking a barre and then the fingers above it
+      // used to feed BOTH to the namer — an 8-note cluster no chord could match
+      // (found by a real barre F that "no lo detecta").
+      const string = key.split(':')[0] + ':';
+      [...this.sel.keys()].forEach(k => { if (k.startsWith(string)) this.sel.delete(k); });
+      this.sel.set(key, pitch); _hearGuitar(pitch);
+    }
     haptic('sel');
     this._readout();
   },
@@ -230,8 +238,29 @@ const ChordIdent = {
       // Raw sharp names on purpose: dn() respells to the ACTIVE KEY's signature,
       // and identify mode is key-agnostic — Ab next to an E chord reads wrong.
       .map(p => ChordNamer.NAMES[((p % 12) + 12) % 12]).filter((v, i, a) => a.indexOf(v) === i).join(' · ');
-    if (!names.length) return `<span class="ib-notes">${notes}</span>
-      <span class="ib-hint">${es ? 'aún sin nombre — sigue añadiendo' : 'no name yet — keep adding'}</span>`;
+    if (!names.length) {
+      // No exact match: try dropping ONE note. "≈ C (sin Ab)" teaches which
+      // finger is the stray; a bare "no name" with 5 notes teaches nothing.
+      const pitches = [...this.sel.values()];
+      let near = null;
+      if (pitches.length >= 4) {
+        // All depth-1 drops, then the SIMPLEST reading wins — the first hit in
+        // tap order once offered ≈Fmadd9/G where a plainer name existed.
+        const cands = [];
+        for (let i = 0; i < pitches.length; i++) {
+          const rest = pitches.filter((_, k) => k !== i);
+          const cand = ChordNamer.name(rest)[0];
+          if (cand) cands.push({ name: cand.name, slash: cand.slash ? 1 : 0,
+            len: cand.name.length, extra: ChordNamer.NAMES[((pitches[i] % 12) + 12) % 12] });
+        }
+        cands.sort((a, b) => a.slash - b.slash || a.len - b.len);
+        near = cands[0] || null;
+      }
+      return `<span class="ib-notes">${notes}</span>
+        ${near ? `<span class="ib-alt">≈ ${near.name} <i>${es ? 'sin' : 'without'} ${near.extra}</i></span>`
+               : `<span class="ib-hint">${es ? 'sin nombre exacto' : 'no exact name'}</span>`}
+        <button class="ib-clear" data-act="ident.clear">${es ? 'limpiar' : 'clear'}</button>`;
+    }
     const [best, ...alts] = names;
     return `<span class="ib-notes">${notes}</span>
       <b class="ib-best">${best.name}</b>

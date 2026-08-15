@@ -120,6 +120,10 @@
       const n = ps => (ChordNamer.name(ps)[0] || {}).name;
       return n([4, 12, 19]) === 'C/E' && n([9, 12, 16, 19]) === 'Am7' && n([0, 4, 7, 9]) === 'C6';
     }, false));
+    assert('Namer: a real barre F names F', safe(() => {
+      // F1 C2 F2 A2 C3 F3 — the E-shape barre voicing, absolute-ish pitches.
+      return (ChordNamer.name([5, 12, 17, 21, 24, 29])[0] || {}).name === 'F';
+    }, false));
     assert('Namer: honest edges', safe(() => {
       const r = ps => ChordNamer.name(ps);
       return r([0])[0].quality === 'note' && r([0, 7])[0].name === 'C5'
