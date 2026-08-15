@@ -242,10 +242,17 @@ try {
         return cond();
       };
       const w = () => document.getElementById('tabbar').getBoundingClientRect().width;
+      // Stepped scrolls, not one jump: the minimise listens via a single rAF,
+      // and the GPU-less CI runner sometimes DROPS the one frame an instant
+      // 0→420 jump produces. Steps give it N scroll events instead of 1.
+      const glide = async (from, to) => {
+        const step = (to - from) / 6;
+        for (let i = 1; i <= 6; i++) { scrollTo(0, from + step * i); await wait(70); }
+      };
       scrollTo(0, 0); await wait(300); const rest = w();
-      scrollTo(0, 420);
+      await glide(0, 440);
       const shrinks = await settle(() => w() < rest - 12);
-      scrollTo(0, 140);
+      await glide(440, 120);
       const restores = await settle(() => Math.abs(w() - rest) < 2);
       return { shrinks, restores };
     });
