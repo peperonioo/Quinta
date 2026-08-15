@@ -280,6 +280,34 @@ try {
       await mp.waitForTimeout(300);
     }
 
+    // The tour walks the tabs (V6.34). Its old opening bug — asking for a
+    // button that lives in another mode — is exactly what this asserts against:
+    // on every step, the spotlight target must be visible in that step's mode,
+    // and the wheel-wedge action of step 1 must unlock step 1.
+    {
+      const tour = await mp.evaluate(async () => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        HistoryEngine.clear(); await wait(200);
+        Onboarding.open(true); await wait(700);
+        const out = [];
+        for (let i = 0; i < 4; i++) {
+          if (i) { Onboarding.go(i); await wait(700); }
+          const t = document.querySelector(['#wg', '#progressionStory', '#docBar', '.drawers'][i]);
+          const r = t && t.getBoundingClientRect();
+          out.push({ step: i + 1, mode: document.body.dataset.mode,
+                     visible: !!r && r.width > 0 && r.height > 0 });
+        }
+        Onboarding.close(); await wait(300);
+        return out;
+      });
+      const expect = ['explore', 'build', 'build', 'instrument'];
+      tour.forEach((t, i) => {
+        if (t.mode !== expect[i] || !t.visible) {
+          console.error(`FAIL  tour step ${t.step}: mode=${t.mode} visible=${t.visible}`); failed++;
+        }
+      });
+    }
+
     // The transport capsule is the bar's docked accessory: fully ABOVE it (it
     // shipped exactly underneath — a later stylesheet's inset:0 killed the
     // offset), it leaves with the scroll-minimise, and the bar stands down

@@ -18,20 +18,34 @@ const Onboarding = (() => {
   // things that actually matter — and only ONE step is gated, not five. A tour
   // that makes you wait is a tax on the exact moment you were most curious.
   const steps = [
-    { sel: '#progressionBuilder', pad: 8, interactive: true,
-      title: { en: 'Start with a sound', es: 'Empieza con un sonido' },
-      body:  { en: 'This is your document — the song lives here. Fastest way in: tap Surprise me and a full progression starts playing.',
-               es: 'Este es tu documento — aquí vive la canción. La vía rápida: toca Sorpréndeme y suena una progresión entera.' },
-      try:   { en: 'Tap “Surprise me”.', es: 'Toca «Sorpréndeme».' },
+    // V6.34 — the tour follows the tabs. The old script opened on the FIRST tab
+    // button (Explore, post-restructure) and then asked for a button that lives
+    // in Build: an impossible instruction as the user's first minute. Each step
+    // now declares its mode and go() switches to it — the tour walks the same
+    // four rooms the app has.
+    { mode: 'explore', sel: '#wg', pad: 10, radius: 999, interactive: true,
+      title: { en: 'The wheel writes', es: 'La rueda escribe' },
+      body:  { en: 'Spin it to choose your key. The bright wedges are the chords that belong to it — tap one and it goes straight into your song.',
+               es: 'Gírala para elegir tonalidad. Los sectores iluminados son los acordes que le pertenecen — toca uno y entra directo en tu canción.' },
+      try:   { en: 'Tap a bright wedge.', es: 'Toca un sector iluminado.' },
       done:  c => (st.history || []).length > c.hist },
-    { sel: '#inspector', pad: 8,
-      title: { en: 'Tap any chord', es: 'Toca cualquier acorde' },
-      body:  { en: 'Everything about it appears here: what it does in the key, its variations, how to play it on piano or guitar — chord, triads or scale — and what goes well after it.',
-               es: 'Aquí aparece todo sobre él: qué hace en la tonalidad, sus variaciones, cómo tocarlo en piano o guitarra —acorde, tríadas o escala— y qué va bien después.' } },
-    { sel: '#rhythmTrack', pad: 8, place: 'below',
-      title: { en: 'Add drums, then take it', es: 'Añade batería y llévatelo' },
-      body:  { en: 'Rhythm is a track of the same song — one Play for all of it. When it sounds right, Export gives you WAV, stems or MIDI.',
-               es: 'El ritmo es una pista de la misma canción — un solo Play para todo. Cuando suene, Exportar te da WAV, stems o MIDI.' } },
+    { mode: 'build', sel: '#progressionStory', pad: 8, interactive: true,
+      title: { en: 'Follow the pull', es: 'Sigue el tirón' },
+      body:  { en: 'This is your document. The bubbles are what goes well next — bigger means stronger pull. Tap one to add it, or drag it onto the timeline.',
+               es: 'Este es tu documento. Las burbujas son lo que va bien después — más grande, más tirón. Toca una para añadirla, o arrástrala a la línea de tiempo.' },
+      try:   { en: 'Tap a bubble.', es: 'Toca una burbuja.' },
+      done:  c => (st.history || []).length > c.hist },
+    { mode: 'build', sel: '#docBar', pad: 8, interactive: true,
+      title: { en: 'Hear it', es: 'Escúchala' },
+      body:  { en: 'One Play runs the whole song — switch the rhythm track on and the drums join in. When it sounds right, Export gives you WAV, stems or MIDI.',
+               es: 'Un solo Play toca toda la canción — enciende la pista de ritmo y entra la batería. Cuando suene bien, Exportar te da WAV, stems o MIDI.' },
+      try:   { en: 'Press Play.', es: 'Dale a Play.' },
+      done:  () => (typeof playing !== 'undefined' && playing)
+               || (typeof _progRAF !== 'undefined' && _progRAF) },
+    { mode: 'instrument', sel: '.drawers', pad: 8,
+      title: { en: 'Now play it yourself', es: 'Ahora tócala tú' },
+      body:  { en: 'Your instrument, full size: the scale on the neck, finger shapes for every chord. “Chord?” names whatever you fret, and the tuning fork opens a tuner.',
+               es: 'Tu instrumento a tamaño completo: la escala en el mástil y las posiciones de cada acorde. «¿Acorde?» nombra lo que pises, y el diapasón abre el afinador.' } },
   ];
 
 
@@ -97,9 +111,6 @@ const Onboarding = (() => {
   function open(force) {
     if (!force && !shouldShow()) return;
     const ov = $('onboarding'); if (!ov) return;
-    // The tour points at Theory-panel elements — make sure that tab is showing.
-    const theoryBtn = document.querySelector('.tabs .tab-btn');
-    if (theoryBtn && !theoryBtn.classList.contains('active')) theoryBtn.click();
     idx = 0;
     ov.hidden = false;
     requestAnimationFrame(() => ov.classList.add('ob-on'));
@@ -130,6 +141,12 @@ const Onboarding = (() => {
   function prev()   { if (idx > 0) go(idx - 1); }
   function go(i) {
     idx = Math.max(0, Math.min(steps.length - 1, i));
+    const s = steps[idx];
+    if (s.mode && document.body.dataset.mode !== s.mode && typeof switchTab === 'function') switchTab(s.mode);
+    // A leftover selection puts the inspector sheet over whatever this step
+    // spotlights (the wheel-add of step 1 selects the chord it added, and the
+    // sheet then buried step 2's bubbles). Every step starts on a clean stage.
+    if (typeof Inspector === 'object') Inspector.clear();
     tel('onboard_step', { step: idx + 1, of: steps.length });
     render();
     _startWatch(steps[idx]);
