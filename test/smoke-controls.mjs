@@ -233,12 +233,21 @@ try {
     // the way out. Measured on the real element, not the class, so a broken
     // transition or a missing rule fails it too.
     const min = await mp.evaluate(async () => {
+      // Poll, don't sample — the same GPU-less-CI lesson as the accessory
+      // guard: fixed delays flake there while passing locally every time.
       const wait = ms => new Promise(r => setTimeout(r, ms));
+      const settle = async (cond, ms = 2500) => {
+        const t0 = performance.now();
+        while (performance.now() - t0 < ms) { if (cond()) return true; await wait(80); }
+        return cond();
+      };
       const w = () => document.getElementById('tabbar').getBoundingClientRect().width;
-      scrollTo(0, 0); await wait(420); const rest = w();
-      scrollTo(0, 420); await wait(520); const down = w();
-      scrollTo(0, 140); await wait(520); const up = w();
-      return { shrinks: down < rest - 12, restores: Math.abs(up - rest) < 2 };
+      scrollTo(0, 0); await wait(300); const rest = w();
+      scrollTo(0, 420);
+      const shrinks = await settle(() => w() < rest - 12);
+      scrollTo(0, 140);
+      const restores = await settle(() => Math.abs(w() - rest) < 2);
+      return { shrinks, restores };
     });
     for (const k of ['shrinks', 'restores']) {
       if (!min[k]) { console.error(`FAIL  mobile tabbar: ${k}`); failed++; }
