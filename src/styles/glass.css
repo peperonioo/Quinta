@@ -1,0 +1,74 @@
+/* ── LIQUID GLASS PASS (V6.36) ─────────────────────────
+   Loaded LAST on purpose: this file harmonizes every surface onto the three
+   token tiers instead of editing fifteen files. If a surface looks wrong, fix
+   the token — not the surface. */
+
+/* ── chrome tier: small floating UI ── */
+.tabbar, .ts-cap {
+  background:var(--glass-chrome-bg);
+  border-color:var(--glass-border);
+  backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+  box-shadow:var(--shadow-float), var(--glass-specular);
+}
+#metronome .metro-row-top > * { border-color:var(--glass-border) }
+.metro-pill, .metro-tuner {
+  background:var(--glass-chrome-bg);
+  backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+  box-shadow:var(--shadow-float), var(--glass-specular);
+}
+.ctx-bar, .instr-bar {
+  background:var(--glass-chrome-bg);
+  border-color:var(--glass-border);
+  backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+  box-shadow:var(--glass-specular);
+}
+
+/* ── sheet tier: overlays that need reading ── */
+.tuner-panel, .settings-sheet, .ts-panel {
+  background:var(--glass-sheet-bg);
+  border-color:var(--glass-border);
+  backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+  box-shadow:0 24px 70px rgba(0,0,0,.5), var(--glass-specular);
+}
+@media (max-width:860px) {
+  body.has-selection .inspector {
+    background:var(--glass-sheet-bg);
+    backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+    border-color:var(--glass-border);
+  }
+}
+
+/* ── card tier: big in-flow panels — light blur, one radius ── */
+.progression-builder, .inspector, .drawer,
+.prod-card, .elements-card, .tips-card, .prog-section, .groove-section, .tips-section,
+.rhythm-track {
+  background:var(--glass-card-bg);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r-card);
+  backdrop-filter:var(--glass-blur-card); -webkit-backdrop-filter:var(--glass-blur-card);
+  box-shadow:var(--glass-specular), 0 4px 20px rgba(0,0,0,.18);
+}
+body.light .progression-builder, body.light .inspector, body.light .drawer,
+body.light .prod-card, body.light .elements-card, body.light .tips-card,
+body.light .prog-section, body.light .groove-section, body.light .tips-section,
+body.light .rhythm-track { box-shadow:var(--glass-specular), 0 4px 18px rgba(0,0,0,.08) }
+
+/* Controls: one radius, hairline, top light. */
+.builder-btn, .doc-btn, .genre-btn, .tn-str, .insp-deg, .insp-nextb,
+.instr-shapes-toggle, .ident-toggle, .tuner-toggle, .rt-toggle {
+  border-radius:var(--r-ctl);
+}
+.builder-btn, .doc-btn, .genre-btn:not(.active), .ident-toggle, .tuner-toggle {
+  border-color:var(--glass-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+body.light .builder-btn, body.light .doc-btn, body.light .genre-btn:not(.active) {
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+/* The version chip and settings button join the chrome family. */
+.settings-mini, .ver-chip, #settingsBtn {
+  border-color:var(--glass-border);
+  background:var(--glass-chrome-bg);
+  backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+}

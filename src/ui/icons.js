@@ -20,9 +20,12 @@ const ICONS = {
   // The two modes that had no glyph. The wheel is the product's own mark: a ring
   // with the twelve stations. Crear is the clip lane, which is literally what you
   // look at while you write.
-  wheel:     { p: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v3.6M12 17.4V21M3 12h3.6M17.4 12H21M5.64 5.64l2.55 2.55M15.81 15.81l2.55 2.55M18.36 5.64l-2.55 2.55M8.19 15.81l-2.55 2.55"/>' },
-  lane:      { p: '<rect x="2.5" y="7" width="7" height="10" rx="1.8"/><rect x="11.5" y="7" width="4.5" height="10" rx="1.5"/><rect x="18" y="7" width="3.5" height="10" rx="1.4"/>' },
+  // The wheel with a chosen key: a ring, one wedge lit. The old glyph (disc
+  // with eight spokes) read as a poker chip at 21px.
+  wheel:     { p: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5A8.5 8.5 0 0 1 19.36 7.75L12 12z" fill="currentColor" stroke="none" opacity=".9"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/>' },
+  lane:      { p: '<path d="M3 4.5h18" opacity=".55"/><path d="M6.5 4.5v2M12 4.5v2M17.5 4.5v2" opacity=".55"/><rect x="3" y="9.5" width="8" height="9" rx="2"/><rect x="13.5" y="9.5" width="7.5" height="9" rx="2"/>' },
   vinyl:     { p: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><path d="M12 6.6a5.4 5.4 0 0 1 5.4 5.4M12 17.4A5.4 5.4 0 0 1 6.6 12"/>' },
+  lens:      { p: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L21 21"/>' },
   fork:      { p: '<path d="M9 3v7a3 3 0 0 0 6 0V3"/><path d="M12 13v7"/><path d="M9.5 21h5"/>' },
   help:      { p: '<circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a2.8 2.8 0 1 1 3.6 2.7c-.7.25-1.3.8-1.3 1.6v.4"/><circle cx="11.5" cy="17" r="1" fill="currentColor" stroke="none"/>' },
   chevron:   { p: '<path d="M6 9l6 6 6-6"/>' },

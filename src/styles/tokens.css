@@ -3,6 +3,24 @@
    All other CSS layers consume these variables.       */
 
 :root {
+  /* ── LIQUID GLASS (V6.36) — the ONE material recipe ─
+     15 different blur values and 12 radii had accumulated; every surface wore
+     its own costume. Three tiers, one look:
+       chrome  — small floating UI (bars, capsules, pills): full glass
+       sheet   — overlays that need legibility (settings, inspector sheet)
+       card    — big in-flow panels: translucent + specular, LIGHT blur only
+                 (heavy backdrop-filter over the live plasma re-filters every
+                 frame — the transport panel learned this the hard way) */
+  --glass-chrome-bg: rgba(24,24,30,.42);
+  --glass-sheet-bg:  rgba(14,14,19,.72);
+  --glass-card-bg:   rgba(16,16,21,.6);
+  --glass-blur:       blur(32px) saturate(185%);
+  --glass-blur-card:  blur(14px) saturate(140%);
+  --glass-border:     rgba(255,255,255,.09);
+  --glass-specular:   inset 0 1px 0 rgba(255,255,255,.1);
+  --shadow-float:     0 12px 36px -10px rgba(0,0,0,.5);
+  --r-card:20px; --r-ctl:12px;
+
   --tabbar-h:52px;                /* the floating capsule itself */
   --tabbar-gap:11px;              /* air between it and the screen edge */
   /* What anything docking to the bottom must clear. One number, three readers. */
@@ -113,6 +131,12 @@ body.light {
   --sel-opt:  #f0ede8;
   --plasma-dark:0;
   --ui-surface:        rgba(248,245,240,.88);
+  --glass-chrome-bg: rgba(252,250,247,.5);
+  --glass-sheet-bg:  rgba(252,250,247,.78);
+  --glass-card-bg:   rgba(255,253,250,.62);
+  --glass-border:     rgba(0,0,0,.08);
+  --glass-specular:   inset 0 1px 0 rgba(255,255,255,.75);
+  --shadow-float:     0 12px 36px -12px rgba(0,0,0,.22);
   --ui-surface-strong: rgba(248,245,240,.96);
   --ui-border:         rgba(0,0,0,.10);
   --ui-border-strong:  rgba(0,0,0,.14);
