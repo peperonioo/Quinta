@@ -3,11 +3,11 @@
 // cents against the nearest string of standard tuning. As simple as a tuner
 // can be: one big note, one needle, six string dots.
 //
-// Precision comes from the detector, so the detector is pure and unit-tested
-// against synthesized sines (dev tests feed it 82.41Hz and expect 82.41Hz).
-// Method: normalized time-domain autocorrelation with a silence gate, edge
-// trim, and parabolic interpolation around the peak — sub-sample period
-// resolution, which at guitar frequencies is well under one cent.
+// Precision comes from the detector (MPM — see below), and the detector is
+// pure and unit-tested against REALISTIC signals: harmonic-rich strings, the
+// missing-fundamental phone-mic case, detuned strings, decaying plucks, noise.
+// Pure sines alone once said this tuner was fine while it octave-erred on a
+// real guitar ("va muy mal") — never again.
 const Tuner = (() => {
   // Standard tuning, low to high. The needle always measures against the
   // NEAREST string: a tuner should tell you how far this string is, not which
@@ -19,42 +19,107 @@ const Tuner = (() => {
   ];
 
   let stream = null, ctx = null, analyser = null, raf = 0, buf = null;
-  let _smooth = null;   // exponential smoothing of cents, so the needle is calm
+  let _smooth = null;      // exponential smoothing of cents, so the needle is calm
+  let _skip = false;       // detect every 2nd frame — 8192-pt FFTs at 60fps is vanity
+  let _ring = [];          // last valid readings → median kills single-frame outliers
+  let _lockedF = 0;        // manual string lock (0 = auto)
+  let _shownStr = null, _strVotes = 0;   // auto string hysteresis
+  let _lastGoodAt = 0;     // display hold: brief dropouts don't blank the needle
+  const CLARITY_GATE = 0.8, HOLD_MS = 700;
 
   // ── the detector (pure) ─────────────────────────────
+  // V6.38 — rewritten as MPM (McLeod Pitch Method) after the field report "va
+  // muy mal". The old detector picked the tallest autocorrelation peak; a real
+  // string through a phone mic has harmonics STRONGER than the fundamental
+  // (phone mics also high-pass the lows — on the low E the 82Hz fundamental
+  // barely arrives at all), so the tallest peak is routinely the wrong octave.
+  // MPM normalizes (NSDF) and then takes the FIRST peak within 90% of the best
+  // — the standard fix for octave errors. ACF is computed via FFT (O(N log N),
+  // zero-padded to stay linear), because the naive O(N²) at the 4096 window a
+  // low E needs would burn a phone core.
+  function _fft(re, im, inv) {
+    const n = re.length;
+    for (let i = 1, j = 0; i < n; i++) {          // bit-reversal permutation
+      let bit = n >> 1;
+      for (; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if (i < j) { const tr = re[i]; re[i] = re[j]; re[j] = tr;
+                   const ti = im[i]; im[i] = im[j]; im[j] = ti; }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+      const ang = (inv ? 2 : -2) * Math.PI / len;
+      const wr = Math.cos(ang), wi = Math.sin(ang);
+      for (let i = 0; i < n; i += len) {
+        let cr = 1, ci = 0;
+        for (let k = 0; k < len / 2; k++) {
+          const j = i + k, m = i + k + len / 2;
+          const xr = re[m] * cr - im[m] * ci, xi = re[m] * ci + im[m] * cr;
+          re[m] = re[j] - xr; im[m] = im[j] - xi;
+          re[j] += xr;        im[j] += xi;
+          const ncr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = ncr;
+        }
+      }
+    }
+    if (inv) for (let i = 0; i < n; i++) { re[i] /= n; im[i] /= n; }
+  }
+
+  // → { f, clarity } · f = -1 when there is nothing trustworthy to report.
   function detect(b, sr) {
     const N = b.length;
+    let mean = 0; for (let i = 0; i < N; i++) mean += b[i];
+    mean /= N;
     let rms = 0;
-    for (let i = 0; i < N; i++) rms += b[i] * b[i];
+    const x = new Float64Array(N);
+    for (let i = 0; i < N; i++) { x[i] = b[i] - mean; rms += x[i] * x[i]; }
     rms = Math.sqrt(rms / N);
-    if (rms < 0.008) return -1;                       // silence gate
+    if (rms < 0.005) return { f: -1, clarity: 0 };          // silence gate
 
-    // Trim quiet edges (attack/decay transients bias the correlation).
-    const thr = 0.2;
-    let r1 = 0, r2 = N - 1;
-    for (let i = 0; i < N / 2; i++) if (Math.abs(b[i]) < thr) { r1 = i; break; }
-    for (let i = 1; i < N / 2; i++) if (Math.abs(b[N - i]) < thr) { r2 = N - i; break; }
-    const s = b.slice(r1, r2), M = s.length;
-    if (M < 256) return -1;
+    // Linear ACF via FFT: zero-pad to 2N so lags do not wrap around.
+    const P = 2 * N;
+    const re = new Float64Array(P), im = new Float64Array(P);
+    re.set(x);
+    _fft(re, im, false);
+    for (let i = 0; i < P; i++) { const p = re[i] * re[i] + im[i] * im[i]; re[i] = p; im[i] = 0; }
+    _fft(re, im, true);
+    const acf = re;                                          // acf[τ] for τ < N
 
-    const c = new Float32Array(M);
-    for (let lag = 0; lag < M; lag++) {
-      let sum = 0;
-      for (let j = 0; j < M - lag; j++) sum += s[j] * s[j + lag];
-      c[lag] = sum;
+    // m(τ) = Σ x²[j] + x²[j+τ] over the overlap — O(N) via a prefix sum.
+    const sq = new Float64Array(N + 1);
+    for (let i = 0; i < N; i++) sq[i + 1] = sq[i] + x[i] * x[i];
+    const total = sq[N];
+
+    // NSDF, and MPM peak picking over the guitar range.
+    const tMin = Math.max(2, Math.floor(sr / 700)), tMax = Math.min(N - 2, Math.ceil(sr / 55));
+    const nsdf = new Float64Array(tMax + 2);
+    for (let t = tMin - 1; t <= tMax + 1; t++) {
+      const m = (sq[N - t] - 0) + (total - sq[t]);
+      nsdf[t] = m > 1e-12 ? (2 * acf[t]) / m : 0;
     }
-    // Walk past the zero-lag peak, then take the global max after it.
-    let d = 0;
-    while (d + 1 < M && c[d] > c[d + 1]) d++;
-    let maxv = -1, T = -1;
-    for (let i = d; i < M; i++) if (c[i] > maxv) { maxv = c[i]; T = i; }
-    if (T <= 0 || T + 1 >= M) return -1;
-    // Parabolic interpolation around the peak → sub-sample period.
-    const x1 = c[T - 1], x2 = c[T], x3 = c[T + 1];
+    // Local maxima between positive-going zero crossings.
+    const peaks = [];
+    let t = tMin;
+    while (t <= tMax && nsdf[t] > 0) t++;                    // leave the lag-0 lobe
+    while (t <= tMax) {
+      while (t <= tMax && nsdf[t] <= 0) t++;                 // find rise above zero
+      let best = -1, bestT = -1;
+      while (t <= tMax && nsdf[t] > 0) {
+        if (nsdf[t] > best) { best = nsdf[t]; bestT = t; }
+        t++;
+      }
+      if (bestT > 0) peaks.push([bestT, best]);
+    }
+    if (!peaks.length) return { f: -1, clarity: 0 };
+    const nmax = Math.max(...peaks.map(p => p[1]));
+    if (nmax < 0.5) return { f: -1, clarity: nmax };         // no periodicity worth trusting
+    // FIRST peak within 90% of the best — this is what kills octave errors.
+    const K = 0.9;
+    const [T] = peaks.find(p => p[1] >= K * nmax);
+    // Parabolic interpolation for sub-sample period.
+    const x1 = nsdf[T - 1], x2 = nsdf[T], x3 = nsdf[T + 1];
     const a = (x1 + x3 - 2 * x2) / 2, bq = (x3 - x1) / 2;
     const Ti = a ? T - bq / (2 * a) : T;
     const f = sr / Ti;
-    return (f > 55 && f < 700) ? f : -1;              // guitar range, with headroom
+    return (f > 55 && f < 700) ? { f, clarity: nmax } : { f: -1, clarity: 0 };
   }
 
   function nearestString(f) {
@@ -70,39 +135,75 @@ const Tuner = (() => {
   // ── UI ──────────────────────────────────────────────
   const el = () => document.getElementById('tunerPanel');
 
-  function _paint(f) {
+  function _blank(p) {
+    _smooth = null; _ring.length = 0; _shownStr = null; _strVotes = 0;
+    p.querySelector('.tn-note').textContent = '–';
+    p.querySelector('.tn-cents').textContent = '';
+    p.querySelector('.tn-needle').style.setProperty('--c', 0);
+    p.classList.remove('in-tune');
+    _setHint(_es() ? 'Toca una cuerda…' : 'Play a string…');
+    if (!_lockedF) p.querySelectorAll('.tn-str').forEach(x => x.classList.remove('on'));
+  }
+
+  function _paint(r) {
     const p = el(); if (!p) return;
-    const note = p.querySelector('.tn-note'), cts = p.querySelector('.tn-cents'),
-          ndl = p.querySelector('.tn-needle'), hint = p.querySelector('.tn-hint');
-    if (f < 0) {
-      _smooth = null;
-      note.textContent = '–';
-      cts.textContent = '';
-      ndl.style.setProperty('--c', 0); p.classList.remove('in-tune');
-      hint.textContent = st.lang === 'es' ? 'Toca una cuerda…' : 'Play a string…';
-      p.querySelectorAll('.tn-str').forEach(x => x.classList.remove('on'));
+    const now = performance.now();
+    const good = r.f > 0 && r.clarity >= CLARITY_GATE;
+    if (!good) {
+      // Display hold: a string's decay dips under the gate between beats of the
+      // needle — blanking instantly made the tuner feel broken. Hold briefly.
+      if (now - _lastGoodAt > HOLD_MS) _blank(p);
       return;
     }
-    const target = nearestString(f);
+    _lastGoodAt = now;
+    // Median of the recent window: one bad frame cannot yank the needle.
+    _ring.push(r.f); if (_ring.length > 5) _ring.shift();
+    const f = [..._ring].sort((a, b) => a - b)[_ring.length >> 1];
+
+    // Which string: manual lock wins; auto needs 4 consecutive agreeing frames
+    // to SWITCH — the needle must not flip targets mid-tuning.
+    let target = _lockedF ? STRINGS.find(x => x.f === _lockedF) : nearestString(f);
+    if (!_lockedF) {
+      if (_shownStr && target.f !== _shownStr.f) {
+        if (++_strVotes < 4) target = _shownStr; else { _shownStr = target; _strVotes = 0; }
+      } else { _shownStr = target; _strVotes = 0; }
+    }
+
     let c = Math.max(-50, Math.min(50, cents(f, target.f)));
     _smooth = _smooth === null ? c : _smooth * 0.72 + c * 0.28;
     c = _smooth;
     const inTune = Math.abs(c) <= 3;
-    note.textContent = target.n;
-    cts.textContent = `${c > 0 ? '+' : ''}${c.toFixed(0)}¢`;
-    ndl.style.setProperty('--c', c);
+    p.querySelector('.tn-note').textContent = target.n;
+    p.querySelector('.tn-cents').textContent = `${c > 0 ? '+' : ''}${c.toFixed(0)}¢`;
+    p.querySelector('.tn-needle').style.setProperty('--c', c);
     p.classList.toggle('in-tune', inTune);
-    hint.textContent = inTune ? (st.lang === 'es' ? 'afinada ✓' : 'in tune ✓')
-      : (c < 0 ? (st.lang === 'es' ? 'sube' : 'tune up') : (st.lang === 'es' ? 'baja' : 'tune down'));
+    _setHint(inTune ? (_es() ? 'afinada ✓' : 'in tune ✓')
+      : (c < 0 ? (_es() ? 'sube' : 'tune up') : (_es() ? 'baja' : 'tune down')));
     p.querySelectorAll('.tn-str').forEach(x =>
       x.classList.toggle('on', x.dataset.f === String(target.f)));
   }
 
   function _tick() {
     if (!analyser) return;
-    analyser.getFloatTimeDomainData(buf);
-    _paint(detect(buf, ctx.sampleRate));
+    _skip = !_skip;
+    if (!_skip) {
+      analyser.getFloatTimeDomainData(buf);
+      _paint(detect(buf, ctx.sampleRate));
+    }
     raf = requestAnimationFrame(_tick);
+  }
+
+  // Tap a string dot to LOCK the target (old strings can read closer to the
+  // neighbour string than to themselves — auto-pick then steers you wrong).
+  // Tap the locked dot again for auto.
+  function lockString(f) {
+    _lockedF = _lockedF === f ? 0 : f;
+    _ring.length = 0; _smooth = null;
+    const p = el(); if (!p) return;
+    p.classList.toggle('str-locked', !!_lockedF);
+    p.querySelectorAll('.tn-str').forEach(x =>
+      x.classList.toggle('locked', x.dataset.f === String(_lockedF)));
+    haptic('sel');
   }
 
   // ── mic lifecycle ───────────────────────────────────
@@ -137,7 +238,7 @@ const Tuner = (() => {
       if (ctx.state === 'suspended') ctx.resume();
       const src = ctx.createMediaStreamSource(stream);
       analyser = ctx.createAnalyser();
-      analyser.fftSize = 2048;
+      analyser.fftSize = 4096;   // a low E needs the longer window
       src.connect(analyser);
       buf = new Float32Array(analyser.fftSize);
       _smooth = null;
@@ -185,5 +286,5 @@ const Tuner = (() => {
 
   function isOpen() { return !!el() && !el().hidden; }
 
-  return { open, close, start, isOpen, STRINGS, _detect: detect };
+  return { open, close, start, isOpen, lockString, STRINGS, _detect: detect };
 })();

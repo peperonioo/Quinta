@@ -596,5 +596,10 @@ body[data-mode="explore"] .rhythm-track { display:none }
 .tn-str { width:38px; height:38px; border-radius:50%; border:1px solid var(--line);
   background:var(--sel-bg); color:var(--muted); font-family:var(--wheel-font); font-size:15px;
   cursor:default; transition:all .18s var(--ease) }
+.tn-str { cursor:pointer }
 .tn-str.on { border-color:var(--accent); color:var(--accent2); background:var(--degree-tonic);
   box-shadow:0 0 12px rgba(232,68,26,.3) }
+/* Manual lock: tap a dot to pin the target string; tap again for auto. */
+.tn-str.locked { border-color:var(--accent); color:#fff; background:var(--accent);
+  box-shadow:0 0 14px rgba(232,68,26,.45) }
+.tuner-panel.str-locked .tn-str:not(.locked) { opacity:.45 }

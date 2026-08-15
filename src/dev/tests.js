@@ -130,22 +130,53 @@
           && r([0, 1]).length === 0 && r([0, 1, 2]).length === 0;
     }, false));
 
-    // ── Tuner detector (V6.33) — precision is an assertion, not a promise ──
-    assert('Tuner: pure sines within ±1 cent', safe(() => {
-      const sr = 48000, N = 2048;
-      const sine = f => Float32Array.from({ length: N }, (_, i) => Math.sin(2 * Math.PI * f * i / sr));
+    // ── Tuner detector (V6.38 · MPM) ─────────────────
+    // Realistic signals, not just sines: the sine-only tests passed while the
+    // old detector octave-erred on real strings ("va muy mal"). These are the
+    // tests that would have caught it.
+    assert('Tuner: harmonic-rich strings within ±2 cents', safe(() => {
+      const sr = 48000, N = 4096;
       const cents = (a, b) => Math.abs(1200 * Math.log2(a / b));
-      return [82.4069, 110, 146.8324, 196, 246.94, 329.63].every(f =>
-        cents(Tuner._detect(sine(f), sr), f) < 1);
+      const rich = f0 => Float32Array.from({ length: N }, (_, i) => {
+        let v = 0; for (let h = 1; h <= 6; h++) v += Math.sin(2 * Math.PI * f0 * h * i / sr) / h;
+        return v / 2;
+      });
+      return [82.4069, 110, 146.8324, 195.9977, 246.9417, 329.6276]
+        .every(f => cents(Tuner._detect(rich(f), sr).f, f) < 2);
     }, false));
-    assert('Tuner: survives noise, gates silence', safe(() => {
-      const sr = 48000, N = 2048;
+    assert('Tuner: missing fundamental stays in the right octave', safe(() => {
+      // The phone-mic low-E case: harmonics 2..6 only, NO energy at f0. The old
+      // detector read this an octave up.
+      const sr = 48000, N = 4096;
+      const gut = f0 => Float32Array.from({ length: N }, (_, i) => {
+        let v = 0; for (let h = 2; h <= 6; h++) v += Math.sin(2 * Math.PI * f0 * h * i / sr) / h;
+        return v / 2;
+      });
+      const cents = (a, b) => Math.abs(1200 * Math.log2(a / b));
+      return cents(Tuner._detect(gut(82.4069), sr).f, 82.4069) < 5
+          && cents(Tuner._detect(gut(110), sr).f, 110) < 5;
+    }, false));
+    assert('Tuner: detuned +25c reads +25c; decay and noise survive', safe(() => {
+      const sr = 48000, N = 4096;
+      const rich = (f0, fn) => Float32Array.from({ length: N }, (_, i) => {
+        let v = 0; for (let h = 1; h <= 5; h++) v += Math.sin(2 * Math.PI * f0 * h * i / sr) / h;
+        return (fn ? fn(i) : 1) * v / 2;
+      });
+      const det = 110 * Math.pow(2, 25 / 1200);
+      const c1 = 1200 * Math.log2(Tuner._detect(rich(det), sr).f / 110);
+      const decay = Tuner._detect(rich(82.4069, i => Math.exp(-i / (N * 0.6))), sr);
       let seed = 1; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5;
-      const noisy = Float32Array.from({ length: N }, (_, i) =>
-        Math.sin(2 * Math.PI * 110 * i / sr) + rnd() * 0.3);
-      const silence = new Float32Array(N);
-      const f = Tuner._detect(noisy, sr);
-      return Math.abs(1200 * Math.log2(f / 110)) < 5 && Tuner._detect(silence, sr) === -1;
+      const noisy = Float32Array.from(rich(82.4069), (v, i) => v + rnd() * 0.3);
+      const nz = Tuner._detect(noisy, sr);
+      const cents = (a, b) => Math.abs(1200 * Math.log2(a / b));
+      return Math.abs(c1 - 25) < 3 && cents(decay.f, 82.4069) < 4 && cents(nz.f, 82.4069) < 6;
+    }, false));
+    assert('Tuner: silence and pure noise are refused', safe(() => {
+      const sr = 48000, N = 4096;
+      let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5;
+      const s1 = Tuner._detect(new Float32Array(N), sr);
+      const s2 = Tuner._detect(Float32Array.from({ length: N }, () => rnd() * 0.6), sr);
+      return s1.f === -1 && (s2.f === -1 || s2.clarity < 0.6);
     }, false));
 
     withState({ key:'C', mode:'ionian', tonality:'major' }, () => {
