@@ -12,10 +12,14 @@ const Tuner = (() => {
   // Standard tuning, low to high. The needle always measures against the
   // NEAREST string: a tuner should tell you how far this string is, not which
   // abstract note you are near.
+  // pitch = semitones from middle C, matching AudioEngine/the fretboard bases.
   const STRINGS = [
-    { n: 'E', oct: 2, f: 82.4069 }, { n: 'A', oct: 2, f: 110.0000 },
-    { n: 'D', oct: 3, f: 146.8324 }, { n: 'G', oct: 3, f: 195.9977 },
-    { n: 'B', oct: 3, f: 246.9417 }, { n: 'E', oct: 4, f: 329.6276 },
+    { n: 'E', oct: 2, f: 82.4069,  pitch: -20, ord: 6 },
+    { n: 'A', oct: 2, f: 110.0000, pitch: -15, ord: 5 },
+    { n: 'D', oct: 3, f: 146.8324, pitch: -10, ord: 4 },
+    { n: 'G', oct: 3, f: 195.9977, pitch: -5,  ord: 3 },
+    { n: 'B', oct: 3, f: 246.9417, pitch: -1,  ord: 2 },
+    { n: 'E', oct: 4, f: 329.6276, pitch: 4,   ord: 1 },
   ];
 
   let stream = null, ctx = null, analyser = null, raf = 0, buf = null;
@@ -25,7 +29,11 @@ const Tuner = (() => {
   let _lockedF = 0;        // manual string lock (0 = auto)
   let _shownStr = null, _strVotes = 0;   // auto string hysteresis
   let _lastGoodAt = 0;     // display hold: brief dropouts don't blank the needle
-  const CLARITY_GATE = 0.8, HOLD_MS = 700;
+  // Auto-mode tuning (V6.39): gate a notch lower for weak phone signals,
+  // string switch at 3 agreeing frames instead of 4, longer display hold —
+  // the auto should feel right WITHOUT reaching for the manual lock.
+  const CLARITY_GATE = 0.75, HOLD_MS = 900, SWITCH_VOTES = 3;
+  let _muteUntil = 0;   // while the reference note plays, the mic hears the speaker
 
   // ── the detector (pure) ─────────────────────────────
   // V6.38 — rewritten as MPM (McLeod Pitch Method) after the field report "va
@@ -138,6 +146,7 @@ const Tuner = (() => {
   function _blank(p) {
     _smooth = null; _ring.length = 0; _shownStr = null; _strVotes = 0;
     p.querySelector('.tn-note').textContent = '–';
+    const wh = p.querySelector('.tn-which'); if (wh) wh.textContent = '';
     p.querySelector('.tn-cents').textContent = '';
     p.querySelector('.tn-needle').style.setProperty('--c', 0);
     p.classList.remove('in-tune');
@@ -165,7 +174,7 @@ const Tuner = (() => {
     let target = _lockedF ? STRINGS.find(x => x.f === _lockedF) : nearestString(f);
     if (!_lockedF) {
       if (_shownStr && target.f !== _shownStr.f) {
-        if (++_strVotes < 4) target = _shownStr; else { _shownStr = target; _strVotes = 0; }
+        if (++_strVotes < SWITCH_VOTES) target = _shownStr; else { _shownStr = target; _strVotes = 0; }
       } else { _shownStr = target; _strVotes = 0; }
     }
 
@@ -174,6 +183,8 @@ const Tuner = (() => {
     c = _smooth;
     const inTune = Math.abs(c) <= 3;
     p.querySelector('.tn-note').textContent = target.n;
+    const which = p.querySelector('.tn-which');
+    if (which) which.textContent = `${target.ord}ª · ${target.n}${target.oct}`;
     p.querySelector('.tn-cents').textContent = `${c > 0 ? '+' : ''}${c.toFixed(0)}¢`;
     p.querySelector('.tn-needle').style.setProperty('--c', c);
     p.classList.toggle('in-tune', inTune);
@@ -186,7 +197,7 @@ const Tuner = (() => {
   function _tick() {
     if (!analyser) return;
     _skip = !_skip;
-    if (!_skip) {
+    if (!_skip && performance.now() > _muteUntil) {
       analyser.getFloatTimeDomainData(buf);
       _paint(detect(buf, ctx.sampleRate));
     }
@@ -197,6 +208,7 @@ const Tuner = (() => {
   // neighbour string than to themselves — auto-pick then steers you wrong).
   // Tap the locked dot again for auto.
   function lockString(f) {
+    const was = _lockedF;
     _lockedF = _lockedF === f ? 0 : f;
     _ring.length = 0; _smooth = null;
     const p = el(); if (!p) return;
@@ -204,6 +216,16 @@ const Tuner = (() => {
     p.querySelectorAll('.tn-str').forEach(x =>
       x.classList.toggle('locked', x.dataset.f === String(_lockedF)));
     haptic('sel');
+    // The dot SOUNDS its string — the reference to tune by ear against. While
+    // it rings, detection pauses: the mic would chase the speaker.
+    if (_lockedF && _lockedF !== was) {
+      const target = STRINGS.find(x => x.f === _lockedF);
+      if (target && typeof AudioEngine === 'object' && AudioEngine.resume()) {
+        _muteUntil = performance.now() + 1400;
+        if (AudioEngine.playGuitarNote) AudioEngine.playGuitarNote(target.pitch);
+        else AudioEngine.playNote(target.pitch, 1.2);
+      }
+    }
   }
 
   // ── mic lifecycle ───────────────────────────────────
