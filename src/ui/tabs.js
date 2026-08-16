@@ -79,7 +79,12 @@ function initTabbarMinimise() {
     document.body.classList.toggle('tabbar-min', d > 0 && y > 40);
   };
   addEventListener('scroll', () => {
-    if (ticking) return; ticking = true; requestAnimationFrame(apply);
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(apply);
+    // Backstop: a dropped rAF used to leave ticking=true FOREVER — the
+    // minimise silently stopped responding until some other frame fired.
+    // (apply resets ticking first thing, so the double call is idempotent.)
+    setTimeout(apply, 90);
   }, { passive: true });
 }
 
