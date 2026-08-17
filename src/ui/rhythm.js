@@ -33,8 +33,11 @@ const Rhythm = (() => {
     const pat = on ? _genrePattern(curGenre) : [];
     el.innerHTML = `
       <div class="rt-head">
-        <button class="rt-toggle${on ? ' on' : ''}" data-act="rhythm.toggle"
-          aria-pressed="${on}">${on ? '■' : '▶'}</button>
+        <!-- A SWITCH, not a play button. It shipped as ▶/■ and read as a fourth
+             transport ("cantidad de botones de Play… es un lío") — but it never
+             played anything: it arms the drum track so the ONE Play carries it. -->
+        <button class="rt-switch${on ? ' on' : ''}" role="switch" data-act="rhythm.toggle"
+          aria-checked="${on}" aria-label="${L('Rhythm track', 'Pista de ritmo')}"><i></i></button>
         <span class="rt-name">${L('Rhythm', 'Ritmo')}</span>
         ${on ? `<div class="rt-genres">
           ${Object.keys(GENRES).map(k => `<button class="rt-g${k === curGenre ? ' on' : ''}"

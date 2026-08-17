@@ -300,6 +300,34 @@ try {
       await mp.waitForTimeout(300);
     }
 
+    // ONE play vocabulary (V6.42): while the song plays, every transport
+    // control shows stop — and the two former impostors stay out of the
+    // costume: the rhythm switch has no ▶/■ glyph, the metronome toggle keeps
+    // its own icon and lights up instead of swapping to stop.
+    {
+      const pv = await mp.evaluate(async () => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        switchTab('build'); if (!(st.history || []).length) surpriseMe();
+        Inspector.clear(); await wait(300);
+        if (typeof _progRAF !== 'undefined' && _progRAF) stopProgression();
+        if (typeof playing !== 'undefined' && playing) stopPlay();
+        await wait(200);
+        toggleProgPlay(); await wait(400);
+        const r = {
+          transportsStopped: [...document.querySelectorAll('#playProgBtn, .ts-play')]
+            .every(b => b.classList.contains('is-stop')),
+          rhythmHasNoPlayGlyph: !/[▶■]/.test(document.querySelector('.rt-switch')?.textContent || ''),
+          rhythmIsSwitch: document.querySelector('.rt-switch')?.getAttribute('role') === 'switch',
+          metroKeepsOwnIcon: document.getElementById('metroPlay')?.dataset.ico !== 'play',
+        };
+        toggleProgPlay(); await wait(200);
+        return r;
+      });
+      for (const k of Object.keys(pv)) {
+        if (!pv[k]) { console.error(`FAIL  play vocabulary: ${k}`); failed++; }
+      }
+    }
+
     // The tour walks the tabs (V6.34). Its old opening bug — asking for a
     // button that lives in another mode — is exactly what this asserts against:
     // on every step, the spotlight target must be visible in that step's mode,

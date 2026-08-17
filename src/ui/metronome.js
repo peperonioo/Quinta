@@ -78,7 +78,9 @@ const Metronome = {
   },
   _playBtn() {
     const b = document.getElementById('metroPlay');
-    if (b) setIcon(b, this.playing ? 'stop' : 'play');
+    // Pressed state, not a play/stop swap: the metronome is a TOGGLE (tick
+    // on/off), and wearing the transport's ▶/■ made it read as a fourth Play.
+    if (b) { b.classList.toggle('running', this.playing); b.setAttribute('aria-pressed', String(this.playing)); }
   },
 
   // ── Tap tempo (V6.06 redesign — measurement-grade) ────

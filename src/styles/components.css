@@ -607,3 +607,25 @@ body[data-mode="explore"] .rhythm-track { display:none }
 .tn-str.locked { border-color:var(--accent); color:#fff; background:var(--accent);
   box-shadow:0 0 14px rgba(232,68,26,.45) }
 .tuner-panel.str-locked .tn-str:not(.locked) { opacity:.45 }
+
+
+/* Rhythm SWITCH (V6.42) — replaces the ▶/■ disguise. Green-lit knob = the
+   drums ride along when the one transport plays. */
+.rt-switch {
+  width:44px; height:26px; border-radius:99px; border:1px solid var(--glass-border);
+  background:rgba(255,255,255,.07); cursor:pointer; position:relative; flex:none;
+  transition:background .2s var(--ease), border-color .2s;
+  padding:0;
+}
+.rt-switch i {
+  position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%;
+  background:#fff; opacity:.85; transition:transform .25s var(--spring), background .2s;
+  box-shadow:0 1px 4px rgba(0,0,0,.4);
+}
+.rt-switch.on { background:var(--accent); border-color:transparent }
+.rt-switch.on i { transform:translateX(18px); opacity:1 }
+
+/* Metronome toggle: lit while ticking (no ▶/■ — that vocabulary belongs to the
+   one transport). */
+.metro-play.running { background:var(--accent); border-color:transparent; color:#fff;
+  box-shadow:0 3px 12px -2px rgba(232,68,26,.5) }
