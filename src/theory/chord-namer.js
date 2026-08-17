@@ -35,6 +35,21 @@ const ChordNamer = (() => {
     ['7b9',   [0, 1, 4, 7, 10]],
     ['7#9',   [0, 3, 4, 7, 10]],
     ['5',     [0, 7]],
+    // ── Omitted-fifth voicings ────────────────────────
+    // "Exact, never guess" over-rotated: it demanded the 5th, and guitarists
+    // omit it CONSTANTLY — shell voicings (root·3rd·7th) are the bread of
+    // rhythm playing, and C·E·C on the board is simply C. The 5th adds no
+    // identity to these qualities, so naming without it is still exact.
+    // They sit after the full templates; the size gate means a full voicing
+    // can never be shadowed by its shell.
+    ['',      [0, 4]],
+    ['m',     [0, 3]],
+    ['7',     [0, 4, 10]],
+    ['maj7',  [0, 4, 11]],
+    ['m7',    [0, 3, 10]],
+    ['mMaj7', [0, 3, 11]],
+    ['9',     [0, 2, 4, 10]],
+    ['m9',    [0, 2, 3, 10]],
   ];
 
   const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -50,12 +65,6 @@ const ChordNamer = (() => {
     const bass = pc(Math.min(...pitches));
 
     if (uniq.length === 1) return [{ name: NAMES[uniq[0]], root: uniq[0], quality: 'note', bass, slash: false }];
-    if (uniq.length === 2) {
-      // A dyad is only a chord when it is a fifth (the power chord).
-      const int = pc(uniq[0] === bass ? uniq[1] - uniq[0] : uniq[0] - uniq[1]);
-      if (int === 7) return [{ name: NAMES[bass] + '5', root: bass, quality: '5', bass, slash: false }];
-      return [];
-    }
 
     const set = new Set(uniq);
     const out = [];

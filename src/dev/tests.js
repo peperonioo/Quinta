@@ -120,6 +120,20 @@
       const n = ps => (ChordNamer.name(ps)[0] || {}).name;
       return n([4, 12, 19]) === 'C/E' && n([9, 12, 16, 19]) === 'Am7' && n([0, 4, 7, 9]) === 'C6';
     }, false));
+    assert('Namer: shells and open voicings — how guitars actually voice', safe(() => {
+      // The field bug: C·E·C ("no exact name") — omitted fifths are the bread
+      // of guitar playing. Open chords, shells and dyads must all name.
+      const n = ps => (ChordNamer.name(ps)[0] || {}).name;
+      return n([0, 4, 12]) === 'C'                 // the screenshot: C E C
+          && n([0, 4]) === 'C' && n([0, 3]) === 'Cm'
+          && n([-12, -8, -2]) === 'C7'             // shell C·E·Bb
+          && n([-12, -8, -1]) === 'Cmaj7'          // shell C·E·B
+          && n([-12, -9, -2]) === 'Cm7'
+          && n([-17, -13, -7]) === 'G7'
+          && n([-15, -8, -3, 1, 4]) === 'A'        // open A
+          && n([-10, -3, 2, 6]) === 'D'            // open D
+          && n([-20, -13]) === 'E5';
+    }, false));
     assert('Namer: a real barre F names F', safe(() => {
       // F1 C2 F2 A2 C3 F3 — the E-shape barre voicing, absolute-ish pitches.
       return (ChordNamer.name([5, 12, 17, 21, 24, 29])[0] || {}).name === 'F';

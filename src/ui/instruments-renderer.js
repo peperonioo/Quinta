@@ -247,7 +247,7 @@ const ChordIdent = {
       // finger is the stray; a bare "no name" with 5 notes teaches nothing.
       const pitches = [...this.sel.values()];
       let near = null;
-      if (pitches.length >= 4) {
+      if (pitches.length >= 3) {
         // All depth-1 drops, then the SIMPLEST reading wins — the first hit in
         // tap order once offered ≈Fmadd9/G where a plainer name existed.
         const cands = [];
