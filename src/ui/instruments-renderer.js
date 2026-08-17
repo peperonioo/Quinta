@@ -80,7 +80,11 @@ function gotoInstrument(which) {
     if (other)  other.open  = false;
     if (target) target.open = true;
     _setInstrUI(which);
-    requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    // In Instrument mode the page STARTS at the header (key, switch, tuner) —
+    // centering the board scrolled that chrome straight off screen, which is
+    // why the switch went unnoticed. The centring is for the desktop drawers.
+    if (document.body.dataset.mode === 'instrument') scrollTo({ top: 0, behavior: 'smooth' });
+    else requestAnimationFrame(() => target?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   }
   // Instrument mode is a page: everything the guitarist came for is ALREADY
   // deployed — the neck, and the finger diagrams under it. No tap to reveal.

@@ -328,7 +328,21 @@ body[data-mode="instrument"] .instr-shapes-toggle { display:none !important }
    elsewhere the instrument is chosen in the inspector, next to the chord. */
 body[data-mode="instrument"] .sheet-head {
   display:flex; flex-direction:row; align-items:center; justify-content:space-between;
-  padding:0 2px 10px;
+  padding:0 2px 12px;
+}
+/* This switch DEFINES the whole tab — 48×32 icon chips undersold it ("muy muy
+   pequeños para la importancia que tienen"). Full segmented control here:
+   icon + name, thumb-height. The label spans exist only for this mode. */
+.instr-tab .it-txt { display:none }
+body[data-mode="instrument"] .instr-switch { padding:4px; border-radius:14px; gap:4px }
+body[data-mode="instrument"] .instr-tab {
+  width:auto; height:46px; min-width:118px; padding:0 18px;
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  border-radius:11px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600;
+}
+body[data-mode="instrument"] .instr-tab .it-txt { display:inline }
+@media (max-width:400px) {
+  body[data-mode="instrument"] .instr-tab { min-width:104px; padding:0 13px }
 }
 /* Not the island's swipe pager: here you chose an instrument, you are not
    flicking between two. One board, and it owns the page. */

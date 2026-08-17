@@ -121,4 +121,6 @@ const I18N_ES = {
   'doc.new': 'Nuevo',
   'ident.btn': '¿Acorde?',
   'tuner.btn': 'Afinador',
+  'instr.piano': 'Piano',
+  'instr.guitar': 'Guitarra',
 };

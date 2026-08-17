@@ -121,4 +121,6 @@ const I18N_EN = {
   'doc.new': 'New',
   'ident.btn': 'Chord?',
   'tuner.btn': 'Tuner',
+  'instr.piano': 'Piano',
+  'instr.guitar': 'Guitar',
 };
