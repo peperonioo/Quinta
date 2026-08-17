@@ -20,6 +20,10 @@
   --glass-specular:   inset 0 1px 0 rgba(255,255,255,.1);
   --shadow-float:     0 12px 36px -10px rgba(0,0,0,.5);
   --r-card:20px; --r-ctl:12px;
+  /* Changing tab should FEEL like changing rooms: the chrome's accent shifts
+     per mode. Content accents (clips, wheel, play) stay orange — this is only
+     the navigation's tint, so legibility never rides on it. */
+  --mode-accent: var(--accent2);
 
   --tabbar-h:52px;                /* the floating capsule itself */
   --tabbar-gap:11px;              /* air between it and the screen edge */
@@ -80,8 +84,13 @@
   --r-pill: 999px;
 
   /* Motion */
+  /* ── MOTION (V6.40) — two curves, named ──────────────
+     --ease   glides: fades, color, layout settling
+     --spring overshoots: things that POP under the finger (bubbles, capsule,
+              sheets arriving). Six anonymous cubic-beziers collapsed here. */
   --ease:        cubic-bezier(.22,1,.36,1);
-  --ui-ease:     cubic-bezier(.22,1,.36,1);
+  --ui-ease:     var(--ease);
+  --spring:      cubic-bezier(.34,1.4,.4,1);
   --ui-fast:     160ms;
   --ui-med:      320ms;
   --ui-slow:     620ms;

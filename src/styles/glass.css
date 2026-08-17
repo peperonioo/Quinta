@@ -72,3 +72,12 @@ body.light .builder-btn, body.light .doc-btn, body.light .genre-btn:not(.active)
   background:var(--glass-chrome-bg);
   backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
 }
+
+
+/* ── Mode accent — the chrome only ── */
+body[data-mode="instrument"] { --mode-accent:#e8b04a }   /* wood & brass */
+body[data-mode="styles"]     { --mode-accent:#b9a7ff }   /* reading violet */
+@media (max-width:860px) {
+  .tb-btn.active { color:var(--mode-accent) }
+}
+.tabs .tab-btn.active { color:var(--mode-accent) }

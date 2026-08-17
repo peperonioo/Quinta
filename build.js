@@ -176,15 +176,25 @@ function build() {
       .replace(/(["'`(])samples\//g, '$1../samples/')
       // Icons live at the root too — same reason as samples: don't duplicate.
       .replace(/(["'`(=])icons\//g, '$1../icons/')
-      .replace(/href="\.\.\/icons\//g, 'href="../icons/')
+      .replace(/href="\.\.\/icons\/apple-touch-icon\.png"/g, 'href="./apple-touch-icon.png"')
+      .replace(/href="\.\.\/icons\/icon-192\.png"/g, 'href="./icon-192.png"')
       .replace('<title>Quinta', '<title>Quinta V2 · ');
     fs.writeFileSync(path.join(V2DIR, 'index.html'), v2out, 'utf8');
+    // V2 gets its OWN icon (art/v2-icon-*.png — the glass Q with the lit-wedge
+    // ring). Copied into v2/ so the shared /icons/ dir — V1's installed
+    // identity — is never touched.
+    for (const [src, dst] of [['v2-icon-192.png', 'icon-192.png'],
+                              ['v2-icon-512.png', 'icon-512.png'],
+                              ['v2-apple-touch-icon.png', 'apple-touch-icon.png']]) {
+      const from = path.join(ROOT, 'art', src);
+      if (fs.existsSync(from)) fs.copyFileSync(from, path.join(V2DIR, dst));
+    }
     fs.writeFileSync(path.join(V2DIR, 'manifest.webmanifest'), JSON.stringify({
       name: 'Quinta V2', short_name: 'Quinta V2',
       start_url: './index.html', scope: './', display: 'standalone',
       background_color: '#0a0a0b', theme_color: '#0a0a0b',
-      icons: [{ src: '../icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-              { src: '../icons/icon-512.png', sizes: '512x512', type: 'image/png' }],
+      icons: [{ src: './icon-192.png', sizes: '192x192', type: 'image/png' },
+              { src: './icon-512.png', sizes: '512x512', type: 'image/png' }],
     }, null, 2), 'utf8');
     // Cache-bust on the VERSION, not the date: three deploys landed on
     // 2026-07-29 and all three shared one cache bucket. The SW is network-first

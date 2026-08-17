@@ -151,7 +151,7 @@ body.light .builder-btn.play.is-stop { background:#3a3a42; color:#fff }
 body.light .builder-step  { background:rgba(0,0,0,.04) }
 .builder-step:hover        { transform:translateY(-1px); border-color:rgba(232,68,26,.36) }
 .builder-step .step-num    { font-family:'DM Mono',monospace; font-size:8px; color:var(--muted); width:15px; height:15px; border-radius:50%; display:grid; place-items:center; background:var(--sel-bg); flex:0 0 auto }
-.builder-step .step-chord  { font-family:'DM Serif Display',serif; font-size:19px; line-height:1; color:var(--ink); flex:0 0 auto }
+.builder-step .step-chord  { font-family:'DM Serif Display',serif; font-size:20px; line-height:1; color:var(--ink); flex:0 0 auto }
 .builder-step .step-degree { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); flex:0 0 auto; margin-right:1px }
 .builder-arrow   {
   font-family:'DM Mono',monospace; font-size:12px; color:var(--accent); flex:0 0 auto;
@@ -177,7 +177,7 @@ body.light .builder-step  { background:rgba(0,0,0,.04) }
 .rk-beat              { position:absolute; top:11px; width:1px; height:5px; background:var(--line) }
 .snap-btn             { position:absolute; right:0; top:0; height:18px; padding:0 9px; border-radius:6px;
                         border:1px solid var(--line); background:rgba(14,12,18,.92); color:var(--muted);
-                        font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.02em; cursor:pointer; z-index:2;
+                        font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.02em; cursor:pointer; z-index:2;
                         transition:color .15s, border-color .15s }
 body.light .snap-btn  { background:rgba(250,247,241,.94) }
 .snap-btn:hover       { color:var(--ink); border-color:rgba(232,68,26,.42) }
@@ -230,7 +230,7 @@ body.light .builder-step .step-len { color:var(--accent); opacity:1 }
   position:absolute; top:5px; left:6px;
   width:14px; height:14px; font-size:7px;
 }
-.builder-row.is-timeline .builder-step .step-chord { font-size:18px; margin-top:6px }
+.builder-row.is-timeline .builder-step .step-chord { font-size:17px; margin-top:6px }
 .builder-step .step-sub { display:flex; align-items:baseline; gap:6px }
 .builder-step .step-len {
   font-family:'DM Mono',monospace; font-size:9px; color:var(--accent2);
@@ -312,7 +312,7 @@ body.light .builder-step .step-len { color:var(--accent); opacity:1 }
   display:flex; justify-content:space-between; align-items:center; gap:12px;
   margin-top:12px; padding-top:12px;
   border-top:1px solid rgba(128,128,128,.14);
-  font-size:10.5px; color:var(--muted); line-height:1.35;
+  font-size:10px; color:var(--muted); line-height:1.35;
 }
 .builder-meta b { color:var(--ink); font-weight:600 }
 
@@ -337,7 +337,7 @@ body.light .builder-step .step-len { color:var(--accent); opacity:1 }
   margin-top:4px !important; max-width:560px !important; line-height:1.35 !important;
 }
 .builder-next-context {
-  font-family:'DM Mono',monospace !important; font-size:8.5px !important;
+  font-family:'DM Mono',monospace !important; font-size:8px !important;
   letter-spacing:.08em !important; color:var(--muted) !important;
   text-transform:uppercase !important; white-space:nowrap !important; opacity:.78 !important;
 }

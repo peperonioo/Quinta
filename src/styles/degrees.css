@@ -30,8 +30,8 @@ body.light .degrees-row { background:rgba(247,243,236,.9) }
   letter-spacing:.04em; color:var(--ink); opacity:.5;
 }
 .degree.q-min .roman, .degree.q-dim .roman { opacity:.4 }   /* minor/dim a touch softer */
-.degree .dn    { font-family:'DM Serif Display',serif; font-size:19px; margin-top:4px; line-height:1; color:var(--ink) }
-.degree .dq    { font-size:8.5px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:.05em }
+.degree .dn    { font-family:'DM Serif Display',serif; font-size:20px; margin-top:4px; line-height:1; color:var(--ink) }
+.degree .dq    { font-size:8px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:.05em }
 /* A little more presence overall */
 .degree { transition:background .15s, box-shadow .15s, transform .1s var(--ease) }
 .degree:hover { background:rgba(232,68,26,.08); box-shadow:inset 0 -2px 0 rgba(232,68,26,.35) }
@@ -63,7 +63,7 @@ body.light .degrees-row { background:rgba(247,243,236,.9) }
   background:inherit;
   border-right:1px solid var(--card-bd); border-bottom:1px solid var(--card-bd);
 }
-.deg-popup h3    { font-family:'DM Serif Display',serif; font-size:18px; margin-bottom:4px }
+.deg-popup h3    { font-family:'DM Serif Display',serif; font-size:17px; margin-bottom:4px }
 .deg-popup .psub { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:.08em; margin-bottom:8px }
 .deg-popup p     { font-size:11px; line-height:1.45 }
 .deg-popup .pfeel { display:none }

@@ -59,7 +59,7 @@
     transform:translateX(-50%); transform-origin:bottom center; pointer-events:auto;
     display:flex; align-items:center; gap:10px; padding:7px 15px 7px 7px; cursor:pointer;
     border-radius:999px;
-    transition:opacity .2s var(--ease), transform .3s cubic-bezier(.34,1.5,.5,1),
+    transition:opacity .2s var(--ease), transform .3s var(--spring),
                bottom .3s var(--ui-ease);
   }
   /* Heading into content the bar shrinks — the accessory gets out of the way
@@ -71,7 +71,7 @@
   /* This class had NO rule at all, so <b>100</b><small>BPM</small> rendered flush
      as "100BPM" on every mobile screen, the onboarding tour included. */
   .ts-bwrap { display:flex; align-items:baseline; gap:3px; cursor:pointer }
-  .ts-cap .ts-k { font-family:'DM Serif Display',serif; font-size:16px; color:var(--ink); line-height:1 }
+  .ts-cap .ts-k { font-family:'DM Serif Display',serif; font-size:15px; color:var(--ink); line-height:1 }
   .ts-cap .ts-m { font-size:11px; color:var(--muted) }
   .ts-cap .ts-b { font-family:'DM Mono',monospace; font-size:13px; color:var(--ink) }
   .transport-sheet[data-state="open"] .ts-cap { opacity:0; transform:translateX(-50%) scale(.8); pointer-events:none }
@@ -82,7 +82,7 @@
     display:flex; flex-direction:column; max-height:82svh; overflow:hidden;
     border-radius:26px; transform-origin:bottom center;
     opacity:0; transform:translateY(18px) scale(.96); pointer-events:none;
-    transition:opacity .24s var(--ease), transform .34s cubic-bezier(.34,1.28,.5,1);
+    transition:opacity .24s var(--ease), transform .34s var(--spring);
   }
   .transport-sheet[data-state="open"] .ts-panel { opacity:1; transform:none; pointer-events:auto }
 
@@ -100,11 +100,11 @@
   .ts-head .ts-m { font-size:11px; color:var(--muted) }
   .ts-bpm { margin-left:auto; display:flex; align-items:baseline; gap:3px; background:transparent; border:0; cursor:pointer; white-space:nowrap }
   .ts-bpm .ts-b { font-family:'DM Mono',monospace; font-size:14px; color:var(--ink) }
-  .ts-bpm small { font-size:8.5px; color:var(--muted); letter-spacing:.05em }
+  .ts-bpm small { font-size:8px; color:var(--muted); letter-spacing:.05em }
   .ts-chev { color:var(--muted); display:inline-flex; transition:transform .3s var(--ease) }
 
   .ts-body { overflow-y:auto; padding:2px 12px calc(12px + var(--mobile-safe-bottom,0px)) }
-  .ts-section-label { font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:12px 4px 8px }
+  .ts-section-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:12px 4px 8px }
 
 
   /* Shapes toggle is guitar-only; hidden until the guitar instrument is active. */

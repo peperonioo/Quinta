@@ -125,7 +125,7 @@ body.light #wheelPointer { fill:rgba(20,20,20,.28) !important }
 }
 @keyframes lockRingSpin  { to { transform:rotate(360deg) } }
 @keyframes lockRingPulse { 0%,100% { opacity:.55 } 50% { opacity:1 } }
-.circle-wrap.wheel-locked #wheelLockBadge { animation:lockBadgePop .34s cubic-bezier(.34,1.56,.5,1) }
+.circle-wrap.wheel-locked #wheelLockBadge { animation:lockBadgePop .34s var(--spring) }
 @keyframes lockBadgePop { 0% { transform:translateY(3px) scale(.7); opacity:0 } 100% { transform:none; opacity:1 } }
 .circle-wrap { position:relative }
 .wheel-lock-hint {

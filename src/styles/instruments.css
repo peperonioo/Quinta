@@ -92,7 +92,7 @@
 /* ── Guitar Chord Shape Strip ─────────────────────────*/
 .gss-strip {
   max-height: 0; overflow: hidden;
-  transition: max-height .4s cubic-bezier(.34,1.4,.4,1);
+  transition: max-height .4s var(--spring);
 }
 .gss-strip.gss-on { max-height: 260px; }
 .gss-head {
@@ -202,7 +202,7 @@
   background:linear-gradient(180deg, rgba(20,20,26,.92), rgba(12,12,16,.95));
   border:1px solid rgba(255,255,255,.12); border-radius:22px;
   box-shadow:0 40px 110px rgba(0,0,0,.6); backdrop-filter:blur(30px); color:#f0ede8;
-  transform:scale(.95) translateY(8px); transition:transform .3s cubic-bezier(.34,1.4,.4,1);
+  transform:scale(.95) translateY(8px); transition:transform .3s var(--spring);
   overflow:hidden;
 }
 body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96), rgba(244,241,236,.98)); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
@@ -252,7 +252,7 @@ body.light .iz-close { background:rgba(255,255,255,.8); border-color:rgba(0,0,0,
     top:calc(50dvh - 50dvw); left:calc(50dvw - 50dvh);
     border-radius:0;
     transform:rotate(-90deg) scale(.96);
-    transition:transform .3s cubic-bezier(.34,1.4,.4,1);
+    transition:transform .3s var(--spring);
   }
   .instr-zoom.open .iz-panel { transform:rotate(-90deg) }
   .piano.zoom { height:min(44dvw, 260px) }
@@ -270,7 +270,7 @@ body.light .iz-close { background:rgba(255,255,255,.8); border-color:rgba(0,0,0,
 
 /* Pack badge on pack-gated voices */
 .snd-btn .pack-chip {
-  font-family:'DM Mono',monospace; font-style:normal; font-size:7.5px; letter-spacing:.06em;
+  font-family:'DM Mono',monospace; font-style:normal; font-size:7px; letter-spacing:.06em;
   color:var(--accent2); background:var(--degree-tonic); border:1px solid rgba(232,68,26,.25);
   border-radius:4px; padding:1px 4px; margin-left:5px; vertical-align:1px;
 }

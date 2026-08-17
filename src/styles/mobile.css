@@ -24,7 +24,7 @@
   .theme-btn, #settingsBtn, #helpBtn { width:40px !important; height:40px !important }
   .settings-mini span { display:none }   /* the EN/ES value alone is clear enough */
   .tabs           { border-radius:14px; padding:3px; flex:0 0 auto }
-  .tab-btn        { padding:11px 9px; font-size:10.5px }   /* three modes, same bar */
+  .tab-btn        { padding:11px 9px; font-size:10px }   /* three modes, same bar */
   .tabs-3         { flex:1 1 auto; min-width:0 }
   .tabs-3 .tab-btn { padding:11px 6px; white-space:nowrap }
   .main-row       { grid-template-columns:1fr; gap:6px; margin-bottom:8px }
@@ -76,7 +76,7 @@
   .theory-strip .tst-scale { flex:1 1 auto; min-width:0 }
   .tst-block { display:flex; flex-direction:column; gap:3px; min-width:0 }
   .tst-lbl {
-    font-family:'DM Mono',monospace; font-size:7.5px; letter-spacing:.12em;
+    font-family:'DM Mono',monospace; font-size:7px; letter-spacing:.12em;
     text-transform:uppercase; color:var(--muted); white-space:nowrap;
   }
   .tst-val { font-family:var(--wheel-font); font-size:13px; line-height:1; color:var(--ink); white-space:nowrap }
@@ -88,7 +88,7 @@
             mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent);
   }
   .tst-scale .scale-orbs::-webkit-scrollbar { display:none }
-  .tst-scale .chip { flex:0 0 auto; font-size:9.5px; padding:2px 5px }
+  .tst-scale .chip { flex:0 0 auto; font-size:9px; padding:2px 5px }
   .tst-scale .scale-orbs { flex-wrap:nowrap }
   /* Lighter wheel on mobile so scrolling stays smooth */
   #wheelSheen     { animation:none !important; opacity:0 !important }
@@ -148,7 +148,7 @@
   .micro-popover.open { transform:translateY(0) scale(1) }
   /* DAW timeline: tighter beat width + a hint that the row scrolls sideways */
   .builder-row.is-timeline { --px-beat:38px; gap:4px }
-  .builder-row.is-timeline .builder-step .step-chord { font-size:16px }
+  .builder-row.is-timeline .builder-step .step-chord { font-size:15px }
   .builder-step .step-resize { width:20px }   /* easier to grab with a thumb */
 
 
@@ -237,7 +237,7 @@
     background:var(--ui-surface-strong);
     box-shadow:0 -14px 40px rgba(0,0,0,.5);
     padding:14px 15px calc(16px + var(--mobile-safe-bottom,0px));
-    animation:inspUp .26s var(--ease);
+    animation:inspUp .34s var(--spring);
   }
   /* The sheet is fixed, so it adds no height — without this the page cannot
      scroll and the clip stays trapped underneath it. */

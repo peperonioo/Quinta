@@ -53,8 +53,8 @@ body.light .beyond-key { background:rgba(0,0,0,.025) }
 .beyond-key:hover  { border-color:var(--accent2); background:rgba(255,255,255,.06) }
 .beyond-key:active { transform:scale(.97) }
 .beyond-key .bk-ico  { color:var(--accent2); font-size:15px; line-height:1 }
-.beyond-key .bk-text { font-family:'DM Sans',sans-serif; font-size:12.5px; font-weight:600 }
-.beyond-key .bk-sub  { font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.05em; color:var(--muted) }
+.beyond-key .bk-text { font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600 }
+.beyond-key .bk-sub  { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.05em; color:var(--muted) }
 
 /* ── Liquid-gel bubble (V5.3) ──────────────────────────
    Layered: button (size) > .nb-float (idle float) > .nb-body (gel skin, driven
