@@ -124,7 +124,9 @@ body.light {
   --card:     rgba(255,255,255,.8);
   --card-bd:  rgba(0,0,0,.1);
   --accent:       #c83010;
-  --accent2:      #e8441a;
+  /* AA measured: #e8441a on the cream cards is 3.72:1 — fails for text. #c83010
+     is 5.05:1. Orange TEXT uses the deep accent; fills keep the brighter one. */
+  --accent2:      #c83010;
   --accent-light: #e8441a;
   /* Design-system light surface + glass */
   --surface:      #efe9df;

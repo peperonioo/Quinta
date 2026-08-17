@@ -164,6 +164,7 @@ ActionRegistry.addAll({
   // ── Styles tab (V6.33) ──
   'styles.genre':     el => StylesTab.pick(_aStr(el, 'id')),
   'styles.bpm':       ()  => StylesTab.useBpm(),
+  'styles.prog':      el  => StylesTab.useProg(_aInt(el, 'idx')),
 
   // ── Chord identify (V6.33) ──
   'ident.toggle':     ()  => ChordIdent.toggle(),

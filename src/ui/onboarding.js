@@ -42,10 +42,18 @@ const Onboarding = (() => {
       try:   { en: 'Press Play.', es: 'Dale a Play.' },
       done:  () => (typeof playing !== 'undefined' && playing)
                || (typeof _progRAF !== 'undefined' && _progRAF) },
-    { mode: 'instrument', sel: '.drawers', pad: 8,
+    { mode: 'instrument', sel: '.drawers', pad: 8, interactive: true,
+      // The other three steps gate on a real action; this one only showed. Same
+      // deal now: the board must answer YOUR fingers before the tour ends.
+      prep: () => {
+        try { if (typeof playing !== 'undefined' && playing) stopPlay(); } catch (_) {}
+        try { gotoInstrument('guitar'); } catch (_) {}
+      },
       title: { en: 'Now play it yourself', es: 'Ahora tócala tú' },
-      body:  { en: 'Your instrument, full size: the scale on the neck, finger shapes for every chord. “Chord?” names whatever you fret, and the tuning fork opens a tuner.',
-               es: 'Tu instrumento a tamaño completo: la escala en el mástil y las posiciones de cada acorde. «¿Acorde?» nombra lo que pises, y el diapasón abre el afinador.' } },
+      body:  { en: 'Your instrument, full size. Tap “Chord?” and press a note on the neck — the board names whatever your fingers spell. The tuning fork opens a tuner.',
+               es: 'Tu instrumento a tamaño completo. Pulsa «¿Acorde?» y pisa una nota en el mástil — el tablero nombra lo que digan tus dedos. El diapasón abre el afinador.' },
+      try:   { en: 'Tap “Chord?”, then press a note.', es: 'Pulsa «¿Acorde?» y pisa una nota.' },
+      done:  () => typeof ChordIdent === 'object' && ChordIdent.on && ChordIdent.sel.size >= 1 },
   ];
 
 
@@ -143,6 +151,7 @@ const Onboarding = (() => {
     idx = Math.max(0, Math.min(steps.length - 1, i));
     const s = steps[idx];
     if (s.mode && document.body.dataset.mode !== s.mode && typeof switchTab === 'function') switchTab(s.mode);
+    if (s.prep) try { s.prep(); } catch (_) {}
     // A leftover selection puts the inspector sheet over whatever this step
     // spotlights (the wheel-add of step 1 selects the chord it added, and the
     // sheet then buried step 2's bubbles). Every step starts on a clean stage.

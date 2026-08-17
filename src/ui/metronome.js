@@ -36,6 +36,19 @@ const Metronome = {
   stepBpm(d) { this.setBpm(Math.round(this.bpm()) + d); },
 
   toggleOpen() {
+    // One-time breadcrumb for the hidden gesture: the fork button is the door,
+    // the swipe is the shortcut nobody can discover unaided.
+    if (!st.tunerHintSeen) {
+      st.tunerHintSeen = 1; saveState();
+      try {
+        const h = document.createElement('div');
+        h.className = 'tuner-gesture-hint';
+        h.textContent = st.lang === 'es' ? 'Consejo: desliza esta cápsula → para abrir el afinador' : 'Tip: slide this capsule → to open the tuner';
+        document.body.appendChild(h);
+        setTimeout(() => h.classList.add('on'), 30);
+        setTimeout(() => { h.classList.remove('on'); setTimeout(() => h.remove(), 400); }, 4200);
+      } catch (_) {}
+    }
     this.open = !this.open;
     document.getElementById('metronome')?.classList.toggle('open', this.open);
     document.querySelector('#metronome .metro-pill')?.setAttribute('aria-expanded', this.open ? 'true' : 'false');

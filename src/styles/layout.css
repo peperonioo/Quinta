@@ -527,6 +527,19 @@ body[data-mode="instrument"] .instr-bar {
     grid-area:insp; position:sticky; top:12px; margin-top:0;
     max-height:calc(100svh - 40px); overflow-y:auto;
   }
+  /* No selection: the key card used to be a small summary floating over ~500px
+     of empty column. The column is the content now — degree buttons at button
+     size, room to breathe. (With a selection the chord content already fills.) */
+  body[data-mode="build"]:not(.has-selection) .build-cols > .inspector {
+    min-height:calc(100svh - 240px); display:flex; flex-direction:column;
+  }
+  body[data-mode="build"]:not(.has-selection) .build-cols .insp-sec { flex:1; display:flex; flex-direction:column }
+  body[data-mode="build"]:not(.has-selection) .build-cols .insp-degrees {
+    grid-template-columns:1fr 1fr; gap:9px; flex:1; align-content:start;
+  }
+  body[data-mode="build"]:not(.has-selection) .build-cols .insp-deg {
+    min-height:60px; font-size:15px;
+  }
 }
 
 /* The dock is retired in Build. It duplicated the inspector — same chord,

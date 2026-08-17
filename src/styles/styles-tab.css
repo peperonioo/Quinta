@@ -74,3 +74,24 @@ body[data-mode="styles"] #panel-styles { display:block; animation:fadeIn .3s var
 .bb:nth-child(3){ height:16px; animation:bass-p 1.6s .2s infinite }
 .bb:nth-child(4){ height:9px;  animation:bass-p 1.6s .6s infinite }
 .bb:nth-child(5){ height:12px; animation:bass-p 1.6s .1s infinite }
+
+
+/* Hero header (V6.43): the genre owns its colour and its tempo. */
+.prod-header.hero {
+  display:flex; align-items:center; gap:14px; padding:16px 18px;
+  border:1px solid var(--glass-border); border-radius:var(--r-card);
+  background:linear-gradient(120deg, color-mix(in srgb, var(--ghue) 16%, transparent), transparent 55%);
+}
+.ph-swatch { width:14px; align-self:stretch; border-radius:8px;
+  background:linear-gradient(180deg, var(--ghue), color-mix(in srgb, var(--ghue) 45%, transparent)) }
+.prod-title.xl { font-family:'DM Serif Display',serif; font-size:34px; line-height:1.05 }
+.bpm-suggest.big { margin-left:auto; display:flex; flex-direction:column; align-items:center;
+  min-width:76px; padding:10px 14px; border-radius:14px; cursor:pointer;
+  border:1px solid var(--glass-border); background:var(--glass-card-bg) }
+.bpm-suggest.big b { font-family:'DM Serif Display',serif; font-size:26px; font-weight:400; color:var(--ink) }
+.bpm-suggest.big small { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:.14em; color:var(--muted) }
+.prog-item.tappable { display:block; width:100%; text-align:left; cursor:pointer; border-radius:12px;
+  border:1px solid transparent; transition:border-color .18s, background .18s }
+.prog-item.tappable:hover { border-color:rgba(232,68,26,.35); background:rgba(232,68,26,.06) }
+.prog-go { font-family:'DM Mono',monospace; font-size:9px; color:var(--accent2); margin-left:auto; opacity:.85 }
+.prog-chords { display:flex; align-items:center; gap:6px; flex-wrap:wrap }

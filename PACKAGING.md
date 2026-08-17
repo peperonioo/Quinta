@@ -1,19 +1,61 @@
-# Packaging Quinta for the App Stores (Capacitor)
+# Roadmap a app iOS (y el camino completo a producto)
 
-The app is a static PWA built into `dist/`. Capacitor wraps that `dist/` in a
-native iOS/Android shell you can submit to the App Store and Google Play. The web
-code, the build (`node build.js`) and the deploy (GitHub Pages) are unchanged —
-Capacitor just adds native projects beside them.
+> Actualizado con la auditoría V6.41 y pedido como roadmap oficial (ago 2026).
+> Lo técnico está medio hecho: Capacitor ya está andamiado en este repo
+> (`capacitor.config.json`, scripts `cap:*`). Lo que ordena este documento es
+> CUÁNDO dar cada paso y qué puerta lo abre.
 
-This was scaffolded already:
-- `capacitor.config.json` — points Capacitor at `webDir: "dist"`.
-- `package.json` — Capacitor deps + `cap:sync` / `cap:ios` / `cap:android` scripts.
+## El roadmap
 
-> **Bundle ID:** currently `com.peperonioo.quinta` in `capacitor.config.json`.
-> Pick the final value **before** you create the App Store / Play listing — it is
-> permanent once submitted and tied to your developer account.
+| Fase | Qué | Coste | Puerta para avanzar |
+|------|-----|-------|---------------------|
+| **0 · PWA a amigos** (AHORA) | El enlace de /v2/ (o raíz al promocionar). Ya instalable, ya con telemetría, afinador y micro funcionando en Safari. | **0 €** | Ninguna — es esta semana |
+| **1 · Leer el funnel** | 2 semanas de datos de amigos (las 5 preguntas del audit p.6) | 0 € | doGet/Drive desbloqueado |
+| **2 · TestFlight** | Capacitor → Xcode → beta "app de verdad" para el círculo amplio | **99 $/año** (la cuenta Apple sirve para TestFlight Y para la store) | D7 amigos > 20% — no pagar cuota por un producto que no retiene |
+| **3 · App Store** | Ficha pública, review de Apple | (misma cuota) | Retención estable + los "must" de abajo resueltos |
+| **4 · Monetizar en iOS** | Studio como compra | 15-30% comisión Apple | Ventas web primero (Stripe en PWA, sin comisión) |
+
+## Por qué PWA primero sigue siendo correcto
+
+La app YA se instala en iOS (Compartir → Añadir a pantalla de inicio), suena,
+afina y mide. El wrapper nativo no añade ninguna capacidad que Quinta necesite
+hoy — añade distribución (store) y fricción de menos (instalar desde una ficha).
+Ambas valen dinero y review; se compran cuando la retención diga que hay algo
+que distribuir. Regla del proyecto desde el primer audit: **validar con
+telemetría antes de pagar tiendas.**
+
+## Fase 2 en detalle — de este repo a TestFlight (~1 día de trabajo)
+
+1. Cuenta [Apple Developer](https://developer.apple.com) — 99 $/año.
+2. `npm run cap:sync && npx cap add ios && npm run cap:ios` → abre Xcode.
+3. En Xcode: firmar con tu equipo, bundle id `com.peperonioo.quinta` (revisar
+   ANTES de subir nada: es permanente).
+4. **Info.plist** — imprescindible para el afinador:
+   `NSMicrophoneUsageDescription` = "Quinta usa el micrófono para afinar tu
+   guitarra." Sin esta clave, getUserMedia crashea la app nativa.
+5. Icono 1024×1024 — ya existe el arte (la Q de vidrio, `art/v2-icon-512.png`);
+   regenerar a 1024 con el mismo harness.
+6. Product → Archive → Distribute → TestFlight. Invitas por email.
+
+Notas WKWebView (probado por otros, vigilar en la primera build):
+- `getUserMedia` funciona en Capacitor desde iOS 14.3+ ✓ (el afinador vive).
+- `localStorage` persiste ✓ (el documento vive).
+- El service worker no hace falta dentro del wrapper (los archivos son locales).
+
+## Fase 3 en detalle — los "must" de la review de Apple
+
+- **Email de soporte real** (el `hello@quinta.app` de la landing no existe — es
+  bloqueador de ficha, no solo estético).
+- Política de privacidad (1 página: telemetría anónima, DNT respetado, sin
+  cuentas). La "nutrition label" de App Store se rellena con eso.
+- Guideline 4.2 (funcionalidad mínima): Quinta va sobrada — afinador +
+  identificador + secuenciador + export es una app "de verdad".
+- Si Studio se vende DENTRO de la app iOS → obligatorio IAP de Apple (15-30%).
+  Por eso la fase 4 recomienda: vender primero en la web (Stripe, 0% de Apple),
+  y en iOS decidir después entre IAP o app 100% completa sin compra.
 
 ---
+
 
 ## 0. What it costs
 

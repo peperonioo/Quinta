@@ -106,6 +106,9 @@ const CASES = [
   ['wheel adds a chord', '#wg > g',                                       () => (st.history || []).length > 0,
     () => { switchTab('explore'); HistoryEngine.clear(); }],
   ['tab.go build back','[data-act="tab.go"][data-tab="build"]',            () => document.body.dataset.mode === 'build'],
+  // Estilos → Crear (V6.43): a typical progression loads as real clips.
+  ['styles.prog',      '[data-act="styles.prog"][data-idx="0"]',            () => (st.history || []).length >= 3 && document.body.dataset.mode === 'build',
+    () => { HistoryEngine.clear(); switchTab('styles'); }],
   ['builder.clear',    '[data-act="builder.clear"]',                      () => (st.history || []).length === 0,
     () => { switchTab('build'); const m = document.getElementById('builderMore'); if (m.hasAttribute('hidden')) document.getElementById('moreBtn').click(); }],
 ];

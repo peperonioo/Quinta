@@ -12,6 +12,41 @@
 const StylesTab = (() => {
   const es = () => st.lang === 'es';
   const L  = (en, e) => (es() ? e : en);
+  // Each genre wears a colour — the header swatch and the tab's temperature.
+  const GENRE_HUES = { house: '#ff5a3c', neosoul: '#b98cff', jazz: '#5ba8e5' };
+
+  // "Cargar en Crear": parse the display names of a typical progression into
+  // history items. Extensions we don't voice (13ths) map to the closest voiced
+  // variant AND the label follows — the clip must not claim what the audio
+  // doesn't play.
+  const QUAL = [
+    [/^maj7/, 'Maj', 'maj7'], [/^maj9/, 'Maj', '9'], [/^m7b5/, 'Dim', 'm7b5'],
+    [/^m9/, 'Min', 'm9'], [/^m7/, 'Min', 'm7'], [/^m6/, 'Min', 'm6'], [/^m/, 'Min', 'triad'],
+    [/^13/, 'Maj', '9'], [/^9/, 'Maj', '9'], [/^7/, 'Maj', '7'], [/^6/, 'Maj', '6'],
+    [/^dim|^°/, 'Dim', 'triad'], [/^$/, 'Maj', 'triad'],
+  ];
+  function _parse(name) {
+    const m = /^([A-G][b#]?)(.*)$/.exec(name); if (!m) return null;
+    const [, root, rest] = m;
+    for (const [re, quality, variant] of QUAL) {
+      if (re.test(rest)) {
+        const suf = (CHORD_VARIANTS[quality] || []).find(v => v.id === variant)?.suf ?? rest;
+        return { note: root, chord: root + suf, quality, variant: variant === 'triad' ? null : variant };
+      }
+    }
+    return null;
+  }
+  function useProg(gi) {
+    const g = GENRES[curGenre]; const pr = g && g.progressions[gi]; if (!pr) return;
+    const items = pr.chords.map(_parse).filter(Boolean);
+    if (!items.length) return;
+    if ((st.history || []).length &&
+        !confirm(L('Replace your current progression?', '¿Sustituir tu progresión actual?'))) return;
+    HistoryEngine.clear();
+    items.forEach(it => HistoryEngine.addCustom(it));
+    tel('styles_useprog', { genre: curGenre, idx: gi });
+    switchTab('build');
+  }
 
   function pick(id) {
     if (!GENRES[id]) return;
@@ -36,13 +71,14 @@ const StylesTab = (() => {
         ${Object.keys(GENRES).map(k => `<button class="genre-btn${k === curGenre ? ' active' : ''}"
           data-act="styles.genre" data-id="${k}">${GENRES[k].title}</button>`).join('')}
       </div>
-      <div class="prod-header">
+      <div class="prod-header hero" style="--ghue:${GENRE_HUES[curGenre] || 'var(--accent)'}">
+        <span class="ph-swatch" aria-hidden="true"></span>
         <div>
-          <div class="prod-title">${g.title}</div>
-          <div class="prod-meta">${g.bpm} BPM · ${PL(g.sub)}</div>
+          <div class="prod-title xl">${g.title}</div>
+          <div class="prod-meta">${PL(g.sub)}</div>
         </div>
-        <button class="bpm-suggest" data-act="styles.bpm"
-          title="${L(`Use the suggested ${g.title} tempo (${g.bpm} BPM)`, `Usar el tempo sugerido de ${g.title} (${g.bpm} BPM)`)}">≈ ${g.bpm} BPM</button>
+        <button class="bpm-suggest big" data-act="styles.bpm"
+          title="${L(`Use the suggested ${g.title} tempo`, `Usar el tempo sugerido de ${g.title}`)}"><b>${g.bpm}</b><small>BPM</small></button>
       </div>
       <div class="prod-grid">
         ${g.cards.map(c => `<div class="prod-card"><h3>${PL(c.h)}</h3><div class="bigline">${PL(c.b)}</div><p>${PL(c.p)}</p></div>`).join('')}
@@ -54,10 +90,12 @@ const StylesTab = (() => {
       <div class="prog-section">
         <h3>${t('production.progressions')}</h3>
         <div class="prog-list">
-          ${g.progressions.map(pr => `<div class="prog-item">
-            <div class="prog-chords">${pr.chords.map(c => `<span class="prog-chord">${c}</span>`).join('')}</div>
+          ${g.progressions.map((pr, gi) => `<button class="prog-item tappable" data-act="styles.prog" data-idx="${gi}"
+            title="${L('Load into Build', 'Cargar en Crear')}">
+            <div class="prog-chords">${pr.chords.map(c => `<span class="prog-chord">${c}</span>`).join('')}
+              <span class="prog-go">${L('→ Build', '→ Crear')}</span></div>
             <div class="prog-desc">${PL(pr.desc)}</div>
-          </div>`).join('')}
+          </button>`).join('')}
         </div>
       </div>
       <div class="groove-section">
@@ -84,5 +122,5 @@ const StylesTab = (() => {
     render();
   }
 
-  return { render, pick, useBpm };
+  return { render, pick, useBpm, useProg };
 })();
