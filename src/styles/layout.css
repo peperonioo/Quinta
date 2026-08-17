@@ -328,8 +328,14 @@ body[data-mode="instrument"] .instr-shapes-toggle { display:none !important }
    elsewhere the instrument is chosen in the inspector, next to the chord. */
 body[data-mode="instrument"] .sheet-head {
   display:flex; flex-direction:row; align-items:center; justify-content:space-between;
+  /* WRAP is load-bearing: the full-size switch plus ¿Acorde?/Afinador no
+     longer fit one 390px row, and an unwrapped flex row widens the page —
+     which the browser answers with the whole-page zoom-out (the V6.28 bug,
+     nearly reintroduced by making the switch bigger). */
+  flex-wrap:wrap; gap:8px; min-width:0; max-width:100%;
   padding:0 2px 12px;
 }
+body[data-mode="instrument"] .sheet-head-actions { flex-wrap:wrap; min-width:0 }
 /* This switch DEFINES the whole tab — 48×32 icon chips undersold it ("muy muy
    pequeños para la importancia que tienen"). Full segmented control here:
    icon + name, thumb-height. The label spans exist only for this mode. */
