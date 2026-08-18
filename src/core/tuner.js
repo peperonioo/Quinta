@@ -34,6 +34,8 @@ const Tuner = (() => {
   // the auto should feel right WITHOUT reaching for the manual lock.
   const CLARITY_GATE = 0.75, HOLD_MS = 900, SWITCH_VOTES = 3;
   let _muteUntil = 0;   // while the reference note plays, the mic hears the speaker
+  let _dead = 0;        // consecutive all-zero frames → iOS dead-source watchdog
+  let _rebuilt = false; // one automatic rebuild per open, then we say so
 
   // ── the detector (pure) ─────────────────────────────
   // V6.38 — rewritten as MPM (McLeod Pitch Method) after the field report "va
@@ -199,6 +201,13 @@ const Tuner = (() => {
     _skip = !_skip;
     if (!_skip && performance.now() > _muteUntil) {
       analyser.getFloatTimeDomainData(buf);
+      // The level meter answers the question a dead needle cannot: is ANY
+      // signal arriving? It moves with the room before a note is even played.
+      let rms = 0; for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
+      rms = Math.sqrt(rms / buf.length);
+      const lv = el()?.querySelector('.tn-level i');
+      if (lv) lv.style.width = Math.min(100, Math.round(rms * 900)) + '%';
+      _checkDead(rms);
       _paint(detect(buf, ctx.sampleRate));
     }
     raf = requestAnimationFrame(_tick);
@@ -256,14 +265,8 @@ const Tuner = (() => {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
-      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-      if (ctx.state === 'suspended') ctx.resume();
-      const src = ctx.createMediaStreamSource(stream);
-      analyser = ctx.createAnalyser();
-      analyser.fftSize = 4096;   // a low E needs the longer window
-      src.connect(analyser);
-      buf = new Float32Array(analyser.fftSize);
-      _smooth = null;
+      await _buildAudioPath();
+      _smooth = null; _dead = 0; _rebuilt = false;
       _micBtn(false);
       tel('tuner_mic', { ok: true });
       _tick();
@@ -283,6 +286,53 @@ const Tuner = (() => {
         _setHint(_es() ? 'Toca el botón — el navegador te pedirá permiso.'
                        : 'Tap the button — the browser will ask for permission.');
       }
+    }
+  }
+
+  // iOS delivers PERPETUAL SILENCE from a MediaStreamSource whose AudioContext
+  // was created before the stream or inherited a mismatched sample rate — no
+  // error, no event, just zeros ("no detecta nada de nada"). The recipe that
+  // works: a FRESH context created AFTER getUserMedia, resumed and awaited.
+  async function _buildAudioPath() {
+    if (ctx) { try { ctx.close(); } catch (_) {} }
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // resume() can HANG unresolved when called outside a live gesture (autoplay
+    // policy) — awaiting it froze the whole start at "Pidiendo micrófono…".
+    // Race it with a timeout and, if still suspended, arm a one-shot resume on
+    // the NEXT tap anywhere: on iOS that in-gesture resume is the one that counts.
+    if (ctx.state === 'suspended') {
+      await Promise.race([ctx.resume().catch(() => {}), new Promise(r => setTimeout(r, 400))]);
+      if (ctx.state === 'suspended') {
+        const kick = () => { ctx.resume().catch(() => {}); document.removeEventListener('pointerdown', kick, true); };
+        document.addEventListener('pointerdown', kick, true);
+      }
+    }
+    const src = ctx.createMediaStreamSource(stream);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 4096;   // a low E needs the longer window
+    src.connect(analyser);
+    buf = new Float32Array(analyser.fftSize);
+  }
+
+  // Watchdog: if the input flatlines at literal zero while the track claims to
+  // be live, rebuild the path once (recovers the iOS dead-source case). If it
+  // stays dead, SAY so — "Toca una cuerda…" forever was indistinguishable from
+  // a broken tuner.
+  async function _checkDead(rms) {
+    if (rms > 1e-7) { _dead = 0; return; }
+    _dead++;
+    if (_dead === 40) {                       // ~2.5s of hard zeros
+      const live = stream && stream.getAudioTracks().some(t => t.readyState === 'live');
+      tel('tuner_signal', { dead: true, live, rebuilt: _rebuilt });
+      if (live && !_rebuilt) {
+        _rebuilt = true; _dead = 0;
+        await _buildAudioPath();
+        return;
+      }
+      _setHint(_es()
+        ? 'El micrófono está concedido pero no llega señal. Cierra el afinador, vuelve a abrirlo — y si sigue mudo, cierra y reabre la app.'
+        : 'Mic granted but no signal arrives. Close and reopen the tuner — if still silent, relaunch the app.');
+      _micBtn(true, _es() ? 'Reintentar' : 'Retry');
     }
   }
 

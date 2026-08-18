@@ -640,3 +640,8 @@ body[data-mode="explore"] .rhythm-track { display:none }
   pointer-events:none; max-width:86vw; text-align:center;
 }
 .tuner-gesture-hint.on { opacity:1; transform:translateX(-50%) translateY(0) }
+
+/* Input level — proof of life for the mic path */
+.tn-level { width:64%; height:3px; border-radius:2px; background:rgba(255,255,255,.08); overflow:hidden }
+.tn-level i { display:block; height:100%; width:0; border-radius:2px;
+  background:linear-gradient(90deg, var(--green,#4ade80), #a7f3c9); transition:width .12s linear }
