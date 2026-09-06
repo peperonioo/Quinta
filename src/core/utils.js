@@ -3,9 +3,66 @@
 
 const stripMinorSuffix = (key) => String(key || 'C').replace(/m$/, '');
 
-const ni = n => { const i = NOTES.indexOf(n); return i >= 0 ? i : (ENH[n] ?? 0); };
+// A note name is PARSED, never looked up: a letter plus any run of ♯/♭. The
+// table this replaced knew only the twelve sharp names and five flats, so a
+// correctly spelled scale degree (F♯ major ends on E♯, F Locrian on C♭) came
+// back as pitch class 0 — silently the wrong root, the wrong chord, the wrong
+// key lit on the keyboard. Anything the speller below can write, this reads.
+const LETTER_PC = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
+const ni = n => {
+  const s = String(n == null ? '' : n).trim();
+  let pc = LETTER_PC[s.charAt(0).toUpperCase()];
+  if (pc == null) return 0;
+  for (let i = 1; i < s.length; i++) {
+    const c = s.charAt(i);
+    if (c === '#' || c === '♯') pc++;
+    else if (c === 'b' || c === '♭') pc--;
+  }
+  return ((pc % 12) + 12) % 12;
+};
 const na = i => NOTES[(i + 120) % 12];
-const dn = n => (['Ab','Bb','Db','Eb','Gb'].includes(n) ? n : (FM[n] || n));
+// Spell ONE pitch class the way the ACTIVE key signature spells it. The old
+// table was flat-biased and unconditional, which is why G major displayed a G♭
+// where its F♯ belongs — on the scale card, the degree row and every chord name
+// derived from it. Naturals are never touched.
+const keyUsesFlats = () => { try { return FLAT_KEYS.has(wheelKey()); } catch (_) { return false; } };
+const dn = n => { const s = na(ni(n)); return (s.length > 1 && keyUsesFlats()) ? (FM[s] || s) : s; };
+
+// ── Scale spelling ────────────────────────────────────
+// A scale uses each letter exactly once, in order: F♯ major is F♯ G♯ A♯ B C♯ D♯
+// E♯ — never …F. So the seven names are DERIVED (letter from the degree,
+// accidental from the distance to that letter's natural), not looked up.
+const LETTERS = ['C','D','E','F','G','A','B'];
+const ENH_TONIC = { 'C#':'Db','Db':'C#','D#':'Eb','Eb':'D#','F#':'Gb','Gb':'F#','G#':'Ab','Ab':'G#','A#':'Bb','Bb':'A#' };
+const accStr = a => a === 0 ? '' : a > 0 ? '#'.repeat(a) : 'b'.repeat(-a);
+
+function _spellAttempt(tonic, intervals) {
+  const li = LETTERS.indexOf(String(tonic == null ? '' : tonic).charAt(0).toUpperCase());
+  if (li < 0) return null;
+  const pc0 = ni(tonic);
+  let worst = 0;
+  const names = intervals.map((iv, d) => {
+    const letter = LETTERS[(li + d) % 7];
+    // Fold into [-6..5] so the accidental is the SHORTEST way to that letter.
+    const alt = ((((pc0 + iv) % 12) - LETTER_PC[letter] + 18) % 12) - 6;
+    if (Math.abs(alt) > worst) worst = Math.abs(alt);
+    return letter + accStr(alt);
+  });
+  return { names, worst };
+}
+
+// Double accidentals are strictly correct and practically unreadable (A♯ Lydian
+// truly needs D𝄪). Where they appear the enharmonic tonic is tried first — B♭
+// Lydian says the same thing with single accidentals, which is what a musician
+// would actually write.
+function spellScale(tonic, intervals) {
+  const a = _spellAttempt(tonic, intervals);
+  if (a && a.worst <= 1) return a.names;
+  const b = _spellAttempt(ENH_TONIC[tonic], intervals);
+  if (b && b.worst <= 1) return b.names;
+  if (!a) return b ? b.names : intervals.map(iv => na(ni(tonic) + iv));
+  return (!b || a.worst <= b.worst) ? a.names : b.names;
+}
 
 const gm  = ()  => MODES.find(m => m.id === st.mode);
 
@@ -34,10 +91,11 @@ const gm  = ()  => MODES.find(m => m.id === st.mode);
 const wheelMode = () => (st.tonality === 'minor' ? 'aeolian' : 'ionian');
 const wmObj     = () => MODES.find(m => m.id === wheelMode());
 
-// Wheel + scale-notes card scale (Major or Minor only).
-const gs  = ()  => { const r = ni(st.key); return wmObj().intervals.map(i => dn(na(r + i))); };
+// Wheel + scale-notes card scale (Major or Minor only). Spelled from the tonic
+// as the wheel names it, so the notes always agree with the accidentals card.
+const gs  = ()  => spellScale(displayKeyLabel(), wmObj().intervals);
 // Mode scale — drives the degree row, suggestions and built chords.
-const modeScale = () => { const r = ni(st.key); return gm().intervals.map(i => dn(na(r + i))); };
+const modeScale = () => spellScale(displayKeyLabel(), gm().intervals);
 const gr  = ()  => { const r = ni(st.key); return gm().intervals.map(i => na(r + i)); };
 const gc  = ()  => { const s = modeScale(), m = gm(); return s.map((n, i) => ({ degree: m.degrees[i], note: n, quality: m.qualities[i], chord: n + (m.qualities[i] === 'Min' ? 'm' : m.qualities[i] === 'Dim' ? '°' : '') })); };
 

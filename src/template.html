@@ -254,6 +254,22 @@
       </div>
     </div>
 
+    <!-- The scale where a musician actually reads it (V6.46). The chips above
+         say WHICH notes; only a keyboard says where the gaps are. Collapsible,
+         because it is an aid, not the subject of the screen. -->
+    <div class="scale-piano-block" id="scalePianoBlock">
+      <div class="spb-head">
+        <span class="spb-lbl" data-i18n="labels.scaleOnPiano">Scale on the piano</span>
+        <span class="spb-key" id="spbKey"></span>
+        <button class="spb-toggle" id="scalePianoBtn" data-act="scale.toggle"
+          aria-controls="scalePiano" aria-expanded="true">
+          <i data-ico="piano" data-ico-size="13"></i>
+          <span data-i18n="labels.piano">Piano</span>
+        </button>
+      </div>
+      <div id="scalePiano"></div>
+    </div>
+
     <!-- BOTTOM THEORY -->
     <div class="theory-bottom">
       <!-- Degrees — reference material: lives in Explore, where tapping one

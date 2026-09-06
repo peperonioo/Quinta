@@ -214,6 +214,84 @@
       assert('All modes return 7 chords', safe(() => gc().length === 7, false));
     });
 
+    // ── Spelling + the scale piano (V6.46) ────────────
+    // A scale takes each letter once. Getting this wrong is not cosmetic: the
+    // name is what ni() parses back into the root of a chord, and what the
+    // keyboard lights up. Before V6.46 dn() was flat-biased and unconditional,
+    // so G major displayed a G♭ and D major a G♭ and a D♭.
+    const MAJ_SPELL = {
+      C:'C D E F G A B',      G:'G A B C D E F#',      D:'D E F# G A B C#',
+      A:'A B C# D E F# G#',   E:'E F# G# A B C# D#',   B:'B C# D# E F# G# A#',
+      'F#':'F# G# A# B C# D# E#', 'C#':'C# D# E# F# G# A# B#',
+      Ab:'Ab Bb C Db Eb F G', Eb:'Eb F G Ab Bb C D',   Bb:'Bb C D Eb F G A',
+      F:'F G A Bb C D E',
+    };
+    const MIN_SPELL = {
+      A:'A B C D E F G',      E:'E F# G A B C D',      B:'B C# D E F# G A',
+      'F#':'F# G# A B C# D E','C#':'C# D# E F# G# A B','G#':'G# A# B C# D# E F#',
+      'D#':'D# E# F# G# A# B C#','A#':'A# B# C# D# E# F# G#',
+      F:'F G Ab Bb C Db Eb',  C:'C D Eb F G Ab Bb',    G:'G A Bb C D Eb F',
+      D:'D E F G A Bb C',
+    };
+    const spellFails = [];
+    Object.keys(MAJ_SPELL).forEach(k => withState({ key:k, mode:'ionian', tonality:'major' }, () => {
+      const got = safe(() => gs().join(' '), '');
+      if (got !== MAJ_SPELL[k]) spellFails.push(k + ' major: ' + got + ' ≠ ' + MAJ_SPELL[k]);
+    }));
+    Object.keys(MIN_SPELL).forEach(k => withState({ key:k, mode:'aeolian', tonality:'minor' }, () => {
+      const got = safe(() => gs().join(' '), '');
+      if (got !== MIN_SPELL[k]) spellFails.push(k + ' minor: ' + got + ' ≠ ' + MIN_SPELL[k]);
+    }));
+    assert('All 24 keys spelled with one letter per degree', spellFails.length === 0, spellFails);
+
+    // Every name the speller can write must parse back to the pitch it means —
+    // this is the join between what is DISPLAYED and what is PLAYED and LIT.
+    assert('Note names round-trip through ni()', safe(() => {
+      const cases = { 'C':0, 'B#':0, 'Dbb':0, 'E#':5, 'Fb':4, 'Cb':11, 'F##':7,
+                      'Bb':10, 'A#':10, 'G':7, 'Gb':6, 'F#':6 };
+      return Object.keys(cases).every(n => ni(n) === cases[n]);
+    }, false), safe(() => ['E#', ni('E#'), 'Cb', ni('Cb'), 'B#', ni('B#')], []));
+
+    // The scale piano lights EXACTLY the scale — no more, no less, in every key
+    // and every mode. This is the promise the feature makes.
+    assert('Scale piano lights exactly the scale (12 keys × 7 modes)', safe(() => {
+      const bad = [];
+      ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'].forEach(k => {
+        MODE_ORDER.forEach(m => withState({ key:k, mode:m, tonality:MINOR_MODES.has(m) ? 'minor' : 'major' }, () => {
+          const scale = modeScale();
+          const want  = new Set(gm().intervals.map(i => (ni(st.key) + i) % 12));
+          const lit   = ScalePiano.map(scale);
+          const litPc = new Set([...lit.keys()]);
+          if (litPc.size !== 7) bad.push(k + ' ' + m + ': ' + litPc.size + ' pitch classes');
+          [...want].forEach(pc => { if (!litPc.has(pc)) bad.push(k + ' ' + m + ': missing ' + pc); });
+          [...litPc].forEach(pc => { if (!want.has(pc)) bad.push(k + ' ' + m + ': extra ' + pc); });
+          // Degrees must ascend 1..7 in scale order.
+          scale.forEach((n, i) => { if (lit.get(ni(n)).deg !== i + 1) bad.push(k + ' ' + m + ': degree ' + n); });
+        }));
+      });
+      window.__spBad = bad;
+      return bad.length === 0;
+    }, false), safe(() => (window.__spBad || []).slice(0, 6), []));
+
+    // The keyboard drawing itself: 8 white + 5 black, and every semitone of the
+    // octave present exactly once (the C at both ends is the same pitch class).
+    assert('Scale piano draws a real octave', safe(() => {
+      const semis = ScalePiano.WHITE.concat(ScalePiano.BLACK.map(b => b.semi));
+      const pcs = new Set(semis.map(s => ((s % 12) + 12) % 12));
+      return ScalePiano.WHITE.length === 8 && ScalePiano.BLACK.length === 5 && pcs.size === 12;
+    }, false));
+
+    // Chord names come from the same spelling, so the degree row can no longer
+    // print Gbm where F#m belongs.
+    withState({ key:'D', mode:'ionian', tonality:'major' }, () => {
+      assert('D major degree row is D Em F#m G A Bm C#°',
+        safe(() => gc().map(c => c.chord).join(' ') === 'D Em F#m G A Bm C#°', false),
+        safe(() => gc().map(c => c.chord), []));
+      assert('F#m in D major still sounds an F# root',
+        safe(() => chordPitchesForDegree(2)[0] % 12 === 6, false),
+        safe(() => chordPitchesForDegree(2), []));
+    });
+
     assert('App state validates',             AppModel.validate().ok,                      AppModel.validate().issues);
     const dupes = duplicateIds();
     assert('No duplicate DOM ids',            dupes.length === 0,                          dupes);

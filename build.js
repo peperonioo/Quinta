@@ -90,6 +90,8 @@ const JS_FILES = [
   'src/ui/popover-manager.js',
   'src/ui/mode-selector.js',
   'src/ui/theory-renderer.js',
+  // The scale drawn on a keyboard — one renderer, shared by Explore and the inspector
+  'src/ui/scale-piano.js',
   'src/ui/builder-renderer.js',
   'src/ui/suggestions-renderer.js',
   'src/ui/bubble-physics.js',

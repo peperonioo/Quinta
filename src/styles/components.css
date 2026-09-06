@@ -297,16 +297,101 @@ body[data-mode="explore"] .inspector { display:none }
 .insp-seg.views button.on { background:var(--accent2) }
 .insp-instr { border:1px solid var(--line); border-radius:11px; padding:9px; background:rgba(0,0,0,.2); overflow:hidden }
 
-/* Compact keyboard: one octave, no scroll of its own */
-.ip-keys { position:relative; display:flex; gap:2px; height:74px }
-.ipw { flex:1; border-radius:0 0 5px 5px; background:linear-gradient(180deg,#f4f1ec,#ddd8d0);
-       display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px }
-.ipw i { font-style:normal; font-size:8px; color:rgba(0,0,0,.35) }
-.ipw.on { background:linear-gradient(180deg,var(--accent2),var(--accent)) }
-.ipw.on i { color:rgba(255,255,255,.9) }
-.ipb { position:absolute; top:0; width:9%; height:60%; border-radius:0 0 4px 4px; background:#15151a;
-       left:calc((var(--at) + 1) * 14.28% - 4.5%) }
-.ipb.on { background:var(--accent) }
+/* ── Scale piano (V6.46) ──────────────────────────────
+   One octave, C to C, absolutely positioned so the black keys sit on the real
+   boundaries instead of being wedged between flex children. The lit keys are
+   the scale, the number on each is its degree, and the tonic wears the second
+   accent so "where is home" survives a glance. */
+.sp {
+  --n: 8;                       /* white keys drawn */
+  --w: calc(100% / var(--n));
+  position:relative; height:104px; width:100%;
+  border-radius:9px; overflow:hidden;
+  background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.12));
+}
+.sp.sm { height:74px }
+.sp-w, .sp-b {
+  position:absolute; display:flex; flex-direction:column; align-items:center;
+  justify-content:flex-end; gap:1px; cursor:pointer; user-select:none;
+  transition:background .16s var(--ease,ease), color .16s var(--ease,ease);
+}
+.sp-w {
+  top:0; bottom:0; left:calc(var(--i) * var(--w)); width:var(--w);
+  padding-bottom:6px; border-right:1px solid rgba(0,0,0,.32);
+  border-radius:0 0 6px 6px;
+  background:linear-gradient(180deg,#f6f3ee,#dcd7cf);
+}
+.sp-w:nth-child(8) { border-right:0 }
+.sp-b {
+  top:0; height:60%; z-index:2; padding-bottom:5px;
+  width:calc(var(--w) * .62);
+  left:calc((var(--i) + 1) * var(--w) - var(--w) * .31);
+  border-radius:0 0 5px 5px;
+  background:linear-gradient(180deg,#25252c,#111116);
+  box-shadow:0 2px 4px rgba(0,0,0,.45);
+}
+.sp b {
+  font-family:'DM Mono',monospace; font-weight:600; line-height:1;
+  font-size:10px; letter-spacing:.01em;
+}
+.sp.sm b { font-size:8px }
+.sp i {
+  font-style:normal; font-family:'DM Mono',monospace; font-size:8px; line-height:1;
+  opacity:.72;
+}
+.sp.sm i { font-size:7px }
+/* Off the scale: present, readable, clearly not part of the key. */
+.sp-w b       { color:rgba(0,0,0,.3) }
+.sp-b b       { color:rgba(255,255,255,.16) }
+/* On the scale. */
+.sp-w.on      { background:linear-gradient(180deg,var(--accent-light),var(--accent)) }
+.sp-b.on      { background:linear-gradient(180deg,var(--accent),#a82d0f) }
+.sp-w.on b, .sp-b.on b, .sp .on i { color:#fff }
+.sp-w.on b    { color:#fff }
+/* The tonic — a different colour AND a marker, so it does not rely on hue alone. */
+.sp-w.root, .sp-b.root { background:linear-gradient(180deg,#ffd15c,var(--accent-light)) }
+.sp-w.root b, .sp-b.root b { color:rgba(0,0,0,.82) }
+.sp-w.root i, .sp-b.root i { color:rgba(0,0,0,.6) }
+.sp .root::before {
+  content:''; position:absolute; top:5px; width:5px; height:5px; border-radius:50%;
+  background:rgba(0,0,0,.55);
+}
+.sp-w:hover, .sp-b:hover { filter:brightness(1.12) }
+.sp-w:active, .sp-b:active { filter:brightness(.9) }
+.sp span:focus-visible { outline:2px solid var(--accent2); outline-offset:-2px }
+
+/* The Explore block that hosts it. Collapsed until asked for. */
+.scale-piano-block {
+  margin:10px auto 0; max-width:560px; padding:0 2px;
+}
+.spb-head { display:flex; align-items:center; gap:9px; margin-bottom:7px }
+.spb-lbl {
+  font-family:'DM Mono',monospace; font-size:8px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted);
+}
+.spb-key { font-family:var(--wheel-font); font-size:13px; color:var(--accent2); margin-right:auto }
+.spb-toggle {
+  display:inline-flex; align-items:center; gap:6px; min-height:32px; padding:0 11px;
+  border:1px solid var(--glass-border); border-radius:9px; background:var(--glass-1);
+  color:var(--muted); cursor:pointer; font-size:11px; font-weight:600;
+  transition:all .15s var(--ease,ease);
+}
+.spb-toggle:hover { color:var(--ink) }
+.scale-piano-block.is-open .spb-toggle {
+  background:var(--degree-tonic); border-color:rgba(232,68,26,.5); color:var(--accent2);
+}
+.scale-piano-block:not(.is-open) #scalePiano { display:none }
+.insp-scale-toggle {
+  display:inline-flex; align-items:center; gap:6px; align-self:flex-start;
+  min-height:30px; margin-top:8px; padding:0 10px;
+  border:1px solid var(--glass-border); border-radius:9px; background:var(--glass-1);
+  color:var(--muted); cursor:pointer; font-size:11px; font-weight:600;
+}
+.insp-scale-toggle:hover { color:var(--ink) }
+.insp-scale-toggle[aria-expanded="true"] {
+  background:var(--degree-tonic); border-color:rgba(232,68,26,.5); color:var(--accent2);
+}
+#inspScalePiano:not(:empty) { margin-top:8px }
 
 /* Fretboard — an actual neck: nut, fret wires, strings and dots. Notes sit ON a
    string at a fret, which is how a guitarist reads one. The first attempt was a

@@ -1,7 +1,7 @@
 // ── CONSTANTS ─────────────────────────────────────────
 // Pure data. No DOM access. No state mutation.
 
-const APP_VERSION = 'V6.45';
+const APP_VERSION = 'V6.46';
 // NOTE: storage key kept as-is across the "Quinta" rebrand so existing saved
 // state/progressions are not wiped. It's an internal key, never shown to users.
 const STORAGE_KEY = 'easy-fifth-circle:v1';
@@ -102,5 +102,6 @@ const defaultState = {
   onboarded:false,
   docName:null, docId:null, rhythmOn:false,
   inspInstr:'guitar', inspView:'chord',   // el inspector recuerda instrumento y vista   // V2 — the progression as a document with a rhythm track
+  scalePiano:true,                      // V6.46 — the key's scale drawn on a keyboard
   comebackSeen:0, dailyDone:0,          // V6.17 — return hooks: last day the panel showed / the challenge was taken
 };

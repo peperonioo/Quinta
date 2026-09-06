@@ -288,6 +288,7 @@ body[data-mode="explore"] .suggestions-section { display:none !important }
 body[data-mode="build"] .main-row,
 body[data-mode="build"] .wheel-toggle-row,
 body[data-mode="build"] .theory-strip,
+body[data-mode="build"] .scale-piano-block,
 body[data-mode="build"] #degreesBlock { display:none !important }
 
 /* INSTRUMENT — play the key. The board at full size, which is the thing B1 took
@@ -297,6 +298,7 @@ body[data-mode="build"] #degreesBlock { display:none !important }
 body[data-mode="instrument"] .main-row,
 body[data-mode="instrument"] .wheel-toggle-row,
 body[data-mode="instrument"] .theory-strip,
+body[data-mode="instrument"] .scale-piano-block,
 body[data-mode="instrument"] #degreesBlock,
 body[data-mode="instrument"] #progressionBuilder,
 body[data-mode="instrument"] .doc-bar,
@@ -398,6 +400,7 @@ body[data-mode="instrument"] .fretboard-wrap {
 body[data-mode="styles"] .main-row,
 body[data-mode="styles"] .wheel-toggle-row,
 body[data-mode="styles"] .theory-strip,
+body[data-mode="styles"] .scale-piano-block,
 body[data-mode="styles"] #degreesBlock,
 body[data-mode="styles"] #progressionBuilder,
 body[data-mode="styles"] .inspector,
@@ -408,11 +411,10 @@ body[data-mode="styles"] .instr-bar,
 body[data-mode="styles"] .suggestions-section { display:none !important }
 
 /* Desktop repeats the scale twice within 200px: the ctx-bar chips and the
-   inspector's key card. The card keeps it only where the ctx-bar drops it. */
+   inspector's key card. Only the duplicated CHIPS step out — the keyboard is
+   not anywhere else on this screen, so the section itself stays. */
 @media (min-width:861px) {
-  body[data-mode="build"] #inspScale, 
-  body[data-mode="build"] #inspScale + *, 
-  body[data-mode="build"] .insp-sec:has(> #inspScale) { display:none }
+  body[data-mode="build"] #inspScale { display:none }
 }
 
 /* Identify mode (V6.33). The toggle only exists where the board is the page

@@ -51,6 +51,18 @@ takes `'tap'|'sel'|'ok'` or raw ms.
   as an explicit argument. Tests assert both directions (declared→registered and
   registered→resolvable).
 - Every user-facing string ships in **EN + ES** ([src/i18n/](src/i18n/)). ES uses tú, opening ¿¡.
+- **Note names are derived, never tabled** (V6.46). A scale takes each letter once,
+  so `spellScale(tonic, intervals)` in [src/core/utils.js](src/core/utils.js) writes
+  the seven names (F♯ major ends on E♯) and `ni()` PARSES anything back — letter +
+  any run of ♯/♭. `dn()` spells a single pitch class the way the active signature
+  does. The lookup tables these replaced were flat-biased and unconditional, which
+  is why G major showed a G♭ and D major a G♭m. Never reintroduce a name→pitch map:
+  use `ni()`. `gs()` is the Major/Minor scale (agrees with the accidentals card),
+  `gr()` stays sharp-named because the boards match note names by string.
+- **One keyboard renderer**: [src/ui/scale-piano.js](src/ui/scale-piano.js). What
+  lights up is decided only by the pitch classes of the notes it is handed, so the
+  Explore block and the inspector can never disagree. Degree numbers only where
+  they are unambiguous (a scale), never on a chord.
 - Sounds are **warm and low, never shrill** ("anti-casino"): soft attacks, lowpass, quiet.
   UI sounds live in AudioEngine (`dialTick`, `dialSettle`).
 - Destructive replacements of the progression call `snapshotAndOfferUndo()` first.

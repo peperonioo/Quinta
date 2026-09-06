@@ -3,8 +3,12 @@
 // below the fretboard. Two views: full chord voicings (open / barre / high) and
 // compact triads on the top-3 strings (root / 1st / 2nd inversion).
 const GuitarShapes = (() => {
-  const ENH = {Db:'C#',Eb:'D#',Gb:'F#',Ab:'G#',Bb:'A#'};
-  const NI  = {C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
+  // Enharmonic normalisation for the SPEC/shape lookups. Correct spelling can
+  // produce E#/B#/Cb/Fb now, so those map home too.
+  const ENH = {Db:'C#',Eb:'D#',Gb:'F#',Ab:'G#',Bb:'A#','E#':'F','B#':'C',Cb:'B',Fb:'E'};
+  // Pitch class comes from the app's parser — a local table would go stale
+  // the moment a scale spelled a note it had never heard of.
+  const NI  = name => ni(name);
   // Open-string pitch classes, low→high: E A D G B e
   const TUNE = [4, 9, 2, 7, 11, 4];
 
@@ -77,7 +81,7 @@ const GuitarShapes = (() => {
 
   // ── Full chord voicings ───────────────────────────
   function chordVoicings(root, qual, variant) {
-    const r = ENH[root] || root, rootPC = NI[r] ?? 0;
+    const r = ENH[root] || root, rootPC = NI(r);
     const out = [], seen = new Set();
     const add = (fr, label) => {
       if (!fr || fr.some(f => f > 16) || fr.filter(f => f >= 0).length < 3) return;
@@ -117,7 +121,7 @@ const GuitarShapes = (() => {
 
   // ── Three-note voicings on the top-3 strings (G, B, e) — variant-aware ─────
   function triadVoicings(root, qual, variant) {
-    const r = ENH[root] || root, rootPC = NI[r] ?? 0;
+    const r = ENH[root] || root, rootPC = NI(r);
     let ivFull;
     if (variant && variant !== 'triad') {
       const Q = qual === 'min' ? 'Min' : qual === 'dim' ? 'Dim' : 'Maj';
@@ -264,7 +268,7 @@ const GuitarShapes = (() => {
       const v = variant || 'triad';
       const key = r + ':' + qual + ':' + v;   // variant-aware de-dup
       if (seen.has(key)) return; seen.add(key);
-      list.push({ name, root: rootName, qual, rootPC: NI[r] ?? 0, variant: v });
+      list.push({ name, root: rootName, qual, rootPC: NI(r), variant: v });
     };
     if (h.length) {
       h.forEach(it => {

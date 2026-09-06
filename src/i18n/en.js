@@ -8,6 +8,8 @@ const I18N_EN = {
   'labels.relativeMinor':'Relative minor',
   'labels.relativeMajor':'Relative major',
   'labels.scaleNotes': 'Scale notes',
+  'labels.scaleOnPiano':'Scale on the piano',
+  'labels.piano':      'Piano',
   'toggle.major':      'Major',
   'toggle.minor':      'Minor',
   'color.btn':         'Color',

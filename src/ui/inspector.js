@@ -120,6 +120,11 @@ const Inspector = (() => {
       <div class="insp-sec">
         <div class="insp-lbl">${L('Scale', 'Escala')}</div>
         <div class="scale-orbs" id="inspScale"></div>
+        <button class="insp-scale-toggle" data-act="scale.toggle" aria-controls="inspScalePiano"
+          aria-expanded="${st.scalePiano !== false}"
+          aria-label="${L('Show the scale on the piano', 'Ver la escala en el piano')}"
+          ><i data-ico="piano" data-ico-size="13"></i><span>${L('Piano', 'Piano')}</span></button>
+        <div id="inspScalePiano"></div>
       </div>`;
   }
 
@@ -182,7 +187,14 @@ const Inspector = (() => {
 
   // ── the instrument, drawn for the current chord/view ──
   function _paintInstrument() {
-    if (sel < 0) { renderScaleChips('inspScale'); return; }
+    if (sel < 0) {
+      renderScaleChips('inspScale');
+      // Same keyboard, same source (gs()), same rule for what lights up as the
+      // one under the wheel — there is only one renderer.
+      if (st.scalePiano !== false) ScalePiano.render('inspScalePiano', gs(), { small: true });
+      else { const h = document.getElementById('inspScalePiano'); if (h) h.innerHTML = ''; }
+      return;
+    }
     const host = document.getElementById('inspInstr'); if (!host) return;
     const it = item(); if (!it) return;
     // Which pitches to light up:
@@ -191,28 +203,28 @@ const Inspector = (() => {
     //            whole point of the triad view — it was showing the same notes
     //            as the chord view until this was fixed)
     //   chord  → the chord as voiced, extensions included
-    const pc = p => ((p % 12) + 12) % 12;
-    let pitches;
+    const pcf = p => ((p % 12) + 12) % 12;
     const v = view();
-    if (v === 'scale') pitches = gs().map(n => ni(n));
-    else {
-      const full = chordPitchesForItem(it).map(pc);
-      const uniq = [...new Set(full)];
-      pitches = (v === 'triads') ? uniq.slice(0, 3) : uniq;
+    // `marks` is what lights up. Degree numbers are carried only where they are
+    // unambiguous — the scale. On a chord they would have to guess between 6 and
+    // 13, 4 and 11, ♯5 and ♭13, so the chord views show names alone.
+    let marks;
+    if (v === 'scale') {
+      marks = gs().map((n, i) => ({ name: n, deg: i + 1 }));
+    } else {
+      const seen = new Set();
+      marks = [];
+      chordPitchesForItem(it).forEach(p => {
+        const pc = pcf(p);
+        if (seen.has(pc)) return;
+        seen.add(pc);
+        marks.push({ name: dn(na(pc)), deg: null });
+      });
+      if (v === 'triads') marks = marks.slice(0, 3);
     }
-    host.innerHTML = instr() === 'piano' ? _pianoHTML(pitches) : _fretHTML(pitches, it);
-  }
-
-  // Compact one-octave keyboard — enough to read a voicing, small enough to sit
-  // inside the panel without its own scroll.
-  function _pianoHTML(pcs) {
-    const WHITE = [0, 2, 4, 5, 7, 9, 11], NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-    const BLACK = [{ pc: 1, at: 0 }, { pc: 3, at: 1 }, { pc: 6, at: 3 }, { pc: 8, at: 4 }, { pc: 10, at: 5 }];
-    const on = pc => pcs.includes(pc) ? ' on' : '';
-    return `<div class="ip-keys">
-      ${WHITE.map((pc, i) => `<span class="ipw${on(pc)}"><i>${NAMES[i]}</i></span>`).join('')}
-      ${BLACK.map(b => `<span class="ipb${on(b.pc)}" style="--at:${b.at}"></span>`).join('')}
-    </div>`;
+    host.innerHTML = instr() === 'piano'
+      ? ScalePiano.html(marks, { small: true })
+      : _fretHTML(marks.map(m => ni(m.name)), it);
   }
 
   // A real fretboard: nut, fret wires, six strings and dots. The first version

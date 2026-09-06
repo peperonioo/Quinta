@@ -32,6 +32,8 @@ ActionRegistry.addAll({
   'mood.set':         el => AppActions.setMood(_aStr(el, 'id')),
   'mode.choose':      el => ModeMenu.choose(_aStr(el, 'id')),
   'color.toggle':     ()  => ColorChords.toggle(),
+  'scale.toggle':     ()  => ScalePiano.toggle(),
+  'scale.note':       el  => ScalePiano.play(_aInt(el, 'semi')),
 
   // ── Production grid ──
   'grid.toggle':      el => toggleStep(_aInt(el, 'ri'), _aInt(el, 'i')),

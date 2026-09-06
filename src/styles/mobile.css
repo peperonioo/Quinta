@@ -90,6 +90,12 @@
   .tst-scale .scale-orbs::-webkit-scrollbar { display:none }
   .tst-scale .chip { flex:0 0 auto; font-size:9px; padding:2px 5px }
   .tst-scale .scale-orbs { flex-wrap:nowrap }
+  /* Line the keyboard up with the theory strip above it — same card, same width. */
+  .scale-piano-block { width:min(344px,92vw); margin:0 auto 8px; padding:0 }
+  .spb-lbl { font-size:7px; letter-spacing:.12em }
+  .spb-key { font-size:12px }
+  .spb-toggle { min-height:30px; padding:0 9px; font-size:10px }
+  .sp { height:88px }
   /* Lighter wheel on mobile so scrolling stays smooth */
   #wheelSheen     { animation:none !important; opacity:0 !important }
   .theory-bottom  { gap:14px }
