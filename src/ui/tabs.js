@@ -13,9 +13,23 @@
 // summary answers "this chord", not "the whole neck".
 const MODES_UI = ['explore', 'build', 'instrument', 'styles'];
 
+// Each mode keeps its own scroll position (V6.47), the way every tab bar on a
+// phone does. Before, scroll was shared: leave Styles halfway down, open Build,
+// and you landed mid-page in a room you had not scrolled.
+const _scrollMem = {};
+
 function switchTab(tab, btn) {
   // Legacy names (and the removed 'produce') all resolve to Build now.
   const mode = MODES_UI.includes(tab) ? tab : (tab === 'explore' ? 'explore' : 'build');
+  const prev = document.body.dataset.mode;
+  // Tapping the tab you are ON scrolls it to the top — the iOS contract. Only
+  // for a real tap (btn given): programmatic re-entries still re-render.
+  if (btn && prev === mode) {
+    scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    haptic('sel');
+    return;
+  }
+  if (prev) _scrollMem[prev] = scrollY;
   tel('tab', { tab: mode });
 
   const el = btn || document.querySelector(`.tab-btn[data-tab="${mode}"]`);
@@ -24,7 +38,9 @@ function switchTab(tab, btn) {
     const buttons = [...tabsEl.querySelectorAll('.tab-btn')];
     tabsEl.style.setProperty('--tab-x', `calc(${Math.max(0, buttons.indexOf(el))} * 100%)`);
   }
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === el));
+  // Match by MODE: a tap on the bottom bar passes a .tb-btn, and comparing
+  // elements left every top tab unmarked.
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === mode));
   // The bottom bar is a second set of buttons for the same modes — match by mode,
   // not by identity, so whichever bar you tapped they both end up in sync.
   document.querySelectorAll('.tb-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === mode));
@@ -57,6 +73,9 @@ function switchTab(tab, btn) {
   if (mode === 'build' && typeof Inspector === 'object') Inspector.render();
   const shown = document.getElementById('panel-theory');
   if (shown) { shown.classList.remove('tab-enter'); void shown.offsetWidth; shown.classList.add('tab-enter'); }
+  // Restore this mode's scroll (instant — a smooth scroll on arrival reads as
+  // the page sliding away from you). Instrument opens at its header by design.
+  if (prev && prev !== mode && mode !== 'instrument') scrollTo({ top: _scrollMem[mode] || 0, behavior: 'auto' });
 }
 
 // ── The bar minimises while you scroll down (V6.27) ───

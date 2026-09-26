@@ -120,6 +120,24 @@
       const n = ps => (ChordNamer.name(ps)[0] || {}).name;
       return n([4, 12, 19]) === 'C/E' && n([9, 12, 16, 19]) === 'Am7' && n([0, 4, 7, 9]) === 'C6';
     }, false));
+    // The boards light by PITCH and label by the SPELLED scale (V6.47). The piano
+    // once matched black keys by hardcoded sharp names — B♭ major's tonic went
+    // unmarked — and the neck wrote F where F♯ major's scale says E♯.
+    assert('Boards: flat & sharp keys light and spell correctly', safe(() => {
+      const keep = { key: st.key, view: st.wheelView };
+      const labels = sel => [...document.querySelectorAll(sel)].map(x => x.textContent);
+      try {
+        AppActions.setWheelView('major'); AppActions.setKey('Bb'); renderPiano(); renderGuitar();
+        const bb = labels('#piano .kl');
+        const okBb = bb.includes('Bb1') && bb.includes('Eb4') && !bb.some(t => /A#|D#/.test(t));
+        AppActions.setKey('F#'); renderPiano(); renderGuitar();
+        const fs = labels('#piano .kl'), neck = labels('#guitar .fret-note.on, #guitar .fret-note.root');
+        const okFs = fs.includes('E#7') && neck.includes('E#') && !neck.includes('F');
+        return okBb && okFs;
+      } finally {
+        AppActions.setWheelView(keep.view); AppActions.setKey(keep.key); renderPiano(); renderGuitar();
+      }
+    }, false));
     assert('Namer: shells and open voicings — how guitars actually voice', safe(() => {
       // The field bug: C·E·C ("no exact name") — omitted fifths are the bread
       // of guitar playing. Open chords, shells and dyads must all name.

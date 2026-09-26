@@ -157,37 +157,47 @@ function _syncVoiceUI() {
   document.querySelectorAll('.snd-btn').forEach(b => b.classList.toggle('on', b.dataset.snd === s));
 }
 
+// ONE source for both instruments (V6.47): pitch class → the scale's own
+// spelled name + degree, via ScalePiano.map(gs()) — the V6.46 speller. Both
+// boards used gr() NAME strings for membership: the piano matched its black
+// keys by hardcoded sharps, so in B♭ major neither B♭ nor E♭ lit (the TONIC
+// unmarked), E major labelled 4 of 7 scale notes, and the neck wrote F where
+// F♯ major's scale says E♯.
+const _pcOf = n => ((n % 12) + 12) % 12;
+function _scaleSpell() {
+  const scale = gs();
+  const map = ScalePiano.map(scale);
+  const rootPc = scale.length ? ni(scale[0]) : -1;
+  return { map, rootPc, label: pc => (map.get(pc) || {}).name || dn(na(pc)) };
+}
+
 function renderPiano() {
   const root = document.getElementById('piano'); if (!root) return;
   root.innerHTML = '';
-  const set    = new Set(gr());                 // scale note names
+  const { map, rootPc, label } = _scaleSpell();
   const chord  = _chordPcSet();
-  const whites = ['C','D','E','F','G','A','B','C','D','E','F','G','A','B','C'];
   const wPitch = [0,2,4,5,7,9,11,12,14,16,17,19,21,23,24];
-  const w      = 100 / whites.length;
-  const cls = (pitch, n) => {
-    if (chord && chord.has(((pitch % 12) + 12) % 12)) return ' chord-on';
-    return set.has(n) ? ' key-on' : '';
+  const w      = 100 / wPitch.length;
+  const isCh   = pitch => !!(chord && chord.has(_pcOf(pitch)));
+  const key = (pitch, kind, x, width) => {
+    const pc = _pcOf(pitch), inS = map.has(pc), ch = isCh(pitch);
+    const el = document.createElement('div');
+    el.className = kind + (ch ? ' chord-on' : inS ? ' key-on' : '') + (inS && pc === rootPc ? ' key-root' : '');
+    el.style.cssText = kind === 'white'
+      ? `left:${x}%;width:${width}%;position:absolute;bottom:0;top:0`
+      : `left:${x}%;width:${width}%;position:absolute;top:0;height:60%;z-index:2`;
+    // Scale notes carry their spelled name AND degree (the Explore keyboard's
+    // vocabulary); chord-only tones (borrowed chords) carry just the name.
+    if (inS || ch) {
+      const deg = inS ? map.get(pc).deg : null;
+      el.innerHTML = `<span class="kl">${label(pc)}${deg != null ? `<i>${deg}</i>` : ''}</span>`;
+    }
+    el.onclick = () => _hear(pitch);
+    root.appendChild(el);
   };
-  const isCh = pitch => chord && chord.has(((pitch % 12) + 12) % 12);
-  whites.forEach((n, i) => {
-    const pitch = wPitch[i];
-    const el = document.createElement('div');
-    el.className = 'white' + cls(pitch, n);
-    el.style.cssText = `left:${i*w}%;width:${w}%;position:absolute;bottom:0;top:0`;
-    el.innerHTML = (set.has(n) || isCh(pitch)) ? `<span class="kl">${n}</span>` : '';
-    el.onclick = () => _hear(pitch);
-    root.appendChild(el);
-  });
-  [['C#',.72,1],['D#',1.72,3],['F#',3.72,6],['G#',4.72,8],['A#',5.72,10],
-   ['C#',7.72,13],['D#',8.72,15],['F#',10.72,18],['G#',11.72,20],['A#',12.72,22]].forEach(([n, pos, pitch]) => {
-    const el = document.createElement('div');
-    el.className = 'black' + cls(pitch, n);
-    el.style.cssText = `left:${pos*w}%;width:${w*.56}%;position:absolute;top:0;height:60%;z-index:2`;
-    if (isCh(pitch)) el.innerHTML = `<span class="kl">${dn(n)}</span>`;
-    el.onclick = () => _hear(pitch);
-    root.appendChild(el);
-  });
+  wPitch.forEach((pitch, i) => key(pitch, 'white', i * w, w));
+  [[.72,1],[1.72,3],[3.72,6],[4.72,8],[5.72,10],[7.72,13],[8.72,15],[10.72,18],[11.72,20],[12.72,22]]
+    .forEach(([pos, pitch]) => key(pitch, 'black', pos * w, w * .56));
 }
 
 // InstrumentZoom retired in V6.34 — Instrument mode is the full-size board.
@@ -276,9 +286,8 @@ const ChordIdent = {
 function renderGuitar() {
   const root = document.getElementById('guitar'); if (!root) return;
   root.innerHTML = '';
-  const sc       = new Set(gr());
+  const { map: SM, rootPc, label: lbl } = _scaleSpell();
   const chord    = _chordPcSet();
-  const rootNote = gr()[0];
   // [name, pitch-class, absolute base pitch] high-E to low-E (0 = middle C).
   const tuning   = [['E',4,4],['B',11,-1],['G',7,-5],['D',2,-10],['A',9,-15],['E',4,-20]];
   const FRETS    = 17;
@@ -331,7 +340,7 @@ function renderGuitar() {
     row.appendChild(sl);
     const nc = document.createElement('div');
     nc.style.cssText = 'width:40px;display:flex;align-items:center;justify-content:center;height:32px;border-right:2px solid rgba(255,255,255,.2);position:relative;z-index:1';
-    const on = na(start), isOn = sc.has(on), isRoot = on === rootNote, isCh = inChord(start);
+    const opc = _pcOf(start), on = na(start), isOn = SM.has(opc), isRoot = opc === rootPc, isCh = inChord(start);
     const od = document.createElement('div');
     if (ident) {
       const key = `${ti}:0`;
@@ -349,14 +358,14 @@ function renderGuitar() {
         od.style.cssText = 'background:transparent;color:rgba(255,255,255,.35);font-size:11px;width:20px;height:20px';
       } else if (shapeFret === 0) {
         od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
-        od.textContent = dn(on);
+        od.textContent = lbl(opc);
       } else {
         od.className = 'fret-note'; od.textContent = name;
         od.style.cssText = 'background:transparent;color:rgba(255,255,255,.15);font-size:9px;width:20px;height:20px';
       }
     } else {
       od.className = 'fret-note' + (isCh ? ' chord' : isRoot ? ' root' : isOn ? ' on' : '');
-      od.textContent = isOn ? dn(on) : name;
+      od.textContent = (isOn || isCh) ? lbl(opc) : name;
       if (!isOn && !isCh) od.style.cssText = 'background:transparent;color:rgba(255,255,255,.18);font-size:9px;width:20px;height:20px';
     }
     if (!ident) {
@@ -365,7 +374,7 @@ function renderGuitar() {
       row.appendChild(nc);
     }
     for (let f = 1; f <= FRETS; f++) {
-      const n = na(start + f); const isO = sc.has(n); const isR = n === rootNote; const isC = inChord(start + f);
+      const fpc = _pcOf(start + f), n = na(start + f); const isO = SM.has(fpc); const isR = fpc === rootPc; const isC = inChord(start + f);
       const cell = document.createElement('div');
       cell.className = 'fret-cell';
       if (ident) {
@@ -384,14 +393,14 @@ function renderGuitar() {
         if (shapeFret === f) {
           const dot = document.createElement('div');
           dot.className = 'fret-note chord shape-dot';
-          dot.textContent = dn(n);
+          dot.textContent = lbl(fpc);
           dot.onclick = () => _hearGuitar(base + f);
           cell.appendChild(dot);
         }
       } else if (isO || isC) {
         const dot = document.createElement('div');
         dot.className = 'fret-note' + (isC ? ' chord' : isR ? ' root' : ' on');
-        dot.textContent = dn(n);
+        dot.textContent = lbl(fpc);
         dot.onclick = () => _hearGuitar(base + f);
         cell.appendChild(dot);
       }

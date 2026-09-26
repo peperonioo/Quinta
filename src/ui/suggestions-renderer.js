@@ -63,6 +63,12 @@ function _bubbleFrom() {
   const h = Array.isArray(st.history) ? st.history : [];
   const i = (typeof Inspector === 'object' && Inspector.selected) ? Inspector.selected() : -1;
   if (i >= 0 && h[i] && h[i].degreeIndex >= 0) return h[i].degreeIndex;
+  // No selection: a tapped bubble APPENDS, so what it follows is the LAST clip.
+  // This fell through to curDeg (-1 in Build) → the tonic, and a progression
+  // ending on G showed "goes well after C" — the row answered a question nobody
+  // was asking. Borrowed chords (degreeIndex -1) are skipped back to the last
+  // diatonic one.
+  for (let k = h.length - 1; k >= 0; k--) if (h[k] && h[k].degreeIndex >= 0) return h[k].degreeIndex;
   return curDeg >= 0 ? curDeg : 0;
 }
 

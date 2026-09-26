@@ -520,10 +520,17 @@ body[data-mode="instrument"] .instr-bar {
     min-height:calc(100svh - 250px);
     display:flex; flex-direction:column;
   }
+  /* The ORBIT (the visible glass stage) takes the slack, not the invisible
+     wrapper around it — centring the bubbles in 424px of wrapper read as a
+     hole under the lane. Now the caption hugs the lane and the stage grows. */
   body[data-mode="build"] #progressionStory.builder-next-moves {
-    flex:1 1 auto; display:flex; flex-direction:column; justify-content:center;
+    flex:1 1 auto; display:flex; flex-direction:column; justify-content:flex-start;
   }
-  body[data-mode="build"] #progressionStory .next-orbit { min-height:150px }
+  body[data-mode="build"] #progressionStory .next-orbit { flex:1 1 auto; min-height:170px; gap:18px }
+  /* The stage is ~370px tall on a desktop — the phone-sized bubbles (38–74px)
+     sat in it like pebbles. Same tiers, 1.45× — the relative sizes (the fit
+     ranking) are preserved because the multiplier is uniform. */
+  body[data-mode="build"] .next-orbit .next-bubble { --diam:clamp(56px, calc(var(--d) * 1.45), 124px) }
   body[data-mode="build"] .build-cols > .rhythm-track  { grid-area:rhythm }
   body[data-mode="build"] .build-cols > .inspector {
     grid-area:insp; position:sticky; top:12px; margin-top:0;
@@ -532,16 +539,14 @@ body[data-mode="instrument"] .instr-bar {
   /* No selection: the key card used to be a small summary floating over ~500px
      of empty column. The column is the content now — degree buttons at button
      size, room to breathe. (With a selection the chord content already fills.) */
-  body[data-mode="build"]:not(.has-selection) .build-cols > .inspector {
-    min-height:calc(100svh - 240px); display:flex; flex-direction:column;
-  }
-  body[data-mode="build"]:not(.has-selection) .build-cols .insp-sec { flex:1; display:flex; flex-direction:column }
+  /* No selection: the key card is CONTENT (degrees + the scale on a keyboard,
+     since V6.46), so it hugs it. The V6.43 fill-the-column rule stretched every
+     section with flex:1 — once the keyboard arrived that became gaps BETWEEN
+     sections, and 60px-tall degree tiles. Four compact columns, stacked. */
   body[data-mode="build"]:not(.has-selection) .build-cols .insp-degrees {
-    grid-template-columns:1fr 1fr; gap:9px; flex:1; align-content:start;
+    grid-template-columns:repeat(4, 1fr); gap:7px;
   }
-  body[data-mode="build"]:not(.has-selection) .build-cols .insp-deg {
-    min-height:60px; font-size:15px;
-  }
+  body[data-mode="build"]:not(.has-selection) .build-cols .insp-deg { min-height:50px }
 }
 
 /* The dock is retired in Build. It duplicated the inspector — same chord,

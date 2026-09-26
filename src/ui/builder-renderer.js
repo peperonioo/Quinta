@@ -735,8 +735,12 @@ function playProgression(opts) {
   const chordBeats = h.map(it => Math.max(0.25, it.beats || 2));     // each chord's own duration
   const { starts, total: totalBeats } = _layout(h);                 // absolute start of each clip
 
-  // Resume from the playhead (or the top if it's at/near the end).
-  const startBeat = _playheadBeat >= totalBeats - 0.25 ? 0 : Math.max(0, _playheadBeat);
+  // Resume from the playhead — or from the top when less than two beats remain.
+  // The old threshold was a quarter beat: stop near the end, press Play, and it
+  // played ~180ms and stopped, which reads as "Play did nothing" (found as an
+  // intermittent smoke failure: the playhead had been left 0.3 beats from the
+  // end). Two beats is the floor for a Play that is audibly a Play.
+  const startBeat = _playheadBeat >= totalBeats - 2 ? 0 : Math.max(0, _playheadBeat);
 
   // Count-in: start the Metronome so it ticks through the whole progression.
   let leadSec = 0;

@@ -32,8 +32,9 @@ body.has-selection .progression-builder { padding-bottom:12px }
    screen and hands the slack to the suggestion area; clips never stretch. */
 body[data-mode="build"] #flowRow.is-timeline { flex:0 0 auto }
 body[data-mode="build"] #progressionStory.builder-next-moves {
-  flex:1 1 auto; display:flex; flex-direction:column; justify-content:center;
+  flex:1 1 auto; display:flex; flex-direction:column; justify-content:flex-start;
 }
+body[data-mode="build"] #progressionStory .next-orbit { flex:1 1 auto }
 @media (max-width:860px) {
   body[data-mode="build"] .progression-builder { min-height:62svh; padding:16px 15px 20px }
   body[data-mode="build"] #progressionStory .next-orbit { min-height:clamp(120px, 17svh, 168px) }
@@ -307,7 +308,9 @@ body.light .builder-step .step-len { color:var(--accent); opacity:1 }
 @keyframes efcPillIn  { 0%{opacity:0;transform:translateY(10px) scale(.84)} 58%{opacity:1;transform:translateY(-2px) scale(1.055)} 100%{opacity:1;transform:none} }
 @keyframes efcPillOut { to{opacity:0;transform:translateY(6px) scale(.88)} }
 
-/* Builder meta row */
+/* Builder meta row — renders nothing most of the time; an empty one still drew
+   its border-top: one of two stacked rules around a blank band (V6.47). */
+.builder-meta:empty { display:none }
 .builder-meta {
   display:flex; justify-content:space-between; align-items:center; gap:12px;
   margin-top:12px; padding-top:12px;

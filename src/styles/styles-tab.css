@@ -40,10 +40,15 @@ body[data-mode="styles"] #panel-styles { display:block; animation:fadeIn .3s var
 .tips-section  { padding:14px 16px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px); margin-bottom:12px }
 .tips-section h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px }
 .tips-grid     { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px }
-.tips-card     { padding:10px 12px; border-radius:10px; background:var(--sel-bg); border:1px solid var(--line) }
-.tips-card h4  { font-size:11px; font-weight:600; color:var(--accent2); margin:0 0 6px; text-transform:none; letter-spacing:0 }
-.tips-card ul  { margin:0; padding-left:15px; display:flex; flex-direction:column; gap:5px }
-.tips-card li  { font-size:10px; line-height:1.4; color:var(--muted) }
+/* The tips cards spoke a different dialect from every other section on the
+   page — orange sans titles, 10px muted text, their own padding and radius.
+   Now they use the page's grammar: mono section label, body at the groove
+   rules' size (V6.47). Radius/background come from the glass card tier. */
+.tips-card     { padding:14px 16px }
+.tips-card h4  { font-family:'DM Mono',monospace; font-size:9px; font-weight:500; letter-spacing:.12em;
+                 text-transform:uppercase; color:var(--muted); margin:0 0 10px }
+.tips-card ul  { margin:0; padding-left:16px; display:flex; flex-direction:column; gap:7px }
+.tips-card li  { font-size:12px; line-height:1.5; color:var(--ink); opacity:.8 }
 /* Progressions / groove */
 .prog-section  { margin-bottom:12px; padding:14px 16px; border-radius:14px; border:1px solid var(--card-bd); background:var(--card); backdrop-filter:blur(16px) }
 .prog-section h3 { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px }

@@ -303,6 +303,47 @@ try {
       await mp.waitForTimeout(300);
     }
 
+    // V6.47 — logic and budget guards from the performance & cohesion pass.
+    {
+      const r = await mp.evaluate(async () => {
+        const wait = ms => new Promise(res => setTimeout(res, ms));
+        try { if (typeof _progRAF !== 'undefined' && _progRAF) stopProgression(); } catch (_) {}
+        switchTab('build'); Inspector.clear(); await wait(250);
+        // 1 · with no selection the bubbles follow the LAST clip (they append)
+        const last = st.history.at(-1);
+        const followsLast = document.querySelector('.next-from b')?.textContent === gc()[last.degreeIndex]?.chord;
+        // 2 · [hidden] means hidden, everywhere
+        const leaks = [...document.querySelectorAll('[hidden]')].filter(e => getComputedStyle(e).display !== 'none').length;
+        // 3 · per-mode scroll memory + re-tap to top
+        const tap = t => document.querySelector(`.tb-btn[data-tab="${t}"]`).click();
+        tap('styles'); await wait(250); scrollTo(0, 600); await wait(150);
+        tap('build'); await wait(250); const buildOpensAtOwn = scrollY < 5;
+        tap('styles'); await wait(250); const stylesRestored = Math.abs(scrollY - 600) < 5;
+        tap('styles'); await wait(900); const retapTop = scrollY < 5;
+        // 4 · blur budget in Build: only chrome and open sheets may blur
+        tap('build'); await wait(300);
+        const blur = [...document.querySelectorAll('*')].filter(e => {
+          const cs = getComputedStyle(e), bf = cs.backdropFilter || cs.webkitBackdropFilter, q = e.getBoundingClientRect();
+          return bf && bf !== 'none' && q.width > 0 && q.height > 0 && cs.visibility !== 'hidden';
+        }).length;
+        return { followsLast, noHiddenLeaks: leaks === 0, buildOpensAtOwn, stylesRestored, retapTop, blurBudget: blur <= 10 };
+      });
+      for (const k of Object.keys(r)) if (!r[k]) { console.error(`FAIL  V6.47 guard: ${k}`); failed++; }
+    }
+    // 5 · Explore at rest must not lay out every frame (the #tonicPulse bug:
+    // 60 layouts/s with nothing moving). Measured, not assumed.
+    {
+      await mp.evaluate(() => { switchTab('explore'); scrollTo(0, 0); });
+      await mp.waitForTimeout(500);
+      const cdp = await mp.context().newCDPSession(mp);
+      await cdp.send('Performance.enable');
+      const lc = async () => (await cdp.send('Performance.getMetrics')).metrics.find(m => m.name === 'LayoutCount').value;
+      const a = await lc(); await mp.waitForTimeout(1000); const z = await lc();
+      if (z - a > 6) { console.error(`FAIL  perf budget: Explore laid out ${z - a}× in 1s at rest`); failed++; }
+      await cdp.detach();
+      await mp.evaluate(() => switchTab('build'));
+    }
+
     // ONE play vocabulary (V6.42): while the song plays, every transport
     // control shows stop — and the two former impostors stay out of the
     // costume: the rhythm switch has no ▶/■ glyph, the metronome toggle keeps
@@ -316,9 +357,12 @@ try {
         if (typeof playing !== 'undefined' && playing) stopPlay();
         await wait(200);
         toggleProgPlay(); await wait(400);
+        const tr = [...document.querySelectorAll('#playProgBtn, .ts-play')];
+        window.__pvDiag = { countIn: st.countIn, prog: !!(typeof _progRAF !== 'undefined' && _progRAF),
+          groove: typeof playing !== 'undefined' && playing,
+          btns: tr.map(b => (b.id || b.className.split(' ')[0]) + ':' + b.classList.contains('is-stop')) };
         const r = {
-          transportsStopped: [...document.querySelectorAll('#playProgBtn, .ts-play')]
-            .every(b => b.classList.contains('is-stop')),
+          transportsStopped: tr.every(b => b.classList.contains('is-stop')),
           rhythmHasNoPlayGlyph: !/[▶■]/.test(document.querySelector('.rt-switch')?.textContent || ''),
           rhythmIsSwitch: document.querySelector('.rt-switch')?.getAttribute('role') === 'switch',
           metroKeepsOwnIcon: document.getElementById('metroPlay')?.dataset.ico !== 'play',
@@ -327,7 +371,7 @@ try {
         return r;
       });
       for (const k of Object.keys(pv)) {
-        if (!pv[k]) { console.error(`FAIL  play vocabulary: ${k}`); failed++; }
+        if (!pv[k]) { console.error(`FAIL  play vocabulary: ${k}`, JSON.stringify(await mp.evaluate(() => window.__pvDiag))); failed++; }
       }
     }
 

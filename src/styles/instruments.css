@@ -25,9 +25,23 @@
 
 /* Scale notes — a faint accent tint rising from the key bottom (no more lilac).
    Kept subtle so the actual chord tones clearly stand out as the guide. */
-.key-on.white { box-shadow:inset 0 -11px 13px -9px rgba(232,68,26,.2), inset 0 -7px 9px -6px rgba(0,0,0,.12) }
-.key-on.white .kl { color:rgba(232,68,26,.62) }
-.key-on.black { box-shadow:inset 0 -8px 10px -7px rgba(232,68,26,.4), 0 4px 7px rgba(0,0,0,.55) }
+/* Scale keys speak the Explore keyboard's colour vocabulary (V6.47): warm
+   orange = in the scale, gold = the tonic — tinted, not filled, because on a
+   PLAYABLE board the chord highlight (.chord-on) must stay the loudest thing.
+   Before, scale membership was a faint inset shadow you could not see in any
+   key with black-key notes — and those keys were not even detected (see
+   _scaleSpell in instruments-renderer.js). */
+.key-on.white   { background:linear-gradient(180deg,#f7f7f3 0%,#f7f7f3 45%,#fbd9c9 100%);
+                  box-shadow:inset 0 -7px 9px -6px rgba(232,68,26,.16) }
+.key-on.white .kl { color:#c83010 }
+.key-root.white { background:linear-gradient(180deg,#f7f7f3 0%,#f7f7f3 40%,#ffdf94 100%) }
+.key-root.white .kl { color:#8a5a00 }
+.key-on.black   { background:linear-gradient(180deg,#5a2413,#2a0f07);
+                  box-shadow:inset 0 -8px 10px -7px rgba(232,68,26,.55), 0 4px 7px rgba(0,0,0,.55) }
+.key-root.black { background:linear-gradient(180deg,#6b4a0c,#2e1e03) }
+/* Degree under the name — the same 1..7 the Explore keyboard carries. */
+.white .kl, .black .kl { display:flex; flex-direction:column; align-items:center; line-height:1.15 }
+.kl i { font-style:normal; font-size:8px; opacity:.72; margin-top:1px }
 
 /* Current chord tones — strong accent + a lit base + a pop animation */
 .chord-on.white {
