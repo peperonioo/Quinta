@@ -28,7 +28,7 @@
   border-radius: var(--r-full); background: transparent; color: var(--muted);
   font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
   letter-spacing: 0; cursor: pointer; box-shadow: none;
-  transition: background .16s var(--ease), color .16s var(--ease);
+  transition: background var(--t-quick) var(--ease), color var(--t-quick) var(--ease);
 }
 .metro-sounds .ms-btn { font-family: 'DM Mono', monospace; font-size: 11px; }
 
@@ -53,7 +53,7 @@
   color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 11.5px;
   font-weight: 600; cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px; justify-content: center;
-  transition: background .16s var(--ease), border-color .16s var(--ease), color .16s var(--ease), transform .12s var(--ease);
+  transition: background var(--t-quick) var(--ease), border-color var(--t-quick) var(--ease), color var(--t-quick) var(--ease), transform var(--t-quick) var(--ease);
 }
 .builder-btn:hover,
 .gss-btn:hover { background: var(--glass-2); border-color: var(--glass-border); color: var(--ink); transform: none; }
@@ -83,7 +83,7 @@
   min-height: 30px; padding: 0 14px; border-radius: var(--r-full);
   border: 1px solid var(--line); background: var(--glass-1); color: var(--ink);
   font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
-  cursor: pointer; transition: background .15s var(--ease), border-color .15s, color .15s, transform .12s var(--ease);
+  cursor: pointer; transition: background var(--t-quick) var(--ease), border-color var(--t-quick), color var(--t-quick), transform var(--t-quick) var(--ease);
 }
 .mood-btn:hover { border-color: var(--muted); color: var(--ink); }
 .mood-btn.active {
@@ -124,8 +124,11 @@
 
 /* ── Tab content entrance — the panel eases in on switch (V5.84) ──
    switchTab() re-adds .tab-enter to restart this each time. */
-@keyframes tabEnter { from { opacity:0; transform:translateY(7px) scale(.996) } to { opacity:1; transform:none } }
-.tab-enter { animation: tabEnter .34s var(--ease) both; }
+/* 220ms, opacity + 4px, and `backwards` fill: `both` kept an identity matrix
+   on #panel-theory after the animation, which silently made it the containing
+   block for every position:fixed descendant (the inspector sheet bug of V6.24). */
+@keyframes tabEnter { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:none } }
+.tab-enter { animation: tabEnter .22s var(--ease) backwards; }
 @media (prefers-reduced-motion: reduce) { .tab-enter { animation: none } }
 
 /* Builder: secondary actions collapse behind the "⋯" button, grouped by intent. */
@@ -147,7 +150,7 @@
   position:fixed; inset:0; z-index:var(--z-toast);
   display:grid; place-items:center; padding:18px;
   background:rgba(0,0,0,.5); backdrop-filter:blur(5px);
-  opacity:0; pointer-events:none; transition:opacity .26s var(--ease);
+  opacity:0; pointer-events:none; transition:opacity var(--t-base) var(--ease);
 }
 .comeback.cb-on { opacity:1; pointer-events:auto }
 body.light .comeback { background:rgba(40,34,28,.34) }
@@ -157,7 +160,7 @@ body.light .comeback { background:rgba(40,34,28,.34) }
   padding:20px 18px 18px; border-radius:22px;
   background:var(--ui-surface-strong); border:1px solid var(--ui-border-strong);
   box-shadow:var(--shadow-lifted);
-  transform:translateY(14px) scale(.97); transition:transform .3s var(--spring);
+  transform:translateY(14px) scale(.97); transition:transform var(--t-move) var(--spring);
 }
 .comeback.cb-on .cb-card { transform:none }
 @media (prefers-reduced-motion:reduce) {
@@ -186,7 +189,7 @@ body.light .comeback { background:rgba(40,34,28,.34) }
   display:flex; flex-direction:column; align-items:flex-start; gap:2px;
   width:100%; min-height:var(--tap); margin-bottom:6px; padding:9px 12px;
   border:1px solid var(--line); border-radius:12px; background:var(--sel-bg);
-  cursor:pointer; text-align:left; transition:all .16s var(--ease);
+  cursor:pointer; text-align:left; transition:all var(--t-quick) var(--ease);
 }
 .cb-proj:hover { border-color:rgba(232,68,26,.4); transform:translateY(-1px) }
 .cb-proj:last-child { margin-bottom:0 }
@@ -210,7 +213,7 @@ body.light .comeback { background:rgba(40,34,28,.34) }
 .cb-go {
   width:100%; min-height:var(--tap); margin-top:11px; border:0; border-radius:11px;
   background:var(--accent); color:#fff; font-family:'DM Sans',sans-serif;
-  font-size:13px; font-weight:600; cursor:pointer; transition:box-shadow .18s var(--ease);
+  font-size:13px; font-weight:600; cursor:pointer; transition:box-shadow var(--t-base) var(--ease);
 }
 .cb-go:hover { box-shadow:0 5px 18px rgba(232,68,26,.36) }
 .cb-daily.cb-done .cb-go { background:var(--sel-bg); color:var(--ink); border:1px solid var(--line) }
@@ -230,14 +233,14 @@ body.light .comeback { background:rgba(40,34,28,.34) }
 .lib-panel:not(.open),
 #instrZoomPanel:not(.open) {
   visibility: hidden;
-  transition: opacity .24s var(--ease), transform .3s var(--ease), visibility 0s .3s;
+  transition: opacity var(--t-base) var(--ease), transform var(--t-move) var(--ease), visibility 0s var(--t-move);
 }
 #metronome.open .metro-panel,
 .transport-sheet[data-state="open"] .ts-panel,
 .lib-panel.open,
 #instrZoomPanel.open {
   visibility: visible;
-  transition: opacity .24s var(--ease), transform .3s var(--ease), visibility 0s;
+  transition: opacity var(--t-base) var(--ease), transform var(--t-move) var(--ease), visibility 0s;
 }
 
 /* ── INSPECTOR (V2 · fase B1) ─────────────────────────
@@ -280,7 +283,7 @@ body[data-mode="explore"] .inspector { display:none }
   min-height:32px; padding:6px 11px; border-radius:9px; cursor:pointer;
   border:1px solid var(--line); background:var(--sel-bg);
   font-family:var(--wheel-font); font-size:14px; color:var(--muted);
-  transition:all .15s var(--ease);
+  transition:all var(--t-quick) var(--ease);
 }
 .insp-var:hover { color:var(--ink); border-color:rgba(232,68,26,.35) }
 .insp-var.on { background:var(--accent); border-color:transparent; color:#fff }
@@ -291,7 +294,7 @@ body[data-mode="explore"] .inspector { display:none }
 .insp-seg button {
   min-height:30px; padding:5px 11px; border:0; border-radius:7px; cursor:pointer;
   background:transparent; color:var(--muted); font-size:11px; font-weight:600;
-  transition:all .15s var(--ease);
+  transition:all var(--t-quick) var(--ease);
 }
 .insp-seg button.on { background:var(--accent); color:#fff }
 .insp-seg.views button.on { background:var(--accent2) }
@@ -313,7 +316,7 @@ body[data-mode="explore"] .inspector { display:none }
 .sp-w, .sp-b {
   position:absolute; display:flex; flex-direction:column; align-items:center;
   justify-content:flex-end; gap:1px; cursor:pointer; user-select:none;
-  transition:background .16s var(--ease,ease), color .16s var(--ease,ease);
+  transition:background var(--t-quick) var(--ease,ease), color var(--t-quick) var(--ease,ease);
 }
 .sp-w {
   top:0; bottom:0; left:calc(var(--i) * var(--w)); width:var(--w);
@@ -374,7 +377,7 @@ body[data-mode="explore"] .inspector { display:none }
   display:inline-flex; align-items:center; gap:6px; min-height:32px; padding:0 11px;
   border:1px solid var(--glass-border); border-radius:9px; background:var(--glass-1);
   color:var(--muted); cursor:pointer; font-size:11px; font-weight:600;
-  transition:all .15s var(--ease,ease);
+  transition:all var(--t-quick) var(--ease,ease);
 }
 .spb-toggle:hover { color:var(--ink) }
 .scale-piano-block.is-open .spb-toggle {
@@ -438,7 +441,7 @@ body.light .if-neck { background:linear-gradient(180deg,#b89670,#9c7c58) }
 .insp-voice {
   min-height:30px; padding:5px 11px; border-radius:8px; cursor:pointer;
   border:1px solid var(--line); background:var(--sel-bg);
-  color:var(--muted); font-size:11px; font-weight:600; transition:all .15s var(--ease);
+  color:var(--muted); font-size:11px; font-weight:600; transition:all var(--t-quick) var(--ease);
 }
 .insp-voice:hover { color:var(--ink); border-color:rgba(232,68,26,.35) }
 .insp-voice.on { background:var(--degree-tonic); border-color:rgba(232,68,26,.5); color:var(--accent2) }
@@ -450,7 +453,7 @@ body.light .if-neck { background:linear-gradient(180deg,#b89670,#9c7c58) }
 .insp-deg {
   display:flex; flex-direction:column; align-items:center; gap:2px;
   min-height:44px; padding:6px 2px; border-radius:9px; cursor:pointer;
-  border:1px solid var(--line); background:var(--sel-bg); transition:all .15s var(--ease);
+  border:1px solid var(--line); background:var(--sel-bg); transition:all var(--t-quick) var(--ease);
 }
 .insp-deg:hover { border-color:rgba(232,68,26,.4); transform:translateY(-1px) }
 .insp-deg .idg { font-family:'DM Mono',monospace; font-size:8px; color:var(--accent2) }
@@ -485,7 +488,7 @@ body[data-mode="explore"] .doc-bar { display:none }
   display:inline-flex; align-items:center; gap:5px; min-height:32px; padding:6px 10px;
   border:1px solid var(--line); border-radius:9px; background:var(--sel-bg);
   color:var(--muted); font-size:11px; font-weight:600; cursor:pointer;
-  transition:all .15s var(--ease);
+  transition:all var(--t-quick) var(--ease);
 }
 .doc-btn:hover:not([disabled]) { color:var(--ink); border-color:rgba(232,68,26,.35) }
 .doc-btn[disabled] { opacity:.4; cursor:default }
@@ -567,7 +570,7 @@ body[data-mode="explore"] .rhythm-track { display:none }
     box-shadow:0 12px 36px -10px rgba(0,0,0,.5),
                inset 0 1px 0 rgba(255,255,255,.1),
                inset 0 -1px 0 rgba(0,0,0,.25);
-    transition:height .3s var(--ui-ease), transform .3s var(--ui-ease);
+    transition:height var(--t-move) var(--ui-ease), transform var(--t-move) var(--ui-ease);
   }
   body.light .tabbar {
     background:rgba(252,250,247,.5); border-color:rgba(0,0,0,.08);
@@ -579,7 +582,7 @@ body[data-mode="explore"] .rhythm-track { display:none }
     height:100%; min-width:46px; padding:0 13px;
     border:0; background:transparent; cursor:pointer; color:var(--muted);
     border-radius:999px; white-space:nowrap;
-    transition:color .2s var(--ease), background .25s var(--ui-ease), padding .3s var(--ui-ease);
+    transition:color var(--t-base) var(--ease), background var(--t-base) var(--ui-ease), padding var(--t-move) var(--ui-ease);
   }
   .tb-ico { display:grid; place-items:center; flex:none }
   /* The label belongs to the tab you are ON. Everything else is its icon —
@@ -587,7 +590,7 @@ body[data-mode="explore"] .rhythm-track { display:none }
   .tb-lbl {
     font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600;
     line-height:1; max-width:0; opacity:0; overflow:hidden;
-    transition:max-width .3s var(--ui-ease), opacity .2s var(--ease);
+    transition:max-width var(--t-move) var(--ui-ease), opacity var(--t-base) var(--ease);
   }
   /* Selected = the glass itself lifts under that tab, and the TINT carries the
      accent — a frosted highlight with orange ink, not an orange button. */
@@ -621,7 +624,7 @@ body[data-mode="explore"] .rhythm-track { display:none }
   }
   .tb-btn.is-scrub .tb-lbl { max-width:110px; opacity:1 }
   .tb-btn.is-scrub .tb-ico { transform:scale(1.12) }
-  .tb-ico { transition:transform .2s var(--ui-ease) }
+  .tb-ico { transition:transform var(--t-base) var(--ui-ease) }
 
   @media (prefers-reduced-motion:reduce) {
     .tabbar, .tb-btn, .tb-lbl, .tb-ico { transition:none }
@@ -631,7 +634,7 @@ body[data-mode="explore"] .rhythm-track { display:none }
   /* While the transport island is open it owns the bottom of the screen — the
      tab capsule floating on top of a modal panel is two chromes fighting. */
   body.ts-open .tabbar { opacity:0; transform:translateX(-50%) translateY(10px); pointer-events:none }
-  .tabbar { transition:height .3s var(--ui-ease), transform .3s var(--ui-ease), opacity .2s var(--ease) }
+  .tabbar { transition:height var(--t-move) var(--ui-ease), transform var(--t-move) var(--ui-ease), opacity var(--t-base) var(--ease) }
 
   /* The top segmented control is redundant once the bar exists. */
   .tabs { display:none }
@@ -657,7 +660,7 @@ body[data-mode="explore"] .rhythm-track { display:none }
   border:1px solid var(--line); background:transparent; color:var(--muted); cursor:pointer;
   display:grid; place-items:center }
 .tn-note { font-family:var(--wheel-font); font-size:64px; line-height:1; color:var(--ink);
-  transition:color .2s var(--ease) }
+  transition:color var(--t-base) var(--ease) }
 .tuner-panel.in-tune .tn-note { color:#4ade80 }
 .tn-which { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.08em; color:var(--muted); min-height:14px; margin-top:-4px }
 .tn-meter { position:relative; width:100%; height:46px }
@@ -669,7 +672,7 @@ body[data-mode="explore"] .rhythm-track { display:none }
 .tn-needle { position:absolute; left:50%; top:50%; width:3px; height:34px; border-radius:2px;
   background:var(--accent); box-shadow:0 0 10px rgba(232,68,26,.5);
   transform:translate(calc(-50% + (var(--c, 0) / 50) * 150px), -50%);
-  transition:transform .12s var(--ease), background .2s }
+  transition:transform var(--t-quick) var(--ease), background var(--t-base) }
 .tuner-panel.in-tune .tn-needle { background:#4ade80; box-shadow:0 0 12px rgba(74,222,128,.55) }
 .tn-cents { font-family:'DM Mono',monospace; font-size:14px; color:var(--muted); min-height:18px }
 .tuner-panel.in-tune .tn-cents { color:#4ade80 }
@@ -684,7 +687,7 @@ body[data-mode="explore"] .rhythm-track { display:none }
 .tn-strings { display:flex; gap:7px; margin-top:4px }
 .tn-str { width:38px; height:38px; border-radius:50%; border:1px solid var(--line);
   background:var(--sel-bg); color:var(--muted); font-family:var(--wheel-font); font-size:15px;
-  cursor:default; transition:all .18s var(--ease) }
+  cursor:default; transition:all var(--t-base) var(--ease) }
 .tn-str { cursor:pointer }
 .tn-str.on { border-color:var(--accent); color:var(--accent2); background:var(--degree-tonic);
   box-shadow:0 0 12px rgba(232,68,26,.3) }
@@ -699,12 +702,12 @@ body[data-mode="explore"] .rhythm-track { display:none }
 .rt-switch {
   width:44px; height:26px; border-radius:99px; border:1px solid var(--glass-border);
   background:rgba(255,255,255,.07); cursor:pointer; position:relative; flex:none;
-  transition:background .2s var(--ease), border-color .2s;
+  transition:background var(--t-base) var(--ease), border-color var(--t-base);
   padding:0;
 }
 .rt-switch i {
   position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%;
-  background:#fff; opacity:.85; transition:transform .25s var(--spring), background .2s;
+  background:#fff; opacity:.85; transition:transform var(--t-base) var(--spring), background var(--t-base);
   box-shadow:0 1px 4px rgba(0,0,0,.4);
 }
 .rt-switch.on { background:var(--accent); border-color:transparent }
@@ -721,7 +724,7 @@ body[data-mode="explore"] .rhythm-track { display:none }
   z-index:72; padding:9px 16px; border-radius:99px; font-size:12px; color:var(--ink);
   background:var(--glass-sheet-bg); border:1px solid var(--glass-border);
   backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
-  opacity:0; transition:opacity .3s var(--ease), transform .3s var(--spring);
+  opacity:0; transition:opacity var(--t-move) var(--ease), transform var(--t-move) var(--spring);
   pointer-events:none; max-width:86vw; text-align:center;
 }
 .tuner-gesture-hint.on { opacity:1; transform:translateX(-50%) translateY(0) }
@@ -729,4 +732,4 @@ body[data-mode="explore"] .rhythm-track { display:none }
 /* Input level — proof of life for the mic path */
 .tn-level { width:64%; height:3px; border-radius:2px; background:rgba(255,255,255,.08); overflow:hidden }
 .tn-level i { display:block; height:100%; width:0; border-radius:2px;
-  background:linear-gradient(90deg, var(--green,#4ade80), #a7f3c9); transition:width .12s linear }
+  background:linear-gradient(90deg, var(--green,#4ade80), #a7f3c9); transition:width var(--t-quick) linear }

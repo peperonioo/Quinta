@@ -45,7 +45,12 @@
   background:var(--glass-card-bg);
   border:1px solid var(--glass-border);
   border-radius:var(--r-card);
-  backdrop-filter:var(--glass-blur-card); -webkit-backdrop-filter:var(--glass-blur-card);
+  /* No backdrop-filter on the card tier (V6.47). Cards sit over the plasma,
+     which is ALREADY a soft gradient — blurring a blur is visually almost a
+     no-op, but each blurred card re-filters the animated background on every
+     frame (the builder alone is 374×540 on a phone). Blur is kept only where
+     real content scrolls UNDER a surface: the chrome tier and open sheets. */
+  backdrop-filter:none; -webkit-backdrop-filter:none;
   box-shadow:var(--glass-specular), 0 4px 20px rgba(0,0,0,.18);
 }
 body.light .progression-builder, body.light .inspector, body.light .drawer,

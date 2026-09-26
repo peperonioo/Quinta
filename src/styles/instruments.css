@@ -11,16 +11,16 @@
   border-right:1px solid rgba(0,0,0,.12); border-radius:0 0 9px 9px;
   display:flex; align-items:flex-end; justify-content:center; padding-bottom:9px;
   box-shadow:inset 0 -7px 9px -6px rgba(0,0,0,.12);
-  cursor:pointer; transition:transform .09s var(--ui-ease), filter .12s ease, box-shadow .22s ease;
+  cursor:pointer; transition:transform var(--t-quick) var(--ui-ease), filter var(--t-quick) ease, box-shadow var(--t-base) ease;
 }
 .black {
   position:absolute; top:0; height:60%;
   background:linear-gradient(180deg,#34343c,#0c0c12);
   border-radius:0 0 6px 6px; z-index:2; cursor:pointer;
   box-shadow:0 4px 7px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
-  transition:transform .09s var(--ui-ease), filter .12s ease, box-shadow .22s ease;
+  transition:transform var(--t-quick) var(--ui-ease), filter var(--t-quick) ease, box-shadow var(--t-base) ease;
 }
-.white .kl { font-family:'DM Mono',monospace; font-size:9px; color:#9a9a93; transition:color .2s }
+.white .kl { font-family:'DM Mono',monospace; font-size:9px; color:#9a9a93; transition:color var(--t-base) }
 .black .kl { position:absolute; bottom:6px; left:0; right:0; text-align:center; font-family:'DM Mono',monospace; font-size:8px; color:rgba(255,255,255,.85) }
 
 /* Scale notes — a faint accent tint rising from the key bottom (no more lilac).
@@ -79,7 +79,7 @@
 .fret-note.on   { background:#444; color:#fff; box-shadow:0 0 0 1.5px rgba(255,255,255,.2) }
 .fret-note.root { background:var(--accent); color:#fff; box-shadow:0 0 0 2px rgba(232,68,26,.35),0 3px 10px rgba(232,68,26,.3) }
 .fret-note.chord{ background:linear-gradient(180deg,#ffb38a,var(--accent)); color:#fff; box-shadow:0 0 0 2px rgba(232,68,26,.4),0 0 10px rgba(232,68,26,.45) }
-.fret-note { cursor:pointer; transition:transform .08s ease }
+.fret-note { cursor:pointer; transition:transform var(--t-quick) ease }
 .fret-note.on:hover, .fret-note.root:hover, .fret-note.chord:hover { transform:scale(1.14) }
 /* Voicing change feels alive — dots pop in when a shape lights up */
 .fret-note.shape-dot { animation:fretDotPop .28s var(--ease) both }
@@ -92,7 +92,7 @@
 /* ── Guitar Chord Shape Strip ─────────────────────────*/
 .gss-strip {
   max-height: 0; overflow: hidden;
-  transition: max-height .4s var(--spring);
+  transition: max-height var(--t-move) var(--spring);
 }
 .gss-strip.gss-on { max-height: 260px; }
 .gss-head {
@@ -111,7 +111,7 @@
 .gss-seg button {
   font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .04em;
   padding: 4px 10px; border: 0; border-radius: 7px; background: none;
-  color: var(--muted); cursor: pointer; transition: background .14s, color .14s;
+  color: var(--muted); cursor: pointer; transition: background var(--t-quick), color var(--t-quick);
 }
 .gss-seg button.on { background: var(--accent); color: #fff; }
 .gss-seg button:not(.on):hover { color: var(--fg); }
@@ -134,7 +134,7 @@
   flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 7px;
   cursor: pointer; border-radius: 18px; padding: 12px 14px 13px;
   border: 1.5px solid var(--card-bd); background: var(--sel-bg);
-  transition: border-color .16s, background .16s, transform .2s var(--ease), box-shadow .2s;
+  transition: border-color var(--t-quick), background var(--t-quick), transform var(--t-base) var(--ease), box-shadow var(--t-base);
   user-select: none;
 }
 .gss-card:hover {
@@ -153,13 +153,13 @@
   width: 22px; height: 22px; border-radius: 999px; border: 0; cursor: pointer;
   background: var(--sel-bg); border: 1px solid var(--card-bd); color: var(--muted);
   font-size: 14px; line-height: 1; display: grid; place-items: center;
-  transition: color .14s, background .14s, border-color .14s;
+  transition: color var(--t-quick), background var(--t-quick), border-color var(--t-quick);
 }
 .gsc-arrow:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
 .gsc-dots { display: flex; gap: 7px; align-items: center; }
 .gsc-dot {
   width: 9px; height: 9px; border-radius: 999px; cursor: pointer;
-  background: var(--ui-border-strong); transition: background .15s, transform .15s;
+  background: var(--ui-border-strong); transition: background var(--t-quick), transform var(--t-quick);
 }
 .gsc-dot:hover { background: var(--muted); }
 .gsc-dot.on { background: var(--accent); transform: scale(1.4); }
@@ -174,7 +174,7 @@
   letter-spacing: .05em; padding: 4px 8px; border-radius: 8px;
   border: 1px solid var(--card-bd); background: var(--sel-bg);
   color: var(--muted); cursor: pointer;
-  transition: color .12s, border-color .12s;
+  transition: color var(--t-quick), border-color var(--t-quick);
 }
 .gss-btn:hover { color: var(--accent2); border-color: rgba(232,68,26,.4); }
 
@@ -185,7 +185,7 @@
   width:24px; height:24px; flex:0 0 auto; border-radius:8px; cursor:pointer;
   border:1px solid var(--card-bd); background:var(--sel-bg); color:var(--muted);
   font-size:13px; line-height:1; display:grid; place-items:center;
-  transition:transform .12s var(--ui-ease), color .12s, border-color .12s;
+  transition:transform var(--t-quick) var(--ui-ease), color var(--t-quick), border-color var(--t-quick);
 }
 .instr-expand:hover { color:var(--accent2); border-color:rgba(232,68,26,.4); transform:scale(1.08) }
 
@@ -194,7 +194,7 @@
   position:fixed; inset:0; z-index:var(--z-modal, 9500); display:flex;
   align-items:center; justify-content:center; padding:18px;
   background:rgba(0,0,0,.5); backdrop-filter:blur(6px);
-  opacity:0; pointer-events:none; transition:opacity .24s var(--ease);
+  opacity:0; pointer-events:none; transition:opacity var(--t-base) var(--ease);
 }
 .instr-zoom.open { opacity:1; pointer-events:auto }
 .iz-panel {
@@ -202,7 +202,7 @@
   background:linear-gradient(180deg, rgba(20,20,26,.92), rgba(12,12,16,.95));
   border:1px solid rgba(255,255,255,.12); border-radius:22px;
   box-shadow:0 40px 110px rgba(0,0,0,.6); backdrop-filter:blur(30px); color:#f0ede8;
-  transform:scale(.95) translateY(8px); transition:transform .3s var(--spring);
+  transform:scale(.95) translateY(8px); transition:transform var(--t-move) var(--spring);
   overflow:hidden;
 }
 body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96), rgba(244,241,236,.98)); color:#1a1a1a; border-color:rgba(0,0,0,.1) }
@@ -217,7 +217,7 @@ body.light .iz-panel { background:linear-gradient(180deg, rgba(252,250,247,.96),
   width:48px; height:48px; border-radius:50%; cursor:pointer;
   background:rgba(20,20,26,.7); border:1px solid rgba(255,255,255,.22); color:#fff;
   display:grid; place-items:center; backdrop-filter:blur(10px);
-  transition:background .15s, transform .12s;
+  transition:background var(--t-quick), transform var(--t-quick);
 }
 body.light .iz-close { background:rgba(255,255,255,.8); border-color:rgba(0,0,0,.12); color:#1a1a1a }
 .iz-close:hover  { background:rgba(40,40,50,.85) }
@@ -252,7 +252,7 @@ body.light .iz-close { background:rgba(255,255,255,.8); border-color:rgba(0,0,0,
     top:calc(50dvh - 50dvw); left:calc(50dvw - 50dvh);
     border-radius:0;
     transform:rotate(-90deg) scale(.96);
-    transition:transform .3s var(--spring);
+    transition:transform var(--t-move) var(--spring);
   }
   .instr-zoom.open .iz-panel { transform:rotate(-90deg) }
   .piano.zoom { height:min(44dvw, 260px) }
@@ -264,7 +264,7 @@ body.light .iz-close { background:rgba(255,255,255,.8); border-color:rgba(0,0,0,
   background:var(--sel-bg); border:1px solid var(--card-bd); width:fit-content }
 .snd-btn { border:0; background:transparent; color:var(--muted); cursor:pointer;
   font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.04em;
-  padding:6px 11px; border-radius:9px; transition:background .15s, color .15s }
+  padding:6px 11px; border-radius:9px; transition:background var(--t-quick), color var(--t-quick) }
 .snd-btn.on { background:var(--accent); color:#fff }
 .snd-btn:not(.on):hover { color:var(--ink) }
 

@@ -1,3 +1,16 @@
+/* [hidden] MEANS hidden (V6.47). Author CSS like `.comeback { display:grid }`
+   silently beats the browser's own [hidden] rule, so "closed" was an invisible
+   full-screen veil with a backdrop blur, re-filtering the live plasma on every
+   frame, forever. The codebase had patched this per element eight times
+   (.ob[hidden], .ctx-bar[hidden]…); this is the root fix. */
+[hidden] { display:none !important }
+
+/* Double-tap-to-zoom off app-wide; pan and pinch stay (V6.47). Tapping two
+   bubbles quickly could zoom the whole page. Elements that need stricter
+   touch-action (the wheel: none; lanes: pan-x) intersect with this, so they
+   keep theirs. */
+html { touch-action:manipulation }
+
 /* ── BASE ─────────────────────────────────────────────*/
 *    { box-sizing:border-box; margin:0; padding:0 }
 html { height:100% }
@@ -7,7 +20,7 @@ body {
   background:var(--bg);
   min-height:100vh;
   overflow-x:hidden;
-  transition:background .3s,color .3s;
+  transition:background var(--t-move),color var(--t-move);
 }
 html,body { -webkit-tap-highlight-color:transparent; overscroll-behavior-y:none; }
 
@@ -32,7 +45,7 @@ html,body { -webkit-tap-highlight-color:transparent; overscroll-behavior-y:none;
     radial-gradient(70% 60% at 82% 12%, rgba(255,90,60,.14), transparent 60%),
     radial-gradient(70% 60% at 10% 95%, rgba(124,47,247,.13), transparent 60%),
     #0b0810;
-  transition:opacity .45s ease;
+  transition:opacity var(--t-move) ease;
 }
 #splash.done { opacity:0; pointer-events:none }
 .sp-mark { position:relative; width:86px; height:86px }
@@ -62,7 +75,7 @@ html,body { -webkit-tap-highlight-color:transparent; overscroll-behavior-y:none;
   position:fixed; inset:0;
   width:100vw; height:100vh;
   pointer-events:none; z-index:0;
-  transition:opacity .4s;
+  transition:opacity var(--t-move);
 }
 body.light #plasma { opacity:.85 }   /* pastel shader mode carries the colour now */
 

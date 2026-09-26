@@ -88,4 +88,4 @@ window.addEventListener('resize', () => {
 }, { passive: true });
 window.addEventListener('scroll', () => {
   if (document.getElementById('modeMenu')?.classList.contains('portal-open')) _placeModeMenu();
-}, true);
+}, { capture: true, passive: true });

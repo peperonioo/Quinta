@@ -39,23 +39,11 @@ const MobileOptimizer = {
       );
     }
 
-    // ── Collapsing wheel (mobile) ─────────────────────────
-    // As you scroll down into the builder, write a 0→1 scroll progress to
-    // `--sp` on <body>. CSS uses it to shrink/dock the wheel (sticky) and pull
-    // the lower surfaces up — a native-style collapsing header. Only transform
-    // and opacity are driven (GPU), so it stays smooth on phones. iOS-safe
-    // (no CSS scroll-timeline, which WebKit doesn't support yet).
-    const RANGE = 260;                       // px of scroll over which it collapses (gentler = smoother)
-    const setProgress = () => {
-      if (!mq.matches) { document.body.style.removeProperty('--sp'); return; }
-      const y = window.scrollY || document.documentElement.scrollTop || 0;
-      const p = Math.min(1, Math.max(0, y / RANGE));
-      document.body.style.setProperty('--sp', p.toFixed(3));
-    };
-    let rafId = 0;
-    const onScroll = () => { if (!rafId) rafId = requestAnimationFrame(() => { rafId = 0; setProgress(); }); };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', setProgress);
-    setProgress();
+    // The scroll-linked collapsing wheel (--sp) was retired in V6.47. It came
+    // from the single-page era; with four modes the wheel only exists in
+    // Explore — where the collapse was already disabled — and everywhere else
+    // it only pulled the content up to 62px FASTER than the finger for the first
+    // 260px of every scroll, while writing a custom property on <body> each
+    // frame (a full-document style recalc). Pure cost, and the "not tight" feel.
   },
 };

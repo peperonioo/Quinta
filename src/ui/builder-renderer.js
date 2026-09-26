@@ -47,28 +47,12 @@ function _renderRuler(gridBeats) {
   }
 }
 
-// Scroll-driven focus: once you scroll down to the progression builder (the wheel
-// has gone off the top), it expands to fill the screen so the section you're in is
-// the protagonist. Hysteresis (enter at 34% of the viewport, leave at 56%) avoids
-// flicker at the boundary. Only kicks in when you're actually building.
-function initBuilderFocus() {
-  const el = document.getElementById('progressionBuilder'); if (!el || el._focusWired) return;
-  el._focusWired = true;
-  // Cheap enough to run straight on scroll (one getBoundingClientRect + a class
-  // toggle) — no rAF, which can be throttled and miss updates.
-  const apply = () => {
-    const body = document.body;
-    if (!body.classList.contains('building')) { body.classList.remove('focus-builder'); return; }
-    const top = el.getBoundingClientRect().top, vh = innerHeight || 1;
-    const on = body.classList.contains('focus-builder');
-    if (!on && top < vh * 0.34) body.classList.add('focus-builder');
-    else if (on && top > vh * 0.56) body.classList.remove('focus-builder');
-  };
-  addEventListener('scroll', apply, { passive: true });
-  addEventListener('resize', apply, { passive: true });
-  try { new IntersectionObserver(apply, { threshold: [0, 0.25, 0.5, 0.75, 1] }).observe(el); } catch (_) {}
-  apply();
-}
+// The scroll-driven "focus-builder" class (V5.x) is retired (V6.47). It toggled
+// on scroll a class that changed the builder's min-height — the PAGE HEIGHT
+// changed mid-gesture, which the browser answers with scroll-anchor jumps. And
+// it read getBoundingClientRect on every scroll event right after other code
+// dirtied styles: a forced synchronous layout per frame (130 layouts in one
+// gesture, measured). The focused layout is now simply Build's static layout.
 
 // Horizontal pixels per beat (set in CSS on the timeline row).
 function _pxBeat() {
@@ -351,7 +335,6 @@ const HistoryEngine = {
     const expBtn = document.getElementById('exportBtn');
     if (expBtn) expBtn.hidden = h.length < 2;
     renderInstrProgStrip();
-    initBuilderFocus();   // wire scroll-focus once (idempotent)
 
     // Clear __justAdded flag + migrate older items (no duration yet).
     h.forEach(it => { delete it.__justAdded; if (it.beats == null) it.beats = 2; });

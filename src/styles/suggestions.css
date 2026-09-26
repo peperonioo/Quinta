@@ -47,7 +47,7 @@ body.light .next-orbit::-webkit-scrollbar-thumb { background:rgba(0,0,0,.14) }
   padding:8px 16px; border-radius:999px; cursor:pointer;
   border:1px dashed rgba(232,68,26,.38); background:rgba(255,255,255,.03); color:var(--ink);
   -webkit-tap-highlight-color:transparent;
-  transition:border-color .15s, background .15s, transform .12s var(--ease);
+  transition:border-color var(--t-quick), background var(--t-quick), transform var(--t-quick) var(--ease);
 }
 body.light .beyond-key { background:rgba(0,0,0,.025) }
 .beyond-key:hover  { border-color:var(--accent2); background:rgba(255,255,255,.06) }
@@ -74,7 +74,7 @@ body.light .beyond-key { background:rgba(0,0,0,.025) }
 .nb-float { position:relative; z-index:1; display:block; width:100%; height:100% }
 .nb-body {
   position:relative; width:100%; height:100%; border-radius:999px; display:grid; place-items:center; overflow:hidden;
-  will-change:transform; -webkit-backdrop-filter:blur(13px); backdrop-filter:blur(13px); color:#f4f1ec;
+  color:#f4f1ec;   /* no backdrop blur / will-change: 7 extra compositor layers for a gel look the gradient already carries (V6.47) */
   background:linear-gradient(160deg, rgba(52,48,64,.8), rgba(20,17,28,.93));
   border:1.5px solid rgba(var(--ba-rgb), calc(.12 + var(--fit) * .0042));
   box-shadow:0 10px 26px rgba(0,0,0,.42), inset 0 1.5px 0 rgba(255,255,255,.1), inset 0 -8px 18px rgba(0,0,0,.3),
@@ -148,12 +148,12 @@ body.light .gravity-card { background:rgba(0,0,0,.035) }
 .gravity-card .g-label { font-family:'DM Mono',monospace; font-size:7px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted) }
 .gravity-card .g-value { font-family:'DM Serif Display',serif; font-size:20px; line-height:1 }
 .gravity-pill-row { display:flex; gap:5px; flex-wrap:wrap }
-.gravity-pill { font-family:'DM Mono',monospace; font-size:8px; padding:4px 7px; border-radius:999px; background:var(--degree-tonic); border:1px solid rgba(232,68,26,.22); color:var(--accent2); white-space:nowrap; transition:all .18s var(--ease) }
+.gravity-pill { font-family:'DM Mono',monospace; font-size:8px; padding:4px 7px; border-radius:999px; background:var(--degree-tonic); border:1px solid rgba(232,68,26,.22); color:var(--accent2); white-space:nowrap; transition:all var(--t-base) var(--ease) }
 .gravity-pill.metric.medium { font-weight:600; color:var(--ink); border-color:rgba(232,68,26,.30) }
 .gravity-pill.metric.high   { font-weight:700; color:#fff; background:rgba(232,68,26,.72); border-color:rgba(255,145,110,.48); box-shadow:0 5px 18px rgba(232,68,26,.20) }
 body.light .gravity-pill.metric.high { color:#fff }
 
 /* Mood buttons */
 .mood-lens { display:flex; gap:5px; flex-wrap:wrap }
-.mood-btn  { border:1px solid var(--line); background:var(--sel-bg); border-radius:999px; padding:5px 8px; font-size:10px; color:var(--muted); cursor:pointer; transition:all .15s }
+.mood-btn  { border:1px solid var(--line); background:var(--sel-bg); border-radius:999px; padding:5px 8px; font-size:10px; color:var(--muted); cursor:pointer; transition:all var(--t-quick) }
 .mood-btn.active { background:var(--degree-tonic); border-color:rgba(232,68,26,.35); color:var(--accent2) }

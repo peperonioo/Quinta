@@ -8,7 +8,7 @@
 body.light .degrees-row { background:rgba(247,243,236,.9) }
 .degree {
   flex:1; padding:12px 6px; text-align:center; cursor:pointer;
-  border-right:1px solid var(--line); transition:background .15s;
+  border-right:1px solid var(--line); transition:background var(--t-quick);
   min-height:min(var(--tap),100%);
 }
 .degree:last-child { border-right:0 }
@@ -33,7 +33,7 @@ body.light .degrees-row { background:rgba(247,243,236,.9) }
 .degree .dn    { font-family:'DM Serif Display',serif; font-size:20px; margin-top:4px; line-height:1; color:var(--ink) }
 .degree .dq    { font-size:8px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:.05em }
 /* A little more presence overall */
-.degree { transition:background .15s, box-shadow .15s, transform .1s var(--ease) }
+.degree { transition:background var(--t-quick), box-shadow var(--t-quick), transform var(--t-quick) var(--ease) }
 .degree:hover { background:rgba(232,68,26,.08); box-shadow:inset 0 -2px 0 rgba(232,68,26,.35) }
 .degree:active { transform:scale(.95); background:rgba(232,68,26,.14) }
 @media (prefers-reduced-motion: reduce) { .degree:active { transform:none } }
@@ -44,7 +44,7 @@ body.light .degrees-row { background:rgba(247,243,236,.9) }
   width:min(440px,92vw);
   transform:translate(-50%,-100%);
   max-height:none !important; opacity:0; pointer-events:none;
-  transition:opacity .2s var(--ease), transform .25s var(--ease);
+  transition:opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease);
   will-change:transform,opacity;
 }
 .deg-popup-wrap.open { opacity:1; pointer-events:auto; margin-top:0; transform:translate(-50%,-108%) }

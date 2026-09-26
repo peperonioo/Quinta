@@ -27,6 +27,57 @@ function minifyCSS(code) {
   catch (e) { console.warn('  CSS minify skipped:', e.message); return code; }
 }
 
+// ── Hover belongs to pointers that can hover (V6.47) ──
+// On touch screens :hover fires on TAP and then STICKS until you tap elsewhere:
+// a button you just pressed keeps its hover colour, reading as "still active".
+// 88 :hover rules were unguarded. Rather than wrap each by hand (and forget the
+// 89th), the build moves every :hover selector into @media (hover:hover). Mixed
+// lists are split so `.a:focus-visible, .a:hover` keeps focus styling
+// everywhere. Rules already inside an at-rule are recursed into, so nesting is
+// preserved. Emitted at the same position → cascade order unchanged.
+function guardHover(css) {
+  const out = [];
+  let i = 0;
+  const n = css.length;
+  const readBlock = start => {            // index just past the matching }
+    let d = 0, j = start;
+    for (; j < n; j++) {
+      const c = css[j];
+      if (c === '/' && css[j + 1] === '*') { j = css.indexOf('*/', j + 2); if (j < 0) return n; j++; continue; }
+      if (c === '"' || c === "'") { const q = c; j++; while (j < n && css[j] !== q) { if (css[j] === '\\') j++; j++; } continue; }
+      if (c === '{') d++;
+      else if (c === '}') { d--; if (d === 0) return j + 1; }
+    }
+    return n;
+  };
+  while (i < n) {
+    // copy whitespace / comments verbatim
+    if (/\s/.test(css[i])) { out.push(css[i++]); continue; }
+    if (css[i] === '/' && css[i + 1] === '*') { const e = css.indexOf('*/', i + 2); const k = e < 0 ? n : e + 2; out.push(css.slice(i, k)); i = k; continue; }
+    const brace = css.indexOf('{', i), semi = css.indexOf(';', i);
+    if (brace < 0) { out.push(css.slice(i)); break; }
+    if (semi >= 0 && semi < brace) { out.push(css.slice(i, semi + 1)); i = semi + 1; continue; }   // @import/@charset
+    const end = readBlock(brace);
+    const prelude = css.slice(i, brace), body = css.slice(brace + 1, end - 1);
+    if (prelude.trim().startsWith('@')) {
+      const kw = prelude.trim().slice(1).split(/[\s(]/)[0];
+      // keyframes/font-face/property bodies are not style rules — leave intact
+      out.push(/^(media|supports|layer|container|document)$/.test(kw)
+        ? prelude + '{' + guardHover(body) + '}'
+        : css.slice(i, end));
+    } else if (prelude.includes(':hover')) {
+      const sels = prelude.split(',').map(x => x.trim()).filter(Boolean);
+      const hov = sels.filter(x => x.includes(':hover')), rest = sels.filter(x => !x.includes(':hover'));
+      if (rest.length) out.push(rest.join(',') + '{' + body + '}');
+      out.push('@media (hover:hover){' + hov.join(',') + '{' + body + '}}');
+    } else {
+      out.push(css.slice(i, end));
+    }
+    i = end;
+  }
+  return out.join('');
+}
+
 // ── CSS files in layer order ────────────────────────
 const CSS_FILES = [
   'src/styles/tokens.css',
@@ -154,7 +205,7 @@ function build() {
     console.log(`  css  ${f}`);
     return `/* == ${path.basename(f)} == */\n` + readFile(f);
   });
-  const css = `<style>${minifyCSS(cssChunks.join('\n'))}</style>`;
+  const css = `<style>${minifyCSS(guardHover(cssChunks.join('\n')))}</style>`;
 
   // Assemble JS
   const jsChunks = JS_FILES.map(f => {

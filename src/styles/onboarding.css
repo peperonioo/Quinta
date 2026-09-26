@@ -1,5 +1,5 @@
 /* ── ONBOARDING / GUIDED SPOTLIGHT TOUR ─────────────── */
-.ob { position: fixed; inset: 0; z-index: 10050; pointer-events: none; opacity: 0; transition: opacity .3s var(--ease); }
+.ob { position: fixed; inset: 0; z-index: 10050; pointer-events: none; opacity: 0; transition: opacity var(--t-move) var(--ease); }
 .ob.ob-on { opacity: 1; }
 .ob[hidden] { display: none; }
 
@@ -13,7 +13,7 @@
 .ob-spot {
   position: fixed; z-index: 1; pointer-events: none; border-radius: 16px; left: 0; top: 0; width: 0; height: 0;
   box-shadow: 0 0 0 9999px rgba(0,0,0,.68), 0 0 0 2px var(--accent), 0 0 16px 3px rgba(232,68,26,.4);
-  transition: left .42s var(--ease), top .42s var(--ease), width .42s var(--ease), height .42s var(--ease), border-radius .42s var(--ease);
+  transition: left var(--t-move) var(--ease), top var(--t-move) var(--ease), width var(--t-move) var(--ease), height var(--t-move) var(--ease), border-radius var(--t-move) var(--ease);
   animation: obSpotPulse 2.2s ease-in-out infinite;
 }
 @keyframes obSpotPulse {
@@ -28,7 +28,7 @@
   background: linear-gradient(180deg, var(--ui-surface-strong), var(--ui-surface));
   border: 1px solid var(--ui-border-strong); border-radius: 18px; box-shadow: var(--shadow-lift);
   color: var(--ink); padding: 18px 18px 14px;
-  transition: left .4s var(--ease), top .4s var(--ease);
+  transition: left var(--t-move) var(--ease), top var(--t-move) var(--ease);
 }
 .ob-fade { animation: obFade .42s var(--ease); }
 @keyframes obFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -56,13 +56,13 @@
 
 .ob-tip-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; }
 .ob-dots { display: flex; gap: 6px; }
-.ob-dot { width: 6px; height: 6px; border-radius: 999px; border: 0; padding: 0; cursor: pointer; background: var(--ui-border-strong); transition: width .3s var(--ease), background .3s; }
+.ob-dot { width: 6px; height: 6px; border-radius: 999px; border: 0; padding: 0; cursor: pointer; background: var(--ui-border-strong); transition: width var(--t-move) var(--ease), background var(--t-move); }
 .ob-dot.on { width: 18px; background: var(--accent); }
 .ob-nav { display: flex; gap: 8px; }
 .ob-btn {
   font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer;
   border-radius: 999px; padding: 8px 16px; border: 1px solid transparent;
-  transition: transform .12s var(--ease), filter .15s, background .15s, color .15s;
+  transition: transform var(--t-quick) var(--ease), filter var(--t-quick), background var(--t-quick), color var(--t-quick);
 }
 .ob-btn:active { transform: scale(.97); }
 .ob-ghost { background: transparent; color: var(--muted); border-color: var(--ui-border); }
@@ -88,7 +88,7 @@
   width: 34px; height: 34px; flex: 0 0 auto; border-radius: 999px; cursor: pointer;
   border: 1px solid var(--card-bd); background: var(--sel-bg); color: var(--muted);
   font-size: 14px; font-weight: 700; line-height: 1; display: grid; place-items: center;
-  transition: color .14s, border-color .14s, transform .12s var(--ease);
+  transition: color var(--t-quick), border-color var(--t-quick), transform var(--t-quick) var(--ease);
 }
 .help-btn:hover { color: var(--accent2); border-color: rgba(232,68,26,.4); transform: scale(1.06); }
 

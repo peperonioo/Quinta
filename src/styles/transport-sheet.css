@@ -3,10 +3,10 @@
    every width — so they moved out. Their container (.sheet-head) is display:none
    unless something explicitly shows it, which is what scopes them. */
 .instr-switch { display:flex; gap:3px; padding:3px; border-radius:11px; background:var(--glass-1); border:1px solid var(--glass-border) }
-.instr-tab { width:48px; height:32px; border:0; background:transparent; color:var(--muted); border-radius:8px; cursor:pointer; display:grid; place-items:center; transition:background .15s, color .15s }
+.instr-tab { width:48px; height:32px; border:0; background:transparent; color:var(--muted); border-radius:8px; cursor:pointer; display:grid; place-items:center; transition:background var(--t-quick), color var(--t-quick) }
 .instr-tab.on { background:var(--accent); color:#fff }
 .sheet-head-actions { display:flex; align-items:center; gap:7px }
-.instr-zoom-toggle, .instr-shapes-toggle { width:36px; height:36px; border-radius:10px; border:1px solid var(--glass-border); background:var(--glass-1); color:var(--muted); cursor:pointer; display:grid; place-items:center; transition:transform .12s, color .15s, background .15s, border-color .15s }
+.instr-zoom-toggle, .instr-shapes-toggle { width:36px; height:36px; border-radius:10px; border:1px solid var(--glass-border); background:var(--glass-1); color:var(--muted); cursor:pointer; display:grid; place-items:center; transition:transform var(--t-quick), color var(--t-quick), background var(--t-quick), border-color var(--t-quick) }
 .instr-zoom-toggle:active, .instr-shapes-toggle:active { transform:scale(.92) }
 .instr-zoom-toggle:hover, .instr-shapes-toggle:hover { color:var(--ink) }
 
@@ -22,7 +22,7 @@
   flex:0 0 auto; padding:6px 12px; border-radius:11px; cursor:pointer;
   border:1px solid var(--card-bd); background:var(--sel-bg); color:var(--ink);
   font-family:'DM Serif Display',Georgia,serif; font-size:15px; line-height:1;
-  transition:border-color .14s, background .14s, color .14s;
+  transition:border-color var(--t-quick), background var(--t-quick), color var(--t-quick);
 }
 .tps-chip:active { transform:scale(.95) }
 .tps-chip.on { background:var(--accent); border-color:transparent; color:#fff }
@@ -59,8 +59,8 @@
     transform:translateX(-50%); transform-origin:bottom center; pointer-events:auto;
     display:flex; align-items:center; gap:10px; padding:7px 15px 7px 7px; cursor:pointer;
     border-radius:999px;
-    transition:opacity .2s var(--ease), transform .3s var(--spring),
-               bottom .3s var(--ui-ease);
+    transition:opacity var(--t-base) var(--ease), transform var(--t-move) var(--spring),
+               bottom var(--t-move) var(--ui-ease);
   }
   /* Heading into content the bar shrinks — the accessory gets out of the way
      entirely (it is glanceable state, not navigation). Back on scroll up. */
@@ -82,14 +82,14 @@
     display:flex; flex-direction:column; max-height:82svh; overflow:hidden;
     border-radius:26px; transform-origin:bottom center;
     opacity:0; transform:translateY(18px) scale(.96); pointer-events:none;
-    transition:opacity .24s var(--ease), transform .34s var(--spring);
+    transition:opacity var(--t-base) var(--ease), transform var(--t-move) var(--spring);
   }
   .transport-sheet[data-state="open"] .ts-panel { opacity:1; transform:none; pointer-events:auto }
 
   .ts-head { display:flex; align-items:center; gap:11px; padding:11px 13px; cursor:pointer; user-select:none; flex:none }
   .ts-play {
     width:38px; height:38px; border-radius:13px; border:0; background:var(--accent); color:#fff;
-    display:grid; place-items:center; cursor:pointer; flex:none; transition:background .2s, transform .14s var(--ease);
+    display:grid; place-items:center; cursor:pointer; flex:none; transition:background var(--t-base), transform var(--t-quick) var(--ease);
   }
   .ts-cap .ts-play { width:34px; height:34px; border-radius:12px }
   .ts-play:active { transform:scale(.92) }
@@ -101,7 +101,7 @@
   .ts-bpm { margin-left:auto; display:flex; align-items:baseline; gap:3px; background:transparent; border:0; cursor:pointer; white-space:nowrap }
   .ts-bpm .ts-b { font-family:'DM Mono',monospace; font-size:14px; color:var(--ink) }
   .ts-bpm small { font-size:8px; color:var(--muted); letter-spacing:.05em }
-  .ts-chev { color:var(--muted); display:inline-flex; transition:transform .3s var(--ease) }
+  .ts-chev { color:var(--muted); display:inline-flex; transition:transform var(--t-move) var(--ease) }
 
   .ts-body { overflow-y:auto; padding:2px 12px calc(12px + var(--mobile-safe-bottom,0px)) }
   .ts-section-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:12px 4px 8px }
@@ -132,7 +132,7 @@
     display:flex; align-items:center; justify-content:center; gap:6px; height:42px;
     border-radius:13px; border:1px solid var(--glass-border); background:var(--glass-1);
     color:var(--ink); font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif;
-    transition:border-color .15s, background .15s;
+    transition:border-color var(--t-quick), background var(--t-quick);
   }
   .ts-tool:active { transform:scale(.97) }
   .ts-tool.primary { flex:1; background:rgba(232,68,26,.16); border-color:rgba(232,68,26,.42); color:var(--accent2) }

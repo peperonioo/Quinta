@@ -15,7 +15,6 @@
   --glass-sheet-bg:  rgba(14,14,19,.72);
   --glass-card-bg:   rgba(16,16,21,.6);
   --glass-blur:       blur(32px) saturate(185%);
-  --glass-blur-card:  blur(14px) saturate(140%);
   --glass-border:     rgba(255,255,255,.09);
   --glass-specular:   inset 0 1px 0 rgba(255,255,255,.1);
   --shadow-float:     0 12px 36px -10px rgba(0,0,0,.5);
@@ -91,8 +90,18 @@
   --ease:        cubic-bezier(.22,1,.36,1);
   --ui-ease:     var(--ease);
   --spring:      cubic-bezier(.34,1.4,.4,1);
-  --ui-fast:     160ms;
-  --ui-med:      320ms;
+  /* ── TEMPO (V6.47) — three durations, named ─────────────
+     Transitions used TWENTY distinct values (.08s → .46s): nothing contradicted
+     anything, yet the app never had one rhythm. Every transition now picks one:
+       --t-quick  press feedback, colour, hover — the finger must feel instant
+       --t-base   state changes: toggles, reveals, fades
+       --t-move   things that TRAVEL: sheets, capsules, panels
+     Keyframe choreographies keep their own timings on purpose. */
+  --t-quick:     .14s;
+  --t-base:      .2s;
+  --t-move:      .32s;
+  --ui-fast:     var(--t-quick);
+  --ui-med:      var(--t-move);
   --ui-slow:     620ms;
   --motion-fast: 160ms;
   --motion-med:  320ms;

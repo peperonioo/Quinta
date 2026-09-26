@@ -276,7 +276,6 @@ function toggleTheme() {
   const _metro = document.getElementById('metronome');
   if (_metro && _metro.parentElement !== document.body) document.body.appendChild(_metro);
   _syncVoiceUI();   // reflect the saved instrument sound
-  initBuilderFocus();     // scroll → builder fills the screen
   initTabbarMinimise();   // scroll → the tab capsule stands down
   initTabbarScrub();      // hold → steer the capsule with the thumb
   _wireMetroSwipe();      // slide the metronome right → tuner

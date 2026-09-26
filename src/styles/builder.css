@@ -7,7 +7,7 @@
   box-shadow:0 4px 16px rgba(0,0,0,.15);
   position:relative; overflow:visible !important;
   will-change:transform,opacity;
-  transition:padding .38s var(--ui-ease), box-shadow .38s var(--ui-ease);
+  transition:padding var(--t-move) var(--ui-ease), box-shadow var(--t-move) var(--ui-ease);
 }
 body.light .progression-builder { background:rgba(250,247,241,.92) }
 
@@ -27,33 +27,24 @@ body.light .progression-builder { background:rgba(250,247,241,.92) }
 body[data-mode="build"] .progression-builder { display:flex; flex-direction:column }
 body[data-mode="build"] #progressionStory .next-orbit { min-height:0 }
 body.has-selection .progression-builder { padding-bottom:12px }
-body.focus-builder .progression-builder {
-  max-height:88svh; display:flex; flex-direction:column;
-  padding:18px 15px 22px;
-  box-shadow:0 12px 44px -14px rgba(0,0,0,.55);
-}
-/* The reserved 64svh belongs to the phone, where the builder IS the screen. On a
-   wide screen the inspector is the co-protagonist in the next column, so a floor
-   here only bought void: 576px of panel around 499px of content, with the extra
-   77px plus a 140px hole between the lane and the bubbles. Hug the content and
-   let the taller of the two columns set the row height. */
-@media (max-width:860px) {
-  body.focus-builder .progression-builder { min-height:64svh }
-}
-body.focus-builder #flowRow.is-timeline { flex:0 0 auto }                 /* clips never stretch */
-body.focus-builder #progressionStory.builder-next-moves {
+/* Build's layout is static (V6.47 — the scroll-toggled .focus-builder class
+   changed the page height mid-scroll). On a phone the builder claims the
+   screen and hands the slack to the suggestion area; clips never stretch. */
+body[data-mode="build"] #flowRow.is-timeline { flex:0 0 auto }
+body[data-mode="build"] #progressionStory.builder-next-moves {
   flex:1 1 auto; display:flex; flex-direction:column; justify-content:center;
 }
-body.focus-builder #progressionStory .next-orbit { min-height:clamp(120px, 17svh, 168px) }
-/* The wheel only fades when it is BACKGROUND to the builder. In Explore it is
-   the subject, so it never dims. */
-body.focus-builder:not([data-mode="explore"]) #wheelSvg { opacity:.5; transition:opacity .45s var(--ui-ease) }
+@media (max-width:860px) {
+  body[data-mode="build"] .progression-builder { min-height:62svh; padding:16px 15px 20px }
+  body[data-mode="build"] #progressionStory .next-orbit { min-height:clamp(120px, 17svh, 168px) }
+  body.has-selection .progression-builder { min-height:0 }
+}
 .builder-head    { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px }
 .builder-title   { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-weight:500 }
 /* A/B section tabs — segmented control under the title */
 .sect-tabs       { display:inline-flex; gap:3px; margin-top:6px; padding:2px; border-radius:9px; background:var(--sel-bg); border:1px solid var(--line) }
 .sect-tab        { min-width:26px; height:22px; padding:0 9px; border:0; border-radius:7px; background:transparent;
-                   font-family:'DM Mono',monospace; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:all .15s var(--ease) }
+                   font-family:'DM Mono',monospace; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:all var(--t-quick) var(--ease) }
 .sect-tab:hover  { color:var(--ink) }
 .sect-tab.active { background:var(--accent); color:#fff }
 .sect-chain      { font-family:'DM Mono',monospace; letter-spacing:.02em }
@@ -63,7 +54,7 @@ body.focus-builder:not([data-mode="explore"]) #wheelSvg { opacity:.5; transition
   border:1px solid var(--line); background:var(--sel-bg); border-radius:9px;
   padding:5px 9px; font-family:'DM Sans',sans-serif; font-size:10px;
   font-weight:600 !important;
-  color:var(--muted); cursor:pointer; transition:all .16s var(--ease);
+  color:var(--muted); cursor:pointer; transition:all var(--t-quick) var(--ease);
 }
 .builder-btn:hover         { color:var(--ink); border-color:rgba(232,68,26,.34); transform:translateY(-1px) }
 .builder-btn.primary       { background:var(--degree-tonic); border-color:rgba(232,68,26,.28); color:var(--accent2) }
@@ -100,7 +91,7 @@ body.light .builder-btn.play.is-stop { background:#3a3a42; color:#fff }
   border-color:rgba(232,68,26,.8) !important;
   box-shadow:0 0 0 1px rgba(232,68,26,.5), 0 6px 20px rgba(232,68,26,.32) !important;
   transform:translateY(-2px) scale(1.03);
-  transition:transform .12s var(--ui-ease), box-shadow .12s var(--ui-ease);
+  transition:transform var(--t-quick) var(--ui-ease), box-shadow var(--t-quick) var(--ui-ease);
 }
 .builder-step.playing .step-chord { color:var(--accent2) }
 
@@ -126,14 +117,23 @@ body.light .builder-btn.play.is-stop { background:#3a3a42; color:#fff }
   font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; color:#fff;
   background:linear-gradient(180deg, var(--accent-light,#ff7a4a), var(--accent,#ff5a3c));
   box-shadow:0 8px 22px -6px var(--accent,#ff5a3c), inset 0 1px 0 rgba(255,255,255,.35);
-  transition:transform .12s var(--ease), filter .15s;
+  transition:transform var(--t-quick) var(--ease), filter var(--t-quick);
 }
 .surprise-btn .ico { width:18px; height:18px }
 .surprise-btn:hover  { filter:brightness(1.06) }
 .surprise-btn:active { transform:scale(.96) }
 @keyframes surprisePulse { 0%,100%{ box-shadow:0 8px 22px -6px var(--accent,#ff5a3c), inset 0 1px 0 rgba(255,255,255,.35) } 50%{ box-shadow:0 8px 30px -4px var(--accent,#ff5a3c), 0 0 0 4px rgba(232,68,26,.12), inset 0 1px 0 rgba(255,255,255,.35) } }
-.surprise-btn { animation:surprisePulse 2.8s ease-in-out infinite }
-@media (prefers-reduced-motion: reduce) { .surprise-btn { animation:none } }
+/* The pulse used to animate box-shadow — a repaint of the button's whole
+   shadow area on every frame, forever. A halo pseudo-element breathes on
+   opacity/transform instead: compositor-only. */
+.surprise-btn { position:relative; isolation:isolate }
+.surprise-btn::after {
+  content:''; position:absolute; inset:-5px; border-radius:inherit; z-index:-1;
+  box-shadow:0 8px 30px -4px var(--accent,#ff5a3c), 0 0 0 4px rgba(232,68,26,.12);
+  opacity:0; animation:surpriseHalo 2.8s ease-in-out infinite;
+}
+@keyframes surpriseHalo { 0%,100% { opacity:0; transform:scale(.97) } 50% { opacity:1; transform:scale(1) } }
+@media (prefers-reduced-motion: reduce) { .surprise-btn::after { animation:none } }
 .builder-empty-hint { font-size:11px; color:var(--muted); opacity:.8 }
 /* Compact re-roll button in the actions bar carries the accent so it reads as "fun". */
 .surprise-opt { color:var(--accent2) }
@@ -178,7 +178,7 @@ body.light .builder-step  { background:rgba(0,0,0,.04) }
 .snap-btn             { position:absolute; right:0; top:0; height:18px; padding:0 9px; border-radius:6px;
                         border:1px solid var(--line); background:rgba(14,12,18,.92); color:var(--muted);
                         font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.02em; cursor:pointer; z-index:2;
-                        transition:color .15s, border-color .15s }
+                        transition:color var(--t-quick), border-color var(--t-quick) }
 body.light .snap-btn  { background:rgba(250,247,241,.94) }
 .snap-btn:hover       { color:var(--ink); border-color:rgba(232,68,26,.42) }
 .snap-btn::before     { content:'snap '; color:var(--muted); opacity:.7 }
@@ -212,7 +212,7 @@ body.light .snap-btn  { background:rgba(250,247,241,.94) }
   border-radius:11px !important;
   background:linear-gradient(180deg, rgba(232,68,26,.14), rgba(255,255,255,.04));
   overflow:visible;               /* let the floating toolbar escape the bar */
-  transition:left .13s var(--ui-ease);   /* pushed clips slide aside smoothly */
+  transition:left var(--t-quick) var(--ui-ease);   /* pushed clips slide aside smoothly */
 }
 .builder-step.dragging { transition:none; box-shadow:0 8px 22px -6px rgba(232,68,26,.5); }
 .builder-row.is-timeline .builder-step .step-chord {
@@ -263,7 +263,7 @@ body.light .builder-step .step-len { color:var(--accent); opacity:1 }
 }
 .builder-step .step-resize::before {
   content:''; width:3px; height:46%; border-radius:3px;
-  background:rgba(255,255,255,.28); transition:background .14s var(--ui-ease);
+  background:rgba(255,255,255,.28); transition:background var(--t-quick) var(--ui-ease);
 }
 .builder-step:hover .step-resize::before,
 .builder-step.resizing .step-resize::before { background:var(--accent) }
@@ -274,7 +274,7 @@ body.light .builder-step .step-len { color:var(--accent); opacity:1 }
 /* Held-to-lift: the clip pops up into your hand. `left` is NOT transitioned here so
    it tracks the finger instantly (the pushed clips keep their .13s slide). */
 .builder-row.is-timeline .builder-step.lifted {
-  transition:transform .15s var(--ui-ease), box-shadow .15s var(--ui-ease) !important;
+  transition:transform var(--t-quick) var(--ui-ease), box-shadow var(--t-quick) var(--ui-ease) !important;
   transform:translateY(-7px) scale(1.06);
   box-shadow:0 18px 36px -10px rgba(0,0,0,.6), 0 0 0 1px rgba(255,178,74,.55);
   cursor:grabbing;
@@ -288,7 +288,7 @@ body.light .builder-step .step-len { color:var(--accent); opacity:1 }
   box-shadow:0 0 10px rgba(232,68,26,.7);
   z-index:6; transform:translateX(0);
   pointer-events:auto; cursor:ew-resize;
-  opacity:0.3; transition:opacity .18s;
+  opacity:0.3; transition:opacity var(--t-base);
 }
 .builder-playhead.on { opacity:1 }
 .builder-playhead::before {

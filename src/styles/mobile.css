@@ -29,38 +29,13 @@
   .tabs-3 .tab-btn { padding:11px 6px; white-space:nowrap }
   .main-row       { grid-template-columns:1fr; gap:6px; margin-bottom:8px }
   .side           { display:none }
-  /* ── Collapsing wheel (scroll-linked) ───────────────────
-     As you scroll down, the wheel "zooms out" — it shrinks, lifts and fades as
-     it leaves, so the lower surfaces take over the screen. Driven by --sp (0→1,
-     set by MobileOptimizer on scroll). CRITICAL for smoothness: ONLY transform
-     and opacity are touched (both GPU-composited, no reflow) — no margins, no
-     filters on the moving element, no document-height changes. That is what
-     keeps it buttery and kills the scroll-fight flicker. */
-  .circle-wrap    {
-    order:0; transform-origin:50% 38%;
-    transform:translate3d(0, calc(-30px * var(--sp,0)), 0) scale(calc(1 - .36 * var(--sp,0)));
-    opacity:calc(1 - .5 * var(--sp,0));
-    will-change:transform, opacity;
-    backface-visibility:hidden;
-  }
-  /* No drop-shadow filter on mobile — re-rasterising a filter while the wheel
-     scales every frame is the other big jank source. */
+  /* No drop-shadow filter on mobile — re-rasterising a filter on a 460px SVG
+     is a big paint on every animation frame of the wheel. */
   #wheelSvg       { width:min(84vw,460px) !important; height:min(84vw,460px) !important; filter:none !important }
-  /* In Explore the wheel IS the screen — full size, full opacity. It was shrunk
-     to 84vw and faded by the scroll-linked --sp back when it shared a page with
-     the builder; in its own mode neither applies. */
+  /* In Explore the wheel IS the screen — full size. (The scroll-linked --sp
+     collapse that used to shrink it was retired in V6.47; see mobile-optimizer.) */
   body[data-mode="explore"] #wheelSvg { width:min(96vw,540px) !important; height:min(96vw,540px) !important }
-  body[data-mode="explore"] .circle-wrap { transform:none !important; opacity:1 !important }
-  body[data-mode="explore"] .below-wheel { transform:none !important }
   body.building .wheel-toggle-row { margin-top:6px }
-  /* The wheel shrinks via transform, which does not shrink its layout box — that
-     leaves dead space under it as you scroll. Pull the whole lower half up by the
-     same --sp. V6.16 did this to TWO siblings and left the theory strip between
-     them behind, so surfaces overlapped; one wrapper makes that impossible. */
-  .below-wheel {
-    transform:translate3d(0, calc(-16vw * var(--sp,0)), 0);
-    will-change:transform; backface-visibility:hidden;
-  }
   /* Surface the Major/Minor toggle on mobile (the side cards are hidden) */
   .wheel-toggle-row { display:flex; justify-content:center; margin:2px auto 8px }
   .wheel-toggle-mobile { display:inline-flex; margin:0; padding:2px; border-radius:999px }
@@ -140,7 +115,7 @@
   /* Dim scrim behind the open island; tap it to collapse */
   .instr-sheet-backdrop {
     position:fixed; inset:0; z-index:54; background:rgba(0,0,0,.42);
-    opacity:0; pointer-events:none; transition:opacity .26s var(--ease);
+    opacity:0; pointer-events:none; transition:opacity var(--t-base) var(--ease);
   }
   body.ts-open .instr-sheet-backdrop { opacity:1; pointer-events:auto }
 
