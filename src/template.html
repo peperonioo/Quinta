@@ -73,7 +73,6 @@
   <!-- METRONOME — Dynamic-Island-style bubble -->
   <div id="metronome">
     <div class="metro-row-top">
-      <button class="metro-tuner" data-act="tuner.open" title="Tuner" aria-label="Guitar tuner"><span data-ico="fork" data-ico-size="14"></span></button>
       <button class="metro-pill" data-act="metro.panel" aria-label="Metronome, open tempo controls" aria-expanded="false">
         <span class="metro-led" aria-hidden="true"></span>
         <span class="metro-bpm">100</span>
@@ -131,9 +130,7 @@
       <!-- LEFT SIDE -->
       <aside class="side">
         <div class="card">
-          <div class="lbl" data-i18n="labels.keyRoot">Key / Root</div>
-          <div id="sideKey" class="big">C</div>
-          <div id="sideMode" class="sub">Major</div>
+          <div class="lbl" data-i18n="labels.keyRoot">Major or minor</div>
           <div class="wheel-toggle" role="group" aria-label="Key tonality: major or minor">
             <button id="viewMajorBtn" class="active" data-view="major" data-act="view.set" data-id="major" data-i18n="toggle.major">Major</button>
             <button id="viewMinorBtn" data-view="minor" data-act="view.set" data-id="minor" data-i18n="toggle.minor">Minor</button>
@@ -159,11 +156,6 @@
             <select id="modeSelect" aria-hidden="true" tabindex="-1"></select>
           </div>
           <div class="mode-note" id="modeNote" hidden></div>
-        </div>
-        <div class="card">
-          <div class="lbl" data-i18n="labels.accidentals">Accidentals</div>
-          <div id="accidentals" class="big">None</div>
-          <div id="accidentalType" class="sub">Natural</div>
         </div>
       </aside>
 
@@ -212,9 +204,10 @@
 
       <!-- RIGHT SIDE -->
       <aside class="side side-compact">
-        <div class="card relative-card">
-          <div class="lbl" data-i18n="labels.relativeMinor">Relative minor</div>
-          <div id="relMinorBig" class="big accent-t">Am</div>
+        <div class="card">
+          <div class="lbl" data-i18n="labels.accidentals">Accidentals</div>
+          <div id="accidentals" class="big">None</div>
+          <div id="accidentalType" class="sub">Natural</div>
         </div>
         <div class="card scale-card">
           <div class="lbl" data-i18n="labels.scaleNotes">Scale notes</div>
@@ -254,22 +247,6 @@
       </div>
     </div>
 
-    <!-- The scale where a musician actually reads it (V6.46). The chips above
-         say WHICH notes; only a keyboard says where the gaps are. Collapsible,
-         because it is an aid, not the subject of the screen. -->
-    <div class="scale-piano-block" id="scalePianoBlock">
-      <div class="spb-head">
-        <span class="spb-lbl" data-i18n="labels.scaleOnPiano">Scale on the piano</span>
-        <span class="spb-key" id="spbKey"></span>
-        <button class="spb-toggle" id="scalePianoBtn" data-act="scale.toggle"
-          aria-controls="scalePiano" aria-expanded="true">
-          <i data-ico="piano" data-ico-size="13"></i>
-          <span data-i18n="labels.piano">Piano</span>
-        </button>
-      </div>
-      <div id="scalePiano"></div>
-    </div>
-
     <!-- BOTTOM THEORY -->
     <div class="theory-bottom">
       <!-- Degrees — reference material: lives in Explore, where tapping one
@@ -291,6 +268,22 @@
             <div class="ppairs" id="pPairs"></div>
           </div>
         </div>
+      </div>
+
+    <!-- The scale where a musician actually reads it (V6.46). The chips above
+           say WHICH notes; only a keyboard says where the gaps are. Collapsible,
+           because it is an aid, not the subject of the screen. -->
+      <div class="scale-piano-block" id="scalePianoBlock">
+        <div class="spb-head">
+          <span class="spb-lbl" data-i18n="labels.scaleOnPiano">Scale on the piano</span>
+          <span class="spb-key" id="spbKey"></span>
+          <button class="spb-toggle" id="scalePianoBtn" data-act="scale.toggle"
+            aria-controls="scalePiano" aria-expanded="true">
+            <i data-ico="piano" data-ico-size="13"></i>
+            <span data-i18n="labels.piano">Piano</span>
+          </button>
+        </div>
+        <div id="scalePiano"></div>
       </div>
 
       <!-- Document + inspector + rhythm: one column on phones, two side by side
@@ -330,11 +323,11 @@
             <div class="bm-group" role="group" aria-label="Playback">
               <span class="bm-label" data-i18n="builder.grpPlayback">Playback</span>
               <div class="bm-btns">
-                <button class="builder-btn opt" id="surpriseBtn" data-ico="spark" data-act="builder.surprise" title="Drop in a random progression and play it" aria-label="Surprise me"></button>
-                <button class="builder-btn opt" id="loopBtn" data-ico="loop" data-act="prog.loop" title="Loop the progression" aria-label="Loop" aria-pressed="false"></button>
-                <button class="builder-btn opt sect-chain" id="chainBtn" data-act="prog.chain" title="Play section A then B as one song" aria-label="Chain A to B" aria-pressed="false">A→B</button>
-                <button class="builder-btn opt" id="countInBtn" data-ico="countin" data-act="play.opt" data-id="countIn" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false"></button>
-                <button class="builder-btn opt" id="voicingBtn" data-ico="voicing" data-act="play.opt" data-id="voicingOpen" title="Open (spread) voicing" aria-label="Open voicing" aria-pressed="false"></button>
+                <button class="builder-btn opt" id="surpriseBtn" data-ico="spark" data-act="builder.surprise" title="Drop in a random progression and play it" aria-label="Surprise me"><span data-i18n="pb.surprise">Surprise</span></button>
+                <button class="builder-btn opt" id="loopBtn" data-ico="loop" data-act="prog.loop" title="Loop the progression" aria-label="Loop" aria-pressed="false"><span data-i18n="pb.loop">Loop</span></button>
+                <button class="builder-btn opt sect-chain" id="chainBtn" data-act="prog.chain" title="Play section A then B as one song" aria-label="Chain A to B" aria-pressed="false">A→B <span data-i18n="pb.chain">song</span></button>
+                <button class="builder-btn opt" id="countInBtn" data-ico="countin" data-act="play.opt" data-id="countIn" title="One-bar count-in before play" aria-label="Count-in before play" aria-pressed="false"><span data-i18n="pb.countin">Count-in</span></button>
+                <button class="builder-btn opt" id="voicingBtn" data-ico="voicing" data-act="play.opt" data-id="voicingOpen" title="Open (spread) voicing" aria-label="Open voicing" aria-pressed="false"><span data-i18n="pb.voicing">Open voicing</span></button>
               </div>
             </div>
           </div>
@@ -398,8 +391,6 @@
             <!-- Identify (V6.33): the board listens to YOUR fingers and names the chord -->
             <button class="ident-toggle" data-act="ident.toggle" aria-pressed="false"
               title="What chord is this?"><span data-ico="lens" data-ico-size="15"></span><span class="it-lbl" data-i18n="ident.btn">Chord?</span></button>
-            <button class="tuner-toggle" data-act="tuner.open" title="Tuner"
-              aria-label="Guitar tuner"><span data-ico="fork" data-ico-size="15"></span><span class="it-lbl" data-i18n="tuner.btn">Tuner</span></button>
           </div>
         </div>
         <div class="instr-pager">
@@ -465,27 +456,6 @@
     <span class="tb-lbl" data-i18n="tabs.styles">Styles</span>
   </button>
 </nav>
-
-<!-- GUITAR TUNER (V6.33) — slide the metronome right to open -->
-<div id="tunerPanel" class="tuner-panel" hidden role="dialog" aria-modal="true" aria-label="Tuner">
-  <button class="tn-x" data-ico="close" data-ico-size="16" data-act="tuner.close" aria-label="Close"></button>
-  <div class="tn-note">–</div>
-  <div class="tn-which"></div>
-  <div class="tn-meter" aria-hidden="true">
-    <div class="tn-scale"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    <div class="tn-needle"></div>
-    <div class="tn-center"></div>
-  </div>
-  <div class="tn-cents"></div>
-  <div class="tn-hint"></div>
-  <button class="tn-mic" data-act="tuner.mic" hidden>Enable microphone</button>
-  <div class="tn-level" aria-hidden="true"><i></i></div>
-  <div class="tn-strings">
-    <button class="tn-str" data-act="tuner.string" data-f="82.4069">E</button><button class="tn-str" data-act="tuner.string" data-f="110">A</button>
-    <button class="tn-str" data-act="tuner.string" data-f="146.8324">D</button><button class="tn-str" data-act="tuner.string" data-f="195.9977">G</button>
-    <button class="tn-str" data-act="tuner.string" data-f="246.9417">B</button><button class="tn-str" data-act="tuner.string" data-f="329.6276">E</button>
-  </div>
-</div>
 
 <div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
 

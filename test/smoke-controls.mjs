@@ -303,6 +303,26 @@ try {
       await mp.waitForTimeout(300);
     }
 
+    // V6.49 — focus pass: one thing, one place. On a phone, Build without a
+    // selection is the builder and the rhythm — no second list of the key's
+    // chords; all seven suggestion bubbles are on screen (the row used to scroll
+    // sideways and hide V, vi, vii°); and the tuner is gone without leftovers.
+    {
+      const f = await mp.evaluate(async () => {
+        const wait = ms => new Promise(res => setTimeout(res, ms));
+        switchTab('build'); Inspector.clear(); scrollTo(0, 0); await wait(300);
+        const insp = document.getElementById('inspector');
+        const bubbles = [...document.querySelectorAll('.next-orbit .next-bubble')];
+        const inView = bubbles.filter(b => { const r = b.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; }).length;
+        return {
+          noKeyCardOnPhone: getComputedStyle(insp).display === 'none',
+          allBubblesVisible: bubbles.length === 7 && inView === 7,
+          tunerGone: !document.querySelector('[data-act^="tuner."], #tunerPanel, .metro-tuner') && typeof Tuner === 'undefined',
+        };
+      });
+      for (const k of Object.keys(f)) if (!f[k]) { console.error(`FAIL  V6.49 focus: ${k}`); failed++; }
+    }
+
     // V6.47 — logic and budget guards from the performance & cohesion pass.
     {
       const r = await mp.evaluate(async () => {
@@ -521,31 +541,8 @@ try {
     for (const k of ['shapesDeployed', 'noShapeToggles', 'summaryInert']) {
       if (!gs[k]) { console.error(`FAIL  mobile instrument: ${k}`); failed++; }
     }
-    // Tuner (V6.33): slide the transport capsule right → the tuner opens; the
-    // click that trails the swipe must NOT also open the island under it.
-    {
-      await mp.evaluate(() => { Inspector.clear(); scrollTo(0, 0); switchTab('build'); });
-      await mp.waitForTimeout(500);
-      const c = await mp.evaluate(() => { const q = document.querySelector('.ts-cap').getBoundingClientRect();
-        return { x: q.left + 20, y: q.top + q.height / 2 }; });
-      await mp.mouse.move(c.x, c.y); await mp.mouse.down();
-      await mp.mouse.move(c.x + 70, c.y + 2, { steps: 6 }); await mp.mouse.up();
-      await mp.waitForTimeout(600);
-      const tn = await mp.evaluate(() => ({
-        open: Tuner.isOpen(), noIsland: !document.body.classList.contains('ts-open'),
-        // Not listening here (no mic in the test browser) → the manual,
-        // tap-bound path to the permission prompt MUST be on screen.
-        micPath: !document.querySelector('.tn-mic').hidden }));
-      await mp.evaluate(() => Tuner.close());
-      await mp.waitForTimeout(200);
-      if (!tn.open)     { console.error('FAIL  mobile tuner: swipe did not open it'); failed++; }
-      if (!tn.noIsland) { console.error('FAIL  mobile tuner: the trailing click opened the island'); failed++; }
-      if (!tn.micPath)  { console.error('FAIL  mobile tuner: no manual mic button while not listening'); failed++; }
-      const closed = await mp.evaluate(() => !Tuner.isOpen());
-      if (!closed) { console.error('FAIL  mobile tuner: does not close'); failed++; }
-      await mp.evaluate(() => { switchTab('instrument'); gotoInstrument('guitar'); });
-      await mp.waitForTimeout(700);
-    }
+    await mp.evaluate(() => { switchTab('instrument'); gotoInstrument('guitar'); });
+    await mp.waitForTimeout(700);
 
     // Identify mode (V6.33): toggle on → tap C-E-G → the bar names C; toggle
     // off → shapes come back. The backlog feature, end to end.

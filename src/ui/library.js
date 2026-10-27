@@ -11,7 +11,10 @@ const PROG_PRESETS = [
   { name: 'ii–V–I',           tag: 'Jazz',      idx: [1, 4, 0] },
   { name: 'I–IV–V–I',         tag: 'Classic',   idx: [0, 3, 4, 0] },
   { name: 'i–♭VI–♭VII–i',     tag: 'Cinematic', idx: [0, 5, 6, 0] },
-  { name: 'i–♭VII–♭VI–V',     tag: 'Andalusian',idx: [0, 6, 5, 4] },
+  // Natural minor's fifth degree is a MINOR v; a true Andalusian cadence ends on
+  // a major V (harmonic minor), which this preset never builds. Named for what
+  // it plays (V6.49).
+  { name: 'i–♭VII–♭VI–v',     tag: 'Descent',   idx: [0, 6, 5, 4] },
   { name: '12-bar blues',     tag: 'Blues',     idx: [0, 0, 0, 0, 3, 3, 0, 0, 4, 3, 0, 4] },
   { name: 'I–V–vi–iii–IV',    tag: 'Canon',     idx: [0, 4, 5, 2, 3, 0, 3, 4] },
   { name: 'I–vi–ii–V',        tag: 'Doo-wop',   idx: [0, 5, 1, 4] },

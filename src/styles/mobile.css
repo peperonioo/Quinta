@@ -96,7 +96,13 @@
   .builder-meta   { flex-direction:column; align-items:flex-start }
   .builder-next-top { align-items:flex-start; flex-direction:column; gap:6px }
   .builder-next-context { white-space:normal }
-  .builder-next-moves .next-orbit { justify-content:flex-start !important; padding-inline:6px !important; gap:11px }
+  /* All seven chords visible (V6.49): the row scrolled sideways and cut V, vi
+     and vii° off-screen — V is very often the strongest move. It wraps now. */
+  .builder-next-moves .next-orbit { justify-content:center !important; padding-inline:6px !important; gap:10px 9px }
+  body[data-mode="build"]:not(.has-selection) .inspector { display:none }
+  /* The key chip at the top of Build repeated the transport capsule, which is
+     always on screen on a phone and shows the same key. One place. */
+  body[data-mode="build"] .ctx-bar { display:none !important }
   /* Raise the floor so every bubble is tappable, but keep the size difference. */
   .builder-next-moves .next-bubble { --diam:clamp(44px, var(--d), 82px) !important; padding:5px !important }
   /* Instrument pager — lives inside the transport island (#tsInstruments styles
@@ -180,7 +186,7 @@
      cut, it looks absent. A soft mask on the right edge says "there's more".
      The action bar joined them when Export took a labelled slot — Play and Export
      stay put, the icon buttons scroll under the fade. */
-  .builder-next-moves .next-orbit, .ts-prog-strip, .builder-actions {
+  .ts-prog-strip, .builder-actions {
     -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent);
             mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent);
   }

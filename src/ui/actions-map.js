@@ -172,12 +172,6 @@ ActionRegistry.addAll({
   'ident.toggle':     ()  => ChordIdent.toggle(),
   'ident.clear':      ()  => ChordIdent.clear(),
 
-  // ── Tuner (V6.33) ──
-  'tuner.open':       ()  => Tuner.open(),
-  'tuner.mic':        ()  => Tuner.start(),
-  'tuner.string':     el  => Tuner.lockString(parseFloat(el.dataset.f)),
-  'tuner.close':      ()  => Tuner.close(),
-
   // ── Misc ──
   'strip.pick':       el => pickProgChord(_aInt(el, 'idx')),
   'strip.pickKey':    el => pickKeyChord(_aInt(el, 'idx')),

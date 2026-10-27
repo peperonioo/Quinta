@@ -80,7 +80,7 @@ function gotoInstrument(which) {
     if (other)  other.open  = false;
     if (target) target.open = true;
     _setInstrUI(which);
-    // In Instrument mode the page STARTS at the header (key, switch, tuner) —
+    // In Instrument mode the page STARTS at the header (key, switch, ¿Acorde?) —
     // centering the board scrolled that chrome straight off screen, which is
     // why the switch went unnoticed. The centring is for the desktop drawers.
     if (document.body.dataset.mode === 'instrument') scrollTo({ top: 0, behavior: 'smooth' });

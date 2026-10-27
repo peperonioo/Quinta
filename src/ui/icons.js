@@ -26,7 +26,6 @@ const ICONS = {
   lane:      { p: '<path d="M3 4.5h18" opacity=".55"/><path d="M6.5 4.5v2M12 4.5v2M17.5 4.5v2" opacity=".55"/><rect x="3" y="9.5" width="8" height="9" rx="2"/><rect x="13.5" y="9.5" width="7.5" height="9" rx="2"/>' },
   vinyl:     { p: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><path d="M12 6.6a5.4 5.4 0 0 1 5.4 5.4M12 17.4A5.4 5.4 0 0 1 6.6 12"/>' },
   lens:      { p: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L21 21"/>' },
-  fork:      { p: '<path d="M9 3v7a3 3 0 0 0 6 0V3"/><path d="M12 13v7"/><path d="M9.5 21h5"/>' },
   help:      { p: '<circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a2.8 2.8 0 1 1 3.6 2.7c-.7.25-1.3.8-1.3 1.6v.4"/><circle cx="11.5" cy="17" r="1" fill="currentColor" stroke="none"/>' },
   chevron:   { p: '<path d="M6 9l6 6 6-6"/>' },
   chevronR:  { p: '<path d="M9 6l6 6-6 6"/>' },

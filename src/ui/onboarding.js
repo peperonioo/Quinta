@@ -50,8 +50,8 @@ const Onboarding = (() => {
         try { gotoInstrument('guitar'); } catch (_) {}
       },
       title: { en: 'Now play it yourself', es: 'Ahora tócala tú' },
-      body:  { en: 'Your instrument, full size. Tap “Chord?” and press a note on the neck — the board names whatever your fingers spell. The tuning fork opens a tuner.',
-               es: 'Tu instrumento a tamaño completo. Pulsa «¿Acorde?» y pisa una nota en el mástil — el tablero nombra lo que digan tus dedos. El diapasón abre el afinador.' },
+      body:  { en: 'Your instrument, full size. Tap “Chord?” and press a note on the neck — the board names whatever your fingers spell.',
+               es: 'Tu instrumento a tamaño completo. Pulsa «¿Acorde?» y pisa una nota en el mástil — el tablero nombra lo que digan tus dedos.' },
       try:   { en: 'Tap “Chord?”, then press a note.', es: 'Pulsa «¿Acorde?» y pisa una nota.' },
       done:  () => typeof ChordIdent === 'object' && ChordIdent.on && ChordIdent.sel.size >= 1 },
   ];

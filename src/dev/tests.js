@@ -138,6 +138,30 @@
         AppActions.setWheelView(keep.view); AppActions.setKey(keep.key); renderPiano(); renderGuitar();
       }
     }, false));
+    // The daily challenge's card must tell the truth (V6.49): the roman numerals
+    // it prints have to match the quality of every chord it actually builds. It
+    // used to pair presets with random modes — "E Dorian · i–♭VII–♭VI–V" played
+    // Em–D–C#°–Bm.
+    assert('Daily challenge: printed numerals match the chords built (120 days)', safe(() => {
+      const keep = { key: st.key, mode: st.mode, tonality: st.tonality, view: st.wheelView };
+      const want = r => /°/.test(r) ? 'Dim' : (r.replace(/[♭♯#b]/g, '') === r.replace(/[♭♯#b]/g, '').toUpperCase() ? 'Maj' : 'Min');
+      try {
+        for (let d = 0; d < 120; d++) {
+          const c = Comeback.challenge(new Date(2026, 0, 1 + d));
+          const pr = PROG_PRESETS[c.preset]; if (!pr) continue;
+          if (!/^[ivIV♭]/.test(pr.name)) continue;              // "12-bar blues" has no numerals
+          st.mode = c.mode; st.key = c.key;
+          const romans = pr.name.split('–'), chords = gc();
+          // the name lists the distinct numerals in order of first appearance
+          const seen = [...new Set(pr.idx)];
+          for (let k = 0; k < romans.length && k < seen.length; k++)
+            if (chords[seen[k]].quality !== want(romans[k])) return false;
+        }
+        return true;
+      } finally {
+        st.key = keep.key; st.mode = keep.mode; st.tonality = keep.tonality; st.wheelView = keep.view;
+      }
+    }, false));
     assert('Namer: shells and open voicings — how guitars actually voice', safe(() => {
       // The field bug: C·E·C ("no exact name") — omitted fifths are the bread
       // of guitar playing. Open chords, shells and dyads must all name.
@@ -162,54 +186,6 @@
           && r([0, 1]).length === 0 && r([0, 1, 2]).length === 0;
     }, false));
 
-    // ── Tuner detector (V6.38 · MPM) ─────────────────
-    // Realistic signals, not just sines: the sine-only tests passed while the
-    // old detector octave-erred on real strings ("va muy mal"). These are the
-    // tests that would have caught it.
-    assert('Tuner: harmonic-rich strings within ±2 cents', safe(() => {
-      const sr = 48000, N = 4096;
-      const cents = (a, b) => Math.abs(1200 * Math.log2(a / b));
-      const rich = f0 => Float32Array.from({ length: N }, (_, i) => {
-        let v = 0; for (let h = 1; h <= 6; h++) v += Math.sin(2 * Math.PI * f0 * h * i / sr) / h;
-        return v / 2;
-      });
-      return [82.4069, 110, 146.8324, 195.9977, 246.9417, 329.6276]
-        .every(f => cents(Tuner._detect(rich(f), sr).f, f) < 2);
-    }, false));
-    assert('Tuner: missing fundamental stays in the right octave', safe(() => {
-      // The phone-mic low-E case: harmonics 2..6 only, NO energy at f0. The old
-      // detector read this an octave up.
-      const sr = 48000, N = 4096;
-      const gut = f0 => Float32Array.from({ length: N }, (_, i) => {
-        let v = 0; for (let h = 2; h <= 6; h++) v += Math.sin(2 * Math.PI * f0 * h * i / sr) / h;
-        return v / 2;
-      });
-      const cents = (a, b) => Math.abs(1200 * Math.log2(a / b));
-      return cents(Tuner._detect(gut(82.4069), sr).f, 82.4069) < 5
-          && cents(Tuner._detect(gut(110), sr).f, 110) < 5;
-    }, false));
-    assert('Tuner: detuned +25c reads +25c; decay and noise survive', safe(() => {
-      const sr = 48000, N = 4096;
-      const rich = (f0, fn) => Float32Array.from({ length: N }, (_, i) => {
-        let v = 0; for (let h = 1; h <= 5; h++) v += Math.sin(2 * Math.PI * f0 * h * i / sr) / h;
-        return (fn ? fn(i) : 1) * v / 2;
-      });
-      const det = 110 * Math.pow(2, 25 / 1200);
-      const c1 = 1200 * Math.log2(Tuner._detect(rich(det), sr).f / 110);
-      const decay = Tuner._detect(rich(82.4069, i => Math.exp(-i / (N * 0.6))), sr);
-      let seed = 1; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5;
-      const noisy = Float32Array.from(rich(82.4069), (v, i) => v + rnd() * 0.3);
-      const nz = Tuner._detect(noisy, sr);
-      const cents = (a, b) => Math.abs(1200 * Math.log2(a / b));
-      return Math.abs(c1 - 25) < 3 && cents(decay.f, 82.4069) < 4 && cents(nz.f, 82.4069) < 6;
-    }, false));
-    assert('Tuner: silence and pure noise are refused', safe(() => {
-      const sr = 48000, N = 4096;
-      let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5;
-      const s1 = Tuner._detect(new Float32Array(N), sr);
-      const s2 = Tuner._detect(Float32Array.from({ length: N }, () => rnd() * 0.6), sr);
-      return s1.f === -1 && (s2.f === -1 || s2.clarity < 0.6);
-    }, false));
 
     withState({ key:'C', mode:'ionian', tonality:'major' }, () => {
       assert('C major scale',           safe(() => gs().join(' ') === 'C D E F G A B', false), safe(() => gs(), []));
@@ -634,8 +610,12 @@
 
     add('Wheel blocks page scroll (touch-action:none)', cs(wheel).touchAction === 'none', safe(() => cs(wheel).touchAction, '?'));
     add('Wheel blocks text selection',                  /none/.test(safe(() => cs(wheel).userSelect || cs(wheel).webkitUserSelect, '') || ''));
-    add('Bubble row scrolls sideways only',             orbit ? /pan-x/.test(cs(orbit).touchAction) : false, safe(() => cs(orbit).touchAction, 'no orbit'));
-    add('Bubble row contains its overscroll',           orbit ? cs(orbit).overscrollBehaviorX === 'contain' : false);
+    // V6.49: the row WRAPS — every chord visible — instead of scrolling sideways
+    // (it cut V, vi and vii° off-screen). Page scrolls through the gaps; each
+    // bubble owns its touch because it is dragged up onto the timeline.
+    const bub = orbit && orbit.querySelector('.next-bubble');
+    add('Bubble row wraps (no sideways scroller)',      orbit ? cs(orbit).flexWrap === 'wrap' : false, safe(() => cs(orbit).flexWrap, 'no orbit'));
+    add('Bubbles own their drag (touch-action:none)',   bub ? cs(bub).touchAction === 'none' : false, safe(() => cs(bub).touchAction, 'no bubble'));
     add('Pills row scrolls sideways only',              row ? /pan-x/.test(cs(row).touchAction) : true);
     add('Page blocks vertical overscroll bounce',       cs(document.body).overscrollBehaviorY === 'none' || rootCs.overscrollBehaviorY === 'none');
     add('Safe-area inset token present',                !!rootCs.getPropertyValue('--mobile-safe-top').trim());

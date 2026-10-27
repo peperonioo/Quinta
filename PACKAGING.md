@@ -9,7 +9,7 @@
 
 | Fase | Qué | Coste | Puerta para avanzar |
 |------|-----|-------|---------------------|
-| **0 · PWA a amigos** (AHORA) | El enlace de /v2/ (o raíz al promocionar). Ya instalable, ya con telemetría, afinador y micro funcionando en Safari. | **0 €** | Ninguna — es esta semana |
+| **0 · PWA a amigos** (AHORA) | El enlace de /v2/ (o raíz al promocionar). Ya instalable y con telemetría. | **0 €** | Ninguna — es esta semana |
 | **1 · Leer el funnel** | 2 semanas de datos de amigos (las 5 preguntas del audit p.6) | 0 € | doGet/Drive desbloqueado |
 | **2 · TestFlight** | Capacitor → Xcode → beta "app de verdad" para el círculo amplio | **99 $/año** (la cuenta Apple sirve para TestFlight Y para la store) | D7 amigos > 20% — no pagar cuota por un producto que no retiene |
 | **3 · App Store** | Ficha pública, review de Apple | (misma cuota) | Retención estable + los "must" de abajo resueltos |
@@ -30,15 +30,14 @@ telemetría antes de pagar tiendas.**
 2. `npm run cap:sync && npx cap add ios && npm run cap:ios` → abre Xcode.
 3. En Xcode: firmar con tu equipo, bundle id `com.peperonioo.quinta` (revisar
    ANTES de subir nada: es permanente).
-4. **Info.plist** — imprescindible para el afinador:
-   `NSMicrophoneUsageDescription` = "Quinta usa el micrófono para afinar tu
-   guitarra." Sin esta clave, getUserMedia crashea la app nativa.
+4. **Info.plist** — el afinador se retiró en V6.49 (iba mal en móvil; queda
+   pendiente rehacerlo). Si vuelve, hará falta `NSMicrophoneUsageDescription`
+   — sin esa clave, getUserMedia crashea la app nativa.
 5. Icono 1024×1024 — ya existe el arte (la Q de vidrio, `art/v2-icon-512.png`);
    regenerar a 1024 con el mismo harness.
 6. Product → Archive → Distribute → TestFlight. Invitas por email.
 
 Notas WKWebView (probado por otros, vigilar en la primera build):
-- `getUserMedia` funciona en Capacitor desde iOS 14.3+ ✓ (el afinador vive).
 - `localStorage` persiste ✓ (el documento vive).
 - El service worker no hace falta dentro del wrapper (los archivos son locales).
 
@@ -48,7 +47,7 @@ Notas WKWebView (probado por otros, vigilar en la primera build):
   bloqueador de ficha, no solo estético).
 - Política de privacidad (1 página: telemetría anónima, DNT respetado, sin
   cuentas). La "nutrition label" de App Store se rellena con eso.
-- Guideline 4.2 (funcionalidad mínima): Quinta va sobrada — afinador +
+- Guideline 4.2 (funcionalidad mínima): Quinta va sobrada —
   identificador + secuenciador + export es una app "de verdad".
 - Si Studio se vende DENTRO de la app iOS → obligatorio IAP de Apple (15-30%).
   Por eso la fase 4 recomienda: vender primero en la web (Stripe, 0% de Apple),

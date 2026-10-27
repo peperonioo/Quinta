@@ -32,16 +32,15 @@ const Comeback = (() => {
     const h = _hash(_dayKey(day));
     const genres = Object.keys(typeof GENRES === 'object' ? GENRES : { house: 1 });
     const roots = (typeof FIFTHS !== 'undefined' && FIFTHS.length) ? FIFTHS : NOTES;
-    // Every mode except locrian: its tonic triad is diminished, so a daily prompt
-    // built on it has nowhere to resolve. It stays selectable in the mode menu.
-    const modes = (typeof MODE_ORDER !== 'undefined')
-      ? MODE_ORDER.filter(m => m !== 'locrian') : ['ionian'];
-    // Independent slices of the hash so two fields never move in lockstep.
-    const mode = modes[(h >>> 4) % modes.length];
-    // The preset has to match the mode's tonality, or the card promises "G Lydian"
-    // and hands over a progression labelled i–iv–v–i. SURPRISE_POOL already splits
-    // the presets into major- and minor-sounding sets; reuse it.
-    const minor = (typeof modeIsMinor === 'function') ? modeIsMinor(mode) : false;
+    // The presets are written in roman numerals for ONE scale each — major ones
+    // for ionian, minor ones for natural minor — and HistoryEngine builds their
+    // degrees in whatever mode is active. Pairing them with a random mode made
+    // the card lie (V6.49): "E Dorian · i–♭VII–♭VI–V Andalusian" actually played
+    // Em–D–C#°–Bm. The challenge now picks major or minor and builds the preset
+    // in the scale its numerals were written for, so the card is the truth.
+    // (Independent slices of the hash so two fields never move in lockstep.)
+    const minor = ((h >>> 4) & 1) === 1;
+    const mode = minor ? 'aeolian' : 'ionian';
     const pool = (typeof SURPRISE_POOL !== 'undefined')
       ? SURPRISE_POOL[minor ? 'minor' : 'major']
       : (typeof PROG_PRESETS !== 'undefined' ? PROG_PRESETS.map((_, i) => i) : []);

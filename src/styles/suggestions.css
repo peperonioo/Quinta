@@ -21,13 +21,8 @@
   gap:11px;
   min-height:118px;
   padding:12px 4px 10px;
-  overflow-x:auto;
-  overflow-y:visible;
-  -webkit-overflow-scrolling:touch;
-  touch-action:pan-x;            /* horizontal swipe scrolls bubbles, vertical scrolls page */
-  overscroll-behavior-x:contain; /* don't chain scroll to the page */
-  scroll-snap-type:x proximity;
-  scrollbar-width:thin;
+  flex-wrap:wrap;                /* V6.49: every chord visible — no sideways scroller */
+  touch-action:pan-y;            /* the page scrolls through the gaps… */
   border-radius:22px;
   background:linear-gradient(180deg,rgba(255,255,255,.034),rgba(255,255,255,.014));
   border:1px solid rgba(255,255,255,.045);
@@ -36,9 +31,9 @@ body.light .next-orbit {
   background:linear-gradient(180deg,rgba(255,255,255,.52),rgba(255,255,255,.25));
   border-color:rgba(0,0,0,.045);
 }
-.next-orbit::-webkit-scrollbar       { height:4px }
-.next-orbit::-webkit-scrollbar-thumb { background:rgba(255,255,255,.14); border-radius:99px }
-body.light .next-orbit::-webkit-scrollbar-thumb { background:rgba(0,0,0,.14) }
+/* …and each bubble owns its touch: it is dragged UP onto the timeline, so a
+   vertical drag that starts on one must not become a page scroll. */
+.next-orbit .next-bubble { touch-action:none }
 
 /* "Outside the key" — always-visible entry point to borrowed / non-diatonic
    chords (the Color panel), right where you build. Dashed = "add something extra". */

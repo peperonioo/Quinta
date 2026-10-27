@@ -2,7 +2,7 @@
 const I18N_EN = {
   'tabs.theory':       'Theory',
   'tabs.production':   'Production',
-  'labels.keyRoot':    'Key / Root',
+  'labels.keyRoot':    'Major or minor',
   'labels.mode':       'Mode',
   'labels.accidentals':'Accidentals',
   'labels.relativeMinor':'Relative minor',
@@ -122,7 +122,11 @@ const I18N_EN = {
   'doc.save': 'Save',
   'doc.new': 'New',
   'ident.btn': 'Chord?',
-  'tuner.btn': 'Tuner',
   'instr.piano': 'Piano',
   'instr.guitar': 'Guitar',
+  'pb.surprise': 'Surprise',
+  'pb.loop': 'Loop',
+  'pb.chain': 'song',
+  'pb.countin': 'Count-in',
+  'pb.voicing': 'Open voicing',
 };

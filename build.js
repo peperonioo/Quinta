@@ -122,7 +122,6 @@ const JS_FILES = [
   'src/core/utils.js',
   // Audio engine (Web Audio synth) — uses utils at runtime
   'src/core/audio-engine.js',
-  'src/core/tuner.js',
   'src/core/groove-engine.js',
   // MIDI export + shareable-link state — uses audio-engine helpers at runtime
   'src/core/export-share.js',
